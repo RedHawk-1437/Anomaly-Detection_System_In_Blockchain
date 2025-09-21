@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Anomaly Detection in Blockchain - Double Spending</title>
+
+  <!-- Link external CSS file for page styling -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <!-- Import Chart.js library (used for charts) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Link external JavaScript file (handles frontend logic) -->
+  <script defer src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<body>
+  <!-- =========================
+       Website Header Section
+  ========================== -->
+  <header class="site-header">
+    <div class="header-container">
+
+      <!-- Instructor Information -->
+      <div class="instructor-info">
+        <img src="{{ url_for('static', filename='vu_logo.png') }}" alt="VU Logo" class="logo">
+        <p><strong>Project Instructor:</strong> Fouzia Jumani</p>
+        <p>Skype: fouziajumani</p>
+        <p>Email: fouziajumani@vu.edu.pk</p>
+      </div>
+
+      <!-- Project Title (Centered in header) -->
+      <div class="title-box">
+        <h1>Anomaly Detection System in Blockchain</h1>
+        <h2>Prototype: Double Spending Attack Simulation</h2>
+      </div>
+
+      <!-- Author Information -->
+      <div class="author-info">
+        <img src="{{ url_for('static', filename='student_pic.png') }}" alt="Author Pic" class="student-pic">
+        <p><strong>Project Author:</strong> Eng.Muhammad Imtiaz Shaffi</p>
+        <p>VU ID: BC220200917</p>
+        <p>Email: bc220200917mis@vu.edu.pk</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================
+       Main Content Area
+  ========================== -->
+  <main class="container">
+
+    <!-- Short Introduction Section -->
+    <div class="header-text">
+      <h2>Prototype: Double Spending Attack Simulation</h2>
+      <p>This prototype demonstrates a simple blockchain network and a double-spending attack simulation.</p>
+    </div>
+    <hr>
+
+    <!-- Blockchain Playground Section -->
+    <h3>-: Blockchain Playground :-</h3>
+
+    <!-- Create New Transaction Section -->
+    <div class="section-box">
+      <h4>Create New Transaction</h4>
+      <!-- Form to add a new transaction -->
+      <form id="tx-form">
+        <div class="form-group">
+          <label for="tx-sender">Sender:</label>
+          <input type="text" id="tx-sender" placeholder="e.g., Alice" required>
+        </div>
+        <div class="form-group">
+          <label for="tx-receiver">Receiver:</label>
+          <input type="text" id="tx-receiver" placeholder="e.g., Bob" required>
+        </div>
+        <div class="form-group">
+          <label for="tx-amount">Amount:</label>
+          <input type="number" id="tx-amount" placeholder="e.g., 10" step="any" required>
+        </div>
+        <button type="submit" class="primary-btn">Submit Transaction</button>
+      </form>
+      <!-- Transaction response will be shown here -->
+      <pre id="tx-response" class="result-box" style="display:none;"></pre>
+    </div>
+
+    <!-- Mine Pending Transactions Section -->
+    <div class="section-box">
+      <h4>Mine Pending Transactions</h4>
+      <div class="form-group">
+        <label for="miner-name">Miner Name:</label>
+        <input type="text" id="miner-name" placeholder="e.g., Miner1">
+      </div>
+      <button id="mine-btn" class="primary-btn">Mine Block</button>
+      <!-- Mining result will be displayed here -->
+      <pre id="mine-response" class="result-box" style="display:none;"></pre>
+    </div>
+
+    <!-- Balances Section -->
+    <div class="section-box">
+      <h4>Current Balances</h4>
+      <button id="refresh-balances-btn" class="primary-btn">Refresh Balances</button>
+      <pre id="balances-output"></pre>
+    </div>
+
+    <!-- Blockchain Chain Section -->
+    <div class="section-box">
+      <h4>Blockchain Chain</h4>
+      <button id="refresh-chain-btn" class="primary-btn">Refresh Chain</button>
+      <pre id="chain-output"></pre>
+
+      <!-- Chart to display blockchain growth -->
+      <div id="chain-chart-container" style="margin-top:20px; display:none;">
+        <h4>Blockchain Growth Chart</h4>
+        <canvas id="chainChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Attack Simulation Section -->
+    <div class="section-box">
+      <h4>Run Double-Spend Attack (Demo)</h4>
+      <div class="form-group">
+        <label>Attacker Name</label>
+        <input id="attack-attacker" placeholder="Attacker1">
+        <label>Private Blocks to Mine</label>
+        <input id="attack-blocks" type="number" value="1">
+        <label>Amount</label>
+        <input id="attack-amount" type="number" value="5" step="any">
+      </div>
+      <button id="run-attack-btn" class="primary-btn">Run Attack</button>
+      <!-- Attack result will be displayed here -->
+      <pre id="attack-output" class="result-box" style="display:none;"></pre>
+    </div>
+
+    <hr>
+
+    <!-- =========================
+         P2P Network Section
+    ========================== -->
+    <h3>-: P2P Network :-</h3>
+
+    <!-- Register a New Peer Section -->
+    <div class="section-box">
+        <h4>Register a New Peer</h4>
+        <div class="form-group">
+            <label for="peer-address">Peer Address:</label>
+            <input type="text" id="peer-address" placeholder="e.g., http://127.0.0.1:5001" required>
+        </div>
+        <button id="add-peer-btn" class="primary-btn">Add Peer</button>
+        <pre id="peer-response" class="result-box" style="display:none;"></pre>
+    </div>
+
+    <!-- Resolve Network Conflicts Section -->
+    <div class="section-box">
+        <h4>Resolve Network Conflicts</h4>
+        <p>Fetch the longest chain from all known peers and replace our chain if it's shorter.</p>
+        <button id="resolve-conflicts-btn" class="primary-btn">Run Consensus</button>
+        <pre id="consensus-response" class="result-box" style="display:none;"></pre>
+    </div>
+
+    <hr>
+
+    <!-- =========================
+         SimBlock Simulation Section
+    ========================== -->
+    <h3>-: SimBlock Simulation :-</h3>
+    <button id="run-analysis-btn" class="primary-btn">Run Simulation</button>
+    <div id="loading-spinner" class="spinner" style="display:none;">⏳ Running...</div>
+
+    <!-- Simulation Results Section -->
+    <div id="simulation-summary" class="result-box" style="display:none;">
+      <h3>Simulation Summary</h3>
+      <table id="summary-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <!-- Chart for simulation statistics -->
+      <div id="simblock-chart-container" style="margin-top:20px;">
+        <h4>Simulation Stats Chart</h4>
+        <canvas id="simblockChart"></canvas>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- Button to download PDF report -->
+    <button id="download-report-btn" class="primary-btn">Download PDF Report</button>
+    <div id="pdf-spinner" class="spinner" style="display:none;">⏳ Generating PDF...</div>
+  </main>
+
+  <!-- =========================
+       Footer Section
+  ========================== -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <p>© 2025 This project is developed under the supervision of Virtual University of Pakistan</p>
+    </div>
+  </footer>
+</body>
+</html>

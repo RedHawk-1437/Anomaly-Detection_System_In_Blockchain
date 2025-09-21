@@ -1,0 +1,19 @@
+{
+  "simulation": {
+    "endBlockHeight": 60
+  },
+  "network": {
+    "numNodes": 4,
+    "latency": "uniform",
+    "minLatency": 10,
+    "maxLatency": 500,
+    "bandwidth": 1000000
+  },
+  "block": {
+    "size": 1000000
+  },
+  "attack": {
+    "enableDoubleSpending": true,
+    "attackerHashrateRatio": 0.3
+  }
+}

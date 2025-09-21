@@ -1,0 +1,211 @@
+/* ============================
+   Global Styles - These apply to the whole webpage
+============================ */
+body {
+  font-family: Arial, sans-serif;   /* Set main text style */
+  background: #f5f7fa;             /* Light background color */
+  color: #333;                     /* Default text color */
+  margin: 0;                       /* Remove default page margin */
+  padding: 0;                      /* Remove default page padding */
+  line-height: 1.6;                /* Space between lines of text */
+}
+
+h1, h2, h3, h4 {
+  margin: 0.5em 0;    /* Add space above and below headings */
+  font-weight: 600;   /* Make headings bold */
+}
+
+pre {
+  background: #e6f2ff;   /* Light blue background for code box */
+  color: #003366;        /* Dark blue text for contrast */
+  padding: 10px;         /* Space inside the box */
+  border-radius: 6px;    /* Rounded corners */
+  overflow-x: auto;      /* Horizontal scroll if code is wide */
+  font-size: 1.2em;      /* Bigger text size */
+  border: 1px solid #99c2ff; /* Light blue border */
+  line-height: 1.2;      /* Small gap between lines */
+  white-space: pre-line; /* Keeps line breaks */
+  max-height: 300px;     /* Limit box height */
+  overflow-y: auto;      /* Add vertical scroll if needed */
+}
+
+/* ============================
+   Header Section - Top part of the site
+============================ */
+
+.site-header {
+  background: #1e3c72;  /* Dark blue color */
+  background: linear-gradient(to right, #2a5298, #1e3c72); /* Gradient color */
+  color: white;         /* White text color */
+  padding: 20px 40px;   /* Space inside header */
+  width: 100%;          /* Full page width */
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+.header-container {
+  display: flex;              /* Arrange items in a row */
+  justify-content: space-between; /* Spread items apart */
+  align-items: center;        /* Align items vertically in center */
+  flex-wrap: nowrap;          /* Don’t allow items to wrap */
+  gap: 40px;                  /* Space between items */
+}
+
+/* Title Box inside Header */
+.title-box {
+  text-align: center; /* Center text */
+  flex-grow: 1;       /* Take remaining space */
+}
+
+.title-box h1 {
+  font-size: 2.2em;     /* Big title */
+  letter-spacing: 1px;  /* Space between letters */
+}
+
+.title-box h2 {
+  font-size: 1.2em;    /* Smaller subtitle */
+  font-weight: 400;    /* Normal weight */
+  opacity: 0.8;        /* Slightly transparent */
+}
+
+/* Logo and Student Picture */
+.logo {
+  max-width: 80px;     /* Limit image width */
+  height: auto;        /* Keep aspect ratio */
+  border-radius: 50%;  /* Make it circular */
+  border: 2px solid white; /* White border */
+}
+
+.student-pic {
+  max-width: 80px;
+  height: auto;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+/* Instructor and Author Info */
+.instructor-info, .author-info {
+  display: flex;            /* Vertical layout */
+  flex-direction: column;
+  align-items: center;      /* Center content */
+  text-align: center;
+  font-size: 0.9em;         /* Slightly smaller text */
+}
+
+.instructor-info p, .author-info p {
+  margin: 2px 0;  /* Small margin between lines */
+}
+
+/* ===========================
+   Main Content Layout - Page body
+============================ */
+.container {
+  max-width: 1200px;   /* Max width for readability */
+  margin: 20px auto;   /* Center horizontally with space on top/bottom */
+  padding: 0 20px;     /* Add space inside */
+}
+
+.header-text {
+  text-align: center;  /* Center text */
+  margin-bottom: 30px; /* Space below */
+}
+
+.section-box {
+  background: white;               /* White background */
+  padding: 25px;                   /* Inside spacing */
+  margin-bottom: 20px;             /* Space below box */
+  border-radius: 8px;              /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Light shadow */
+}
+
+.section-box h4 {
+  border-bottom: 2px solid #2a5298; /* Underline heading */
+  padding-bottom: 10px;             /* Space below text */
+  margin-bottom: 20px;              /* Gap below */
+}
+
+.result-box {
+  margin-top: 20px;  /* Space above */
+  display: block;    /* Ensure it shows up as block element */
+}
+
+/* ===========================
+   Forms and Buttons
+============================ */
+.form-group {
+  margin-bottom: 15px; /* Space below input group */
+}
+
+.form-group label {
+  display: block;      /* Label on separate line */
+  margin-bottom: 5px;  /* Small gap below */
+  font-weight: bold;   /* Make label bold */
+}
+
+.form-group input {
+  width: 90%;          /* Input width */
+  padding: 8px;        /* Space inside input */
+  border: 1px solid #ccc; /* Gray border */
+  border-radius: 6px;  /* Rounded corners */
+}
+
+/* Main Button */
+button.primary-btn {
+  background: #2a5298;   /* Blue color */
+  color: white;          /* White text */
+  border: none;          /* No border */
+  padding: 10px 16px;    /* Inside spacing */
+  border-radius: 6px;    /* Rounded corners */
+  cursor: pointer;       /* Pointer on hover */
+  transition: background 0.3s; /* Smooth color change */
+  margin-top: 10px;      /* Space above */
+}
+
+button.primary-btn:hover {
+  background: #1e3c72;   /* Darker blue on hover */
+}
+
+/* Loading text or spinner */
+.spinner {
+  margin-top: 10px;
+  font-style: italic;
+  color: #444;           /* Dark gray */
+}
+
+/* ===========================
+   Tables - Data display
+=========================== */
+table {
+  width: 100%;           /* Full width */
+  border-collapse: collapse; /* Merge borders */
+  margin-top: 10px;
+  font-size: 0.9em;      /* Small text */
+  line-height: 1.2;      /* Less space between lines */
+}
+
+table th,
+table td {
+  border: 1px solid #ddd;    /* Light border */
+  padding: 6px 10px;         /* Compact padding */
+  text-align: center;        /* Center text */
+}
+
+table th {
+  background: #2a5298;   /* Blue background */
+  color: white;          /* White text */
+  font-weight: bold;     /* Bold text */
+}
+
+table tr:nth-child(even) {
+  background: #f9f9f9;   /* Light gray for alternate rows */
+}
+
+/* ===========================
+   Footer Section - Bottom part
+============================ */
+.site-footer {
+  background: #1e3c72;   /* Dark blue background */
+  color: white;          /* White text */
+  text-align: center;    /* Centered text */
+  padding: 10px 0;       /* Vertical padding */
+  margin-top: 20px;      /* Space above footer */
+}

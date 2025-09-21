@@ -1,0 +1,6 @@
+Flask
+fpdf2
+matplotlib
+requests
+pandas
+numpy

@@ -1,0 +1,36 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "type": "normal",
+      "region": "NorthAmerica",
+      "miningPower": 0.2333333333333333,
+      "cpu": "default",
+      "bandwidth": "100Mbps"
+    },
+    {
+      "id": 1,
+      "type": "normal",
+      "region": "Europe",
+      "miningPower": 0.2333333333333333,
+      "cpu": "default",
+      "bandwidth": "100Mbps"
+    },
+    {
+      "id": 2,
+      "type": "normal",
+      "region": "Asia",
+      "miningPower": 0.2333333333333333,
+      "cpu": "default",
+      "bandwidth": "100Mbps"
+    },
+    {
+      "id": 3,
+      "type": "attacker",
+      "region": "SouthAmerica",
+      "miningPower": 0.01,
+      "cpu": "default",
+      "bandwidth": "100Mbps"
+    }
+  ]
+}
