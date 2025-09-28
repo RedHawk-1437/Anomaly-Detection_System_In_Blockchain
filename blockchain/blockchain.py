@@ -1,4 +1,4 @@
-# blockchain.py
+# blockchain.py - FIXED VERSION
 # This file defines the Blockchain class which handles the chain of blocks,
 # transactions, mining, and peer-to-peer communication.
 
@@ -72,24 +72,57 @@ class Blockchain:
             return {"error": f"Failed to add transaction: {e}"}
 
     def add_new_block(self, new_block: Block) -> bool:
-        # Add a block received from a peer into our chain
+        # Add a block received from a peer into our chain - IMPROVED VERSION
+        if not isinstance(new_block, Block):
+            print("Block rejected: Invalid block type")
+            return False
+
         last_block = self.last_block()
 
-        # Block must link correctly to the last block
-        if new_block.previous_hash != last_block.hash:
+        # Check if this block builds on our last block
+        if new_block.previous_hash == last_block.hash:
+            # Standard case: block continues our chain
+            print(f"Block #{new_block.index} continues from our last block #{last_block.index}")
+
+            # Validate proof-of-work
+            if not self._valid_proof(new_block):
+                print(f"Block rejected: Invalid proof-of-work")
+                return False
+
+            # Validate hash
+            if new_block.hash != new_block.compute_hash():
+                print(f"Block rejected: Hash mismatch")
+                return False
+
+            # Remove included transactions from mempool
+            included_ids = {tx.id for tx in new_block.transactions if tx.sender != "SYSTEM"}
+            self.mempool = [tx for tx in self.mempool if tx.id not in included_ids]
+
+            # Add the block to our chain
+            self.chain.append(new_block)
+            print(f"✅ Block #{new_block.index} added successfully")
+            return True
+
+        else:
+            # This block doesn't continue our chain - it might be a fork
+            print(f"Block #{new_block.index} has different previous hash")
+            print(f"Expected (block #{last_block.index}): {last_block.hash[:10]}...")
+            print(f"Got: {new_block.previous_hash[:10]}...")
+
+            # Check if this block connects to any earlier block in our chain
+            for i, existing_block in enumerate(self.chain):
+                if new_block.previous_hash == existing_block.hash:
+                    print(f"Block connects to block #{existing_block.index} in our chain")
+
+                    # This is a fork - we need to handle it properly
+                    # For now, we'll reject forks to keep it simple
+                    # In a real implementation, you'd check which chain is longer
+                    print("Fork detected - rejecting for simplicity")
+                    return False
+
+            # Block doesn't connect to our chain at all
+            print("Block rejected: Does not connect to our chain")
             return False
-
-        # Block must pass proof-of-work
-        if not self._valid_proof(new_block):
-            return False
-
-        # Remove included transactions from our mempool (to avoid duplicates)
-        included_ids = {tx.id for tx in new_block.transactions if tx.sender != "SYSTEM"}
-        self.mempool = [tx for tx in self.mempool if tx.id not in included_ids]
-
-        # Finally, add the block
-        self.chain.append(new_block)
-        return True
 
     def resolve_conflicts(self) -> bool:
         # Consensus Algorithm: Replace our chain with the longest valid chain among peers
@@ -98,7 +131,7 @@ class Blockchain:
 
         for peer in list(self.peers):
             try:
-                response = requests.get(f'{peer}/blocks')
+                response = requests.get(f'{peer}/blocks', timeout=5)
                 if response.status_code == 200:
                     data = response.json()
 
@@ -117,7 +150,7 @@ class Blockchain:
         # If a longer valid chain is found, replace ours
         if longest_chain:
             self.chain = longest_chain
-            # For simplicity, clear mempool (in real systems we’d re-check missing transactions)
+            # For simplicity, clear mempool (in real systems we'd re-check missing transactions)
             self.mempool = []
             return True
         return False

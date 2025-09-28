@@ -5,79 +5,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0067b3e3-1292-47f3-9ada-6f0ab46b1c6d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/Anomaly-Detection_System_In_Blockchain.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/aws.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.edit.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/blockchain/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/blockchain/attacker.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/blockchain/block.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/blockchain/blockchain.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/blockchain/simblock_output/blockList.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/blockchain/simblock_output/output.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/blockchain/simblock_output/static.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/blockchain/transaction.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/LICENSE.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/build.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/checkstyle-suppressions.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/docs/en/usage.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/docs/jp/usage.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/google-checks.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/gradlew" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/gradlew.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/settings.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/conf/config.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/conf/nodes.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/conf/simulator.conf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/output/output.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/output/static.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/dist/conf/scenario.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/dist/conf/simulator.conf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/dist/output/graph/.gitkeep" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/block/Block.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/block/Coinage.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/block/ProofOfWorkBlock.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/block/SamplePoSBlock.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/node/Node.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/node/consensus/AbstractConsensusAlgo.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/node/consensus/ProofOfWork.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/node/consensus/SampleProofOfStake.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/node/routing/AbstractRoutingTable.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/node/routing/BitcoinCoreTable.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/settings/NetworkConfiguration.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/settings/SimulationConfiguration.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/simulator/Main.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/simulator/Network.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/simulator/Simulator.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/simulator/Timer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/task/AbstractMessageTask.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/task/AbstractMintingTask.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/task/BlockMessageTask.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/task/CmpctBlockMessageTask.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/task/GetBlockTxnMessageTask.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/task/InvMessageTask.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/task/MiningTask.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/task/RecMessageTask.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/task/SampleStakingTask.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/java/simblock/task/Task.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/resources/conf/config.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/resources/conf/nodes.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simblock/simulator/src/main/resources/conf/simulator.conf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web/static/app.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web/static/student_pic.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web/static/styles.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web/static/vu_logo.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test_suite.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blockchain/attacker.py" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/attacker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blockchain/block.py" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/block.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blockchain/blockchain.py" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/blockchain.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blockchain/simblock_output/blockList.txt" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/simblock_output/blockList.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blockchain/simblock_output/output.json" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/simblock_output/output.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blockchain/transaction.py" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/transaction.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/Double-Spending-Report.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/reports/Double-Spending-Report.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/simblock/simulator/output/output.json" beforeDir="false" afterPath="$PROJECT_DIR$/simblock/simulator/output/output.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/static/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/web/static/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/static/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/web/static/styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/web/templates/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -94,9 +35,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 2
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="330c4EzFGmeXmoftee9daT2VvYC" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -105,18 +46,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "E:/Projects/Anomaly-Detection_System_In_Blockchain/blockchain"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/Projects/Anomaly-Detection_System_In_Blockchain/web/templates&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\Projects\Anomaly-Detection_System_In_Blockchain\web\templates" />
       <recent name="E:\Projects\Anomaly-Detection_System_In_Blockchain\blockchain" />
       <recent name="E:\Projects\Anomaly-Detection_System_In_Blockchain" />
       <recent name="E:\Projects\Anomaly-Detection_System_In_Blockchain\web\static" />
