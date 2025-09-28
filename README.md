@@ -1,83 +1,262 @@
-Blockchain Double-Spending & Anomaly Detection System
-This project is a Flask-based web application that provides a user-friendly interface to a simplified blockchain. It serves as an educational tool to demonstrate core blockchain concepts, including transactions, mining (Proof-of-Work), peer-to-peer (P2P) networking, and a classic double-spending attack simulation.
+# 🚀 Blockchain Anomaly Detection System - Double Spending Attack Simulation
 
-The system integrates a custom blockchain implementation with a simulation framework to analyze the probability of a double-spending attack succeeding under various conditions.
+<div align="center">
 
-🌟 Features
-Blockchain Playground: Create and broadcast new transactions, mine new blocks, and view the current state of the blockchain and user balances.
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![Flask](https://img.shields.io/badge/Flask-2.3.3-green)
+![Blockchain](https://img.shields.io/badge/Blockchain-Enabled-brightgreen)
+![SimBlock](https://img.shields.io/badge/SimBlock-Integrated-orange)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-P2P Network: Add multiple nodes (peers) and run a consensus algorithm to ensure all nodes have the longest, most valid chain.
+**A comprehensive blockchain prototype with double-spending attack detection and network simulation capabilities**
 
-Double-Spending Attack Simulation: A dedicated section to simulate a classic double-spending attack, visualizing the attacker's actions and the outcome.
+*Developed under the supervision of Virtual University of Pakistan*
 
-Visualizations: Interactive charts to track blockchain growth and visualize the results of the attack simulation.
+</div>
 
-PDF Report Generation: Generate a comprehensive PDF report summarizing the blockchain state and simulation results for analysis.
+## 📖 Overview
 
-🚀 Getting Started
-Follow these steps to set up and run the project locally.
+This project implements a complete blockchain ecosystem with advanced anomaly detection capabilities. It features a custom blockchain implementation, double-spending attack simulation, P2P network functionality, and integration with SimBlock for large-scale network analysis.
 
-Prerequisites
-Python 3.7+
+## ✨ Key Features
 
-pip (Python package installer)
+### 🔗 Core Blockchain
+- **Custom Blockchain Implementation** with Proof-of-Work consensus
+- **Transaction Management** with mempool and mining rewards
+- **P2P Network** with peer discovery and chain synchronization
+- **Balance Management** with real-time wallet tracking
 
-Installation
-Clone the repository to your local machine:
+### ⚡ Attack Simulation
+- **Double-Spending Attack** simulation with configurable parameters
+- **Attack Success Probability** controls with real-time adjustment
+- **Private Chain Mining** with broadcast capabilities
+- **Attack Analytics** with success rate tracking
 
-Bash
+### 📊 Visualization & Analytics
+- **Interactive Charts** for blockchain growth and transaction patterns
+- **Balance Distribution** visualization with pie charts
+- **Mining Analysis** with time-series data
+- **Network Activity** monitoring and simulation
 
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
-Create and activate a virtual environment (recommended):
+### 🔬 SimBlock Integration
+- **Large-scale Network Simulation** with customizable parameters
+- **Attack Probability Analysis** across multiple nodes
+- **Performance Metrics** including block times and fork detection
+- **Comparative Analysis** between honest and attacker blocks
 
-Bash
+### 📄 Reporting
+- **Comprehensive PDF Reports** with charts and analytics
+- **Simulation Summaries** with detailed metrics
+- **Attack Results Documentation** with configuration details
 
-python -m venv .venv
-# On Windows
-.\.venv\Scripts\activate
-# On macOS/Linux
-source .venv/bin/activate
-Install the required Python packages:
+## 🏗️ Project Structure
 
-Bash
+```
+blockchain-anomaly-detection/
+│
+├── 📁 blockchain/                 # Core blockchain modules
+│   ├── blockchain.py             # Main blockchain class
+│   ├── block.py                  # Block structure implementation
+│   ├── transaction.py            # Transaction handling
+│   └── attacker.py               # Attack simulation logic
+│
+├── 📁 web/                       # Frontend application
+│   ├── templates/
+│   │   └── index.html            # Main web interface
+│   └── static/
+│       ├── styles.css            # Comprehensive styling
+│       ├── app.js                # Interactive functionality
+│       └── images/               # Logos and assets
+│
+├── 📁 simblock/                  # Network simulation (optional)
+│   └── simulator/                # SimBlock installation
+│
+├── 📁 reports/                   # Generated PDF reports
+├── main.py                       # Flask application entry point
+└── README.md                     # This file
+```
 
-pip install Flask requests jinja2 python-simblock reportlab
-💻 How to Run
-Start the Flask server from the command line:
+## 🚀 Quick Start
 
-Bash
+### Prerequisites
 
+- **Python 3.8+**
+- **Java JDK 8+** (for SimBlock integration)
+- **Git** (for SimBlock installation)
+
+### Installation
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/your-username/blockchain-anomaly-detection.git
+cd blockchain-anomaly-detection
+```
+
+2. **Install Python dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+3. **Install SimBlock (Optional - for network simulation)**
+```bash
+# Clone SimBlock into the project directory
+git clone https://github.com/simblock/simblock.git simblock
+cd simblock/simulator
+./gradlew build
+```
+
+### Running the Application
+
+1. **Start the Flask server**
+```bash
 python main.py
-The server will start on http://127.0.0.1:5000 by default.
+```
 
-Open your web browser and navigate to http://127.0.0.1:5000 to access the application.
+2. **Access the web interface**
+```
+Open http://localhost:5000 in your browser
+```
 
-For P2P Network Simulation:
-To demonstrate the P2P features, you can open multiple terminal windows and run the application on different ports.
+## 💻 Usage Guide
 
-For example, to start a second node on port 5001:
+### Basic Blockchain Operations
 
-Bash
+1. **Create Transactions**
+   - Enter sender, receiver, and amount
+   - Submit to add to mempool
 
-set FLASK_RUN_PORT=5001  # On Windows
-export FLASK_RUN_PORT=5001 # On macOS/Linux
+2. **Mine Blocks**
+   - Specify miner name
+   - Mine pending transactions into new blocks
 
-python main.py
-You can then use the Add Peer functionality in the web interface to connect the nodes (e.g., connect http://127.0.0.1:5000 to http://127.0.0.1:5001).
+3. **Manage Network**
+   - Add peer nodes for P2P communication
+   - Resolve conflicts with consensus algorithm
 
-📁 Project Structure
-.
-├── main.py                     # The main Flask application file
-├── templates/
-│   └── index.html              # The main front-end HTML file
-├── static/
-│   └── app.js                  # Frontend JavaScript for interactivity
-│   └── (your CSS files)
-├── blockchain/                 # The core blockchain logic
-│   ├── __init__.py
-│   ├── block.py
-│   ├── blockchain.py
-│   ├── transaction.py
-│   └── attacker.py
-└── .venv/                      # Python virtual environment
+### Attack Simulation
+
+1. **Configure Attack Parameters**
+   - Set success probability (1-100%)
+   - Adjust attacker hash power
+   - Choose forced outcomes (success/failure/random)
+
+2. **Run Double-Spending Attack**
+   - Specify attacker name and blocks to mine
+   - Execute attack and monitor results
+   - View detailed attack steps and outcomes
+
+### Analytics & Simulation
+
+1. **View Real-time Charts**
+   - Blockchain growth analysis
+   - Balance distribution
+   - Mining time patterns
+   - Network activity
+
+2. **Run SimBlock Simulations**
+   - Check SimBlock status
+   - Configure simulation parameters
+   - Analyze network-wide attack probabilities
+
+3. **Generate Reports**
+   - Download comprehensive PDF reports
+   - Include charts and simulation results
+
+## 🔧 API Endpoints
+
+### Blockchain Operations
+- `GET /api/chain` - Get complete blockchain
+- `POST /api/tx/new` - Create new transaction
+- `POST /api/mine` - Mine new block
+- `GET /api/balances` - Get wallet balances
+
+### Attack Simulation
+- `POST /api/attack/run` - Execute double-spending attack
+- `POST /peers` - Add network peers
+- `GET /consensus` - Resolve network conflicts
+
+### Analytics & Visualization
+- `GET /api/charts/blockchain-growth` - Blockchain growth data
+- `GET /api/charts/balance-distribution` - Balance chart data
+- `GET /api/analyze` - Run SimBlock analysis
+- `GET /api/report/pdf` - Generate PDF report
+
+## 🎯 Educational Value
+
+This project serves as an excellent learning tool for:
+
+- **Blockchain Fundamentals** - Understanding core concepts
+- **Cryptocurrency Security** - Double-spending vulnerability analysis
+- **Network Protocols** - P2P communication and consensus
+- **Data Visualization** - Real-time analytics and charting
+- **Academic Research** - Anomaly detection in distributed systems
+
+## 📊 Sample Outputs
+
+### Attack Simulation Results
+```
+🎯 Double-Spending Attack Results
+✅ Attack SUCCESSFUL!
+• Success Rate: 75.0%
+• Blocks Mined: 3
+• Network Acceptance: 4/5 peers
+```
+
+### Simulation Analytics
+```
+📈 SimBlock Simulation Summary
+• Attack Probability: 32.5%
+• Total Blocks: 1,247
+• Average Block Time: 12.3ms
+• Forks Detected: 18
+• Total Miners: 156
+```
+
+## 🤝 Contributing
+
+We welcome contributions to enhance this project:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is developed under the academic supervision of **Virtual University of Pakistan** and is available for educational and research purposes.
+
+## 👨‍💻 Project Team
+
+### Project Instructor
+- **Fouzia Jumani**
+- Skype: fouziajumani
+- Email: fouziajumani@vu.edu.pk
+
+### Project Author
+- **Eng. Muhammad Imtiaz Shaffi**
+- VU ID: BC220200917
+- Email: bc220200917mis@vu.edu.pk
+
+## 🔗 Related Resources
+
+- [SimBlock GitHub Repository](https://github.com/simblock/simblock)
+- [Virtual University of Pakistan](https://www.vu.edu.pk)
+- [Blockchain Basics Guide](https://github.com/bitcoinbook/bitcoinbook)
+
+## 📞 Support
+
+For technical support or questions about this project:
+- Create an issue on GitHub
+- Contact the project author via email
+- Refer to the comprehensive documentation
+
+---
+
+<div align="center">
+
+**⭐ If you find this project useful, please give it a star on GitHub!**
+
+*"Advancing blockchain security through education and innovation"*
+
+</div>
