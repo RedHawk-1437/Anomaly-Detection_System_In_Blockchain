@@ -1,4 +1,5 @@
-# 🚀 Anomaly Detection System in Blockchain - Double Spending Attack Simulation
+
+# 🚀 Blockchain Anomaly Detection System - Double Spending Attack Simulation
 
 <div align="center">
 
@@ -10,83 +11,73 @@
 
 **A comprehensive blockchain prototype with double-spending attack detection and network simulation capabilities**
 
-*BSCS Final Year Project - Virtual University of Pakistan*
+*Developed under the supervision of Virtual University of Pakistan*
 
 </div>
 
 ## 📖 Overview
 
-This project implements a complete blockchain ecosystem with advanced anomaly detection capabilities for simulating and analyzing double-spending attacks. It features a custom blockchain implementation, interactive web interface, real-time analytics, and integration with SimBlock for large-scale network analysis.
+This project implements a complete blockchain ecosystem with advanced anomaly detection capabilities. It features a custom blockchain implementation, double-spending attack simulation, P2P network functionality, and integration with SimBlock for large-scale network analysis.
 
 ## ✨ Key Features
 
-### 🔗 Core Blockchain Implementation
-- **Custom Blockchain** with Proof-of-Work consensus mechanism
-- **Block Management** with index, timestamp, transactions, and cryptographic hashing
-- **Transaction System** with validation, mempool management, and digital signatures
-- **Mining Operations** with adjustable difficulty and miner rewards
+### 🔗 Core Blockchain
+- **Custom Blockchain Implementation** with Proof-of-Work consensus
+- **Transaction Management** with mempool and mining rewards
+- **P2P Network** with peer discovery and chain synchronization
+- **Balance Management** with real-time wallet tracking
 
-### ⚡ Double-Spending Attack Simulation
-- **Configurable Attack Parameters** with success probability controls (1-100%)
-- **Hash Power Simulation** with attacker dominance settings
-- **Force Controls** for manual success/failure override
-- **Private Chain Mining** with secret fork creation and broadcasting
-- **Real-time Attack Analytics** with detailed step-by-step logging
+### ⚡ Attack Simulation
+- **Double-Spending Attack** simulation with configurable parameters
+- **Attack Success Probability** controls with real-time adjustment
+- **Private Chain Mining** with broadcast capabilities
+- **Attack Analytics** with success rate tracking
 
-### 🌐 P2P Network Simulation
-- **Peer-to-Peer Communication** using Flask HTTP endpoints
-- **Dynamic Peer Management** with add/remove functionality
-- **Consensus Mechanism** implementing longest-chain rule
-- **Conflict Resolution** with automatic fork detection and resolution
-
-### 📊 Advanced Visualization & Analytics
-- **Interactive Dashboard** with multiple chart types
-- **Blockchain Growth Analysis** showing transactions per block
-- **Balance Distribution** with interactive pie charts
-- **Mining Performance** with time-series analysis
-- **Network Activity** monitoring with real-time updates
+### 📊 Visualization & Analytics
+- **Interactive Charts** for blockchain growth and transaction patterns
+- **Balance Distribution** visualization with pie charts
+- **Mining Analysis** with time-series data
+- **Network Activity** monitoring and simulation
 
 ### 🔬 SimBlock Integration
-- **Large-scale Network Simulation** with configurable parameters
-- **Attack Probability Analysis** across distributed nodes
-- **Performance Metrics** including block propagation times
-- **Fork Detection** and chain comparison analytics
+- **Large-scale Network Simulation** with customizable parameters
+- **Attack Probability Analysis** across multiple nodes
+- **Performance Metrics** including block times and fork detection
+- **Comparative Analysis** between honest and attacker blocks
 
-### 📄 Comprehensive Reporting
-- **PDF Report Generation** with embedded charts and analytics
-- **Simulation Summaries** with detailed performance metrics
-- **Attack Documentation** with configuration and outcome analysis
-- **Academic Documentation** for research and educational purposes
+### 📄 Reporting
+- **Comprehensive PDF Reports** with charts and analytics
+- **Simulation Summaries** with detailed metrics
+- **Attack Results Documentation** with configuration details
 
 ## 🏗️ Project Structure
-Anomaly-Detection_System_In_Blockchain/  
-│   
-├── 📁 blockchain/ # Core blockchain modules  
-│ ├── init.py # Package initialization  
-│ ├── blockchain.py # Main Blockchain class implementation  
-│ ├── block.py # Block structure and operations  
-│ ├── transaction.py # Transaction handling and validation  
-│ └── attacker.py # Double-spending attack simulation  
-│  
-├── 📁 web/ # Frontend web application  
-│ ├── templates/  
-│ │ └── index.html # Main web interface  
-│ └── static/  
-│ ├── styles.css # Comprehensive CSS styling  
-│ ├── app.js # Interactive JavaScript functionality  
-│ ├── vu_logo.png # University logo  
-│ └── student_pic.png # Author photograph   
-│  
-├── 📁 simblock/ # Network simulation integration  
-│ └── simulator/ # SimBlock installation and configuration  
-│  
-├── 📁 reports/ # Generated PDF reports and analytics  
-├── main.py # Flask application entry point  
-├── test_suite.py # Comprehensive testing framework  
-├── requirements.txt # Python dependencies  
-└── README.md # Project documentation  
 
-text
+```
+blockchain-anomaly-detection/
+│
+├── 📁 blockchain/                 # Core blockchain modules
+│   ├── blockchain.py             # Main blockchain class
+│   ├── block.py                  # Block structure implementation
+│   ├── transaction.py            # Transaction handling
+│   └── attacker.py               # Attack simulation logic
+│
+├── 📁 web/                       # Frontend application
+│   ├── templates/
+│   │   └── index.html            # Main web interface
+│   └── static/
+│       ├── styles.css            # Comprehensive styling
+│       ├── app.js                # Interactive functionality
+│       └── images/               # Logos and assets
+│
+├── 📁 simblock/                  # Network simulation (optional)
+│   └── simulator/                # SimBlock installation
+│
+├── 📁 reports/                   # Generated PDF reports
+├── main.py                       # Flask application entry point
+├── test_suite.py                 # Comprehensive testing framework
+├── requirements.txt              # Python dependencies
+└── README.md                     # Project documentation
+```
 
 ## 🚀 Quick Start
 
@@ -98,268 +89,177 @@ text
 
 ### Installation
 
-1. **Clone or Download the Project**
+1. **Clone the repository**
 ```bash
-# If using git
-git clone <repository-url>
-cd Anomaly-Detection_System_In_Blockchain
+git clone https://github.com/your-username/blockchain-anomaly-detection.git
+cd blockchain-anomaly-detection
+```
 
-# Or extract the project zip file
-Install Python Dependencies
-
-bash
+2. **Install Python dependencies**
+```bash
 pip install -r requirements.txt
-Install SimBlock (Optional - for advanced network simulation)
+```
 
-bash
+3. **Install SimBlock (Optional - for network simulation)**
+```bash
 # Clone SimBlock into the project directory
 git clone https://github.com/simblock/simblock.git simblock
 cd simblock/simulator
 ./gradlew build
-Running the Application
-Start the Flask Development Server
+```
 
-bash
+### Running the Application
+
+1. **Start the Flask server**
+```bash
 python main.py
-Access the Web Interface
+```
 
-text
-Open http://localhost:5000 in your web browser
-For Custom Port (if needed)
+2. **Access the web interface**
+```
+Open http://localhost:5000 in your browser
+```
 
-bash
-python main.py --port 5001
-💻 Usage Guide
-Basic Blockchain Operations
-Create Transactions
+## 💻 Usage Guide
 
-Navigate to "Create New Transaction" section
+### Basic Blockchain Operations
 
-Enter sender address, receiver address, and amount
+1. **Create Transactions**
+   - Enter sender, receiver, and amount
+   - Submit to add to mempool
 
-Click "Submit Transaction" to add to mempool
+2. **Mine Blocks**
+   - Specify miner name
+   - Mine pending transactions into new blocks
 
-View transaction ID and mempool status
+3. **Manage Network**
+   - Add peer nodes for P2P communication
+   - Resolve conflicts with consensus algorithm
 
-Mine Blocks
+### Attack Simulation
 
-Go to "Mine Pending Transactions" section
+1. **Configure Attack Parameters**
+   - Set success probability (1-100%)
+   - Adjust attacker hash power
+   - Choose forced outcomes (success/failure/random)
 
-Enter miner name (optional)
+2. **Run Double-Spending Attack**
+   - Specify attacker name and blocks to mine
+   - Execute attack and monitor results
+   - View detailed attack steps and outcomes
 
-Click "Mine Block" to create new block
+### Analytics & Simulation
 
-View block details including hash and transaction count
+1. **View Real-time Charts**
+   - Blockchain growth analysis
+   - Balance distribution
+   - Mining time patterns
+   - Network activity
 
-View Blockchain State
+2. **Run SimBlock Simulations**
+   - Check SimBlock status
+   - Configure simulation parameters
+   - Analyze network-wide attack probabilities
 
-Check "Current Balances" for wallet status
+3. **Generate Reports**
+   - Download comprehensive PDF reports
+   - Include charts and simulation results
 
-Examine "Blockchain Chain" for complete block history
+## 🔧 API Endpoints
 
-Monitor pending transactions in mempool
+### Blockchain Operations
+- `GET /api/chain` - Get complete blockchain
+- `POST /api/tx/new` - Create new transaction
+- `POST /api/mine` - Mine new block
+- `GET /api/balances` - Get wallet balances
 
-Double-Spending Attack Simulation
-Configure Attack Parameters
+### Attack Simulation
+- `POST /api/attack/run` - Execute double-spending attack
+- `POST /peers` - Add network peers
+- `GET /consensus` - Resolve network conflicts
 
-Adjust "Success Probability" slider (1-100%)
+### Analytics & Visualization
+- `GET /api/charts/blockchain-growth` - Blockchain growth data
+- `GET /api/charts/balance-distribution` - Balance chart data
+- `GET /api/analyze` - Run SimBlock analysis
+- `GET /api/report/pdf` - Generate PDF report
 
-Set "Attacker Hash Power" percentage
+## 🎯 Educational Value
 
-Use "Force Outcome" buttons for controlled testing:
+This project serves as an excellent learning tool for:
 
-✅ Force Success: Always succeeds
+- **Blockchain Fundamentals** - Understanding core concepts
+- **Cryptocurrency Security** - Double-spending vulnerability analysis
+- **Network Protocols** - P2P communication and consensus
+- **Data Visualization** - Real-time analytics and charting
+- **Academic Research** - Anomaly detection in distributed systems
 
-❌ Force Failure: Always fails
+## 📊 Sample Outputs
 
-🔄 Random: Uses probability settings
-
-Execute Attack
-
-Enter attacker name and number of blocks to mine
-
-Specify double-spending amount
-
-Click "Run Attack" to start simulation
-
-Monitor real-time attack steps and results
-
-Analyze Results
-
-View attack success/failure status
-
-Examine success rate percentage
-
-Review detailed attack steps and network responses
-
-Network Management
-Add Network Peers
-
-Enter peer address (e.g., http://127.0.0.1:5001)
-
-Click "Add Peer" to expand network
-
-View connected peers list
-
-Resolve Conflicts
-
-Click "Run Consensus" to synchronize with network
-
-Monitor chain replacement if longer chain exists
-
-Ensure network-wide consistency
-
-Analytics & Visualization
-Access Analytics Dashboard
-
-Click "Show Analytics Dashboard" button
-
-View multiple chart types:
-
-Blockchain Growth Chart
-
-Balance Distribution Pie Chart
-
-Mining Analysis Line Chart
-
-Network Activity Area Chart
-
-Run SimBlock Simulation
-
-Click "Run Simulation" for advanced analysis
-
-View simulation metrics and statistics
-
-Analyze attack probabilities and network behavior
-
-Generate Reports
-
-Click "Download Comprehensive PDF Report"
-
-Receive detailed report with charts and analytics
-
-Use for documentation and academic purposes
-
-🔧 API Endpoints
-Core Blockchain Operations
-GET /api/chain - Retrieve complete blockchain data
-
-POST /api/tx/new - Create and broadcast new transaction
-
-POST /api/mine - Mine new block with pending transactions
-
-GET /api/balances - Get current wallet balances
-
-Attack Simulation
-POST /api/attack/run - Execute double-spending attack simulation
-
-POST /peers - Add new peer to P2P network
-
-GET /consensus - Resolve network conflicts and synchronize chains
-
-Analytics & Visualization
-GET /api/charts/blockchain-growth - Blockchain growth chart data
-
-GET /api/charts/balance-distribution - Balance distribution data
-
-GET /api/charts/mining-analysis - Mining performance data
-
-GET /api/charts/network-activity - Network activity data
-
-GET /api/analyze - Run SimBlock simulation analysis
-
-GET /api/report/pdf - Generate comprehensive PDF report
-
-🧪 Testing Framework
-The project includes a comprehensive test suite:
-
-bash
-python test_suite.py
-Test Options:
-
-Quick VIVA Demo - Essential functionality tests
-
-Full Comprehensive Test - All system components
-
-Attack Simulation Demo - Security-focused testing
-
-All Tests - Complete test suite execution
-
-🎯 Educational Value
-This project serves as an excellent educational tool for:
-
-Blockchain Fundamentals - Core concepts and implementation
-
-Cryptocurrency Security - Double-spending vulnerability analysis
-
-Distributed Systems - P2P networking and consensus algorithms
-
-Cryptographic Principles - SHA-256 hashing and digital signatures
-
-Data Visualization - Real-time analytics and interactive charts
-
-Software Engineering - Complete project lifecycle implementation
-
-📊 Sample Outputs
-Successful Attack Simulation
-text
+### Attack Simulation Results
+```
 🎯 Double-Spending Attack Results
-✅ ATTACK SUCCESSFUL!
+✅ Attack SUCCESSFUL!
 • Success Rate: 75.0%
 • Blocks Mined: 3
 • Network Acceptance: 4/5 peers
-• Double-spending achieved!
-Simulation Analytics
-text
+```
+
+### Simulation Analytics
+```
 📈 SimBlock Simulation Summary
 • Attack Probability: 32.5%
 • Total Blocks: 1,247
 • Average Block Time: 12.3ms
 • Forks Detected: 18
 • Total Miners: 156
-🤝 Contributing
-This project was developed as a BSCS Final Year Project. For academic collaborations or improvements:
+```
 
-Fork the repository
+## 🤝 Contributing
 
-Create a feature branch (git checkout -b feature/improvement)
+We welcome contributions to enhance this project:
 
-Commit your changes (git commit -m 'Add improvement')
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-Push to the branch (git push origin feature/improvement)
+## 📝 License
 
-Open a Pull Request
+This project is developed under the academic supervision of **Virtual University of Pakistan** and is available for educational and research purposes.
 
-📝 License
-This project is developed under the academic supervision of Virtual University of Pakistan and is available for educational and research purposes.
+## 👨‍💻 Project Team
 
-👨‍💻 Project Team
-Project Supervisor
-Dr. Fouzia Jumani
+### Project Instructor
+- **Fouzia Jumani**
+- Skype: fouziajumani
+- [Email: fouziajumani@vu.edu.pk](mailto:fouziajumani@vu.edu.pk)
 
-Skype: fouziajumani
+### Project Author
+- **Eng. Muhammad Imtiaz Shaffi**
+- VU ID: BC220200917
+- [Email: bc220200917mis@vu.edu.pk](mailto:bc220200917mis@vu.edu.pk)
 
-Email: fouziajumani@vu.edu.pk
+## 🔗 Related Resources
 
-Project Author
-Eng. Muhammad Imtiaz Shaffi
+- [SimBlock GitHub Repository](https://github.com/simblock/simblock)
+- [Virtual University of Pakistan](https://www.vu.edu.pk)
+- [Blockchain Basics Guide](https://github.com/bitcoinbook/bitcoinbook)
 
-VU ID: BC220200917
+## 📞 Support
 
-Email: bc220200917mis@vu.edu.pk
-
-📞 Support
 For technical support or questions about this project:
+- Create an issue on GitHub
+- Contact the project author via email
+- Refer to the comprehensive documentation
 
-Contact the project author via email
-
-Refer to the comprehensive documentation
-
-Check the testing suite for functionality verification
+---
 
 <div align="center">
-Developed as BSCS Final Year Project - Virtual University of Pakistan
 
-"Advancing blockchain security through education and practical implementation"
+**⭐ If you find this project useful, please give it a star on GitHub!**
 
-</div> ```
+*"Advancing blockchain security through education and innovation"*
+
+</div>
