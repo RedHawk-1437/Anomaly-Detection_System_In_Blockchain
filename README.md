@@ -59,32 +59,32 @@ This project implements a complete blockchain ecosystem with advanced anomaly de
 - **Academic Documentation** for research and educational purposes
 
 ## 🏗️ Project Structure
-Anomaly-Detection_System_In_Blockchain/
-│
-├── 📁 blockchain/ # Core blockchain modules
-│ ├── init.py # Package initialization
-│ ├── blockchain.py # Main Blockchain class implementation
-│ ├── block.py # Block structure and operations
-│ ├── transaction.py # Transaction handling and validation
-│ └── attacker.py # Double-spending attack simulation
-│
-├── 📁 web/ # Frontend web application
-│ ├── templates/
-│ │ └── index.html # Main web interface
-│ └── static/
-│ ├── styles.css # Comprehensive CSS styling
-│ ├── app.js # Interactive JavaScript functionality
-│ ├── vu_logo.png # University logo
-│ └── student_pic.png # Author photograph
-│
-├── 📁 simblock/ # Network simulation integration
-│ └── simulator/ # SimBlock installation and configuration
-│
-├── 📁 reports/ # Generated PDF reports and analytics
-├── main.py # Flask application entry point
-├── test_suite.py # Comprehensive testing framework
-├── requirements.txt # Python dependencies
-└── README.md # Project documentation
+Anomaly-Detection_System_In_Blockchain/  
+│   
+├── 📁 blockchain/ # Core blockchain modules  
+│ ├── init.py # Package initialization  
+│ ├── blockchain.py # Main Blockchain class implementation  
+│ ├── block.py # Block structure and operations  
+│ ├── transaction.py # Transaction handling and validation  
+│ └── attacker.py # Double-spending attack simulation  
+│  
+├── 📁 web/ # Frontend web application  
+│ ├── templates/  
+│ │ └── index.html # Main web interface  
+│ └── static/  
+│ ├── styles.css # Comprehensive CSS styling  
+│ ├── app.js # Interactive JavaScript functionality  
+│ ├── vu_logo.png # University logo  
+│ └── student_pic.png # Author photograph   
+│  
+├── 📁 simblock/ # Network simulation integration  
+│ └── simulator/ # SimBlock installation and configuration  
+│  
+├── 📁 reports/ # Generated PDF reports and analytics  
+├── main.py # Flask application entry point  
+├── test_suite.py # Comprehensive testing framework  
+├── requirements.txt # Python dependencies  
+└── README.md # Project documentation  
 
 text
 
