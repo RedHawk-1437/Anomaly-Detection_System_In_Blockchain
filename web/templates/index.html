@@ -1,29 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- HTML Document Header Section -->
   <meta charset="UTF-8">
   <title>Anomaly Detection in Blockchain - Double Spending</title>
+
+  <!-- Link to external CSS stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <!-- Include Chart.js library for data visualization -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Include our custom JavaScript file (defer loads after HTML parsing) -->
   <script defer src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 <body>
+  <!-- Website Header Section -->
   <header class="site-header">
     <div class="header-container">
+
+      <!-- Instructor Information Section -->
       <div class="instructor-info">
+        <!-- University Logo -->
         <img src="{{ url_for('static', filename='vu_logo.png') }}" alt="VU Logo" class="logo">
+        <!-- Instructor Details -->
         <p><strong>Project Instructor:</strong> Fouzia Jumani</p>
         <p>Skype: fouziajumani</p>
         <p>Email: fouziajumani@vu.edu.pk</p>
       </div>
 
+      <!-- Main Title Section -->
       <div class="title-box">
         <h1>Anomaly Detection System in Blockchain</h1>
         <h2>Prototype: Double Spending Attack Simulation</h2>
       </div>
 
+      <!-- Author Information Section -->
       <div class="author-info">
+        <!-- Student Photo -->
         <img src="{{ url_for('static', filename='student_pic.png') }}" alt="Author Pic" class="student-pic">
+        <!-- Author Details -->
         <p><strong>Project Author:</strong> Eng.Muhammad Imtiaz Shaffi</p>
         <p>VU ID: BC220200917</p>
         <p>Email: bc220200917mis@vu.edu.pk</p>
@@ -31,22 +47,28 @@
     </div>
   </header>
 
+  <!-- Main Content Area -->
   <main class="container">
+    <!-- Introduction Section -->
     <div class="header-text">
       <h2>Prototype: Double Spending Attack Simulation</h2>
       <p>This prototype demonstrates a simple blockchain network and a double-spending attack simulation with comprehensive analytics.</p>
       <!-- Charts dashboard toggle button will be added by JavaScript -->
     </div>
 
+    <!-- Horizontal Separator -->
     <hr>
 
     <!-- Charts Dashboard Section (will be populated by JavaScript) -->
     <div id="charts-dashboard"></div>
 
+    <!-- Custom Blockchain Section -->
     <h3>-: Custom Blockchain :-</h3>
 
+    <!-- Transaction Creation Section -->
     <div class="section-box">
       <h4>Create New Transaction</h4>
+      <!-- Transaction Form -->
       <div id="tx-form">
         <div class="form-group">
           <label for="tx-sender">Sender:</label>
@@ -60,81 +82,106 @@
           <label for="tx-amount">Amount:</label>
           <input type="number" id="tx-amount" placeholder="e.g., 10" step="any" required>
         </div>
+        <!-- Submit Transaction Button -->
         <button type="button" id="submit-tx-btn" class="primary-btn">Submit Transaction</button>
       </div>
+      <!-- Transaction Response Display Area (initially hidden) -->
       <pre id="tx-response" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- Mining Section -->
     <div class="section-box">
       <h4>Mine Pending Transactions</h4>
       <div class="form-group">
         <label for="miner-name">Miner Name:</label>
         <input type="text" id="miner-name" placeholder="e.g., Miner1">
       </div>
+      <!-- Mine Block Button -->
       <button id="mine-btn" class="primary-btn">Mine Block</button>
+      <!-- Mining Response Display Area (initially hidden) -->
       <pre id="mine-response" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- Balances Section -->
     <div class="section-box">
       <h4>Current Balances</h4>
+      <!-- Refresh Balances Button -->
       <button id="refresh-balances-btn" class="primary-btn">Refresh Balances</button>
+      <!-- Balances Output Display Area -->
       <pre id="balances-output"></pre>
     </div>
 
+    <!-- Blockchain Display Section -->
     <div class="section-box">
       <h4>Blockchain Chain</h4>
+      <!-- Refresh Chain Button -->
       <button id="refresh-chain-btn" class="primary-btn">Refresh Chain</button>
+      <!-- Chain Output Display Area -->
       <pre id="chain-output"></pre>
 
+      <!-- Blockchain Chart Container (initially hidden) -->
       <div id="chain-chart-container" style="margin-top:20px; display:none;">
         <h4>Blockchain Growth Chart</h4>
+        <!-- Canvas for blockchain growth chart -->
         <canvas id="chainChart"></canvas>
       </div>
     </div>
 
+    <!-- Double Spending Attack Section -->
     <div class="section-box">
       <h4>Run Double-Spending Attack </h4>
 
+      <!-- Attack Control Panel -->
       <div class="attack-controls">
         <h4>🎮 Attack Control Panel</h4>
 
+        <!-- Success Probability Control -->
         <div class="control-group">
           <label>Success Probability: <span id="probability-value" class="slider-value">50%</span></label>
           <div class="slider-container">
+            <!-- Range input for probability control -->
             <input type="range" min="1" max="100" value="50"
                    oninput="updateSuccessProbability(this.value)">
           </div>
         </div>
 
+        <!-- Hash Power Control -->
         <div class="control-group">
           <label>Attacker Hash Power: <span id="hashpower-value" class="slider-value">30%</span></label>
           <div class="slider-container">
+            <!-- Range input for hash power control -->
             <input type="range" min="1" max="100" value="30"
                    oninput="updateHashPower(this.value)">
           </div>
         </div>
 
+        <!-- Force Outcome Controls -->
         <div class="control-group">
           <label>Force Outcome:</label>
           <div class="force-buttons">
+            <!-- Force Success Button -->
             <button id="force-success-btn" class="force-btn" onclick="forceAttackSuccess()">
               ✅ Force Success
             </button>
+            <!-- Force Failure Button -->
             <button id="force-failure-btn" class="force-btn" onclick="forceAttackFailure()">
               ❌ Force Failure
             </button>
+            <!-- Reset to Random Button -->
             <button class="force-btn" onclick="resetAttackControl()">
               🔄 Random
             </button>
           </div>
         </div>
 
+        <!-- Current Mode Display -->
         <div class="control-status">
           <strong>Current Mode:</strong>
           <span id="current-mode">Random (Based on probability and hash power)</span>
         </div>
       </div>
 
+      <!-- Attack Configuration Form -->
       <div class="form-group">
         <label>Attacker Name</label>
         <input id="attack-attacker" placeholder="Attacker1">
@@ -143,39 +190,55 @@
         <label>Amount</label>
         <input id="attack-amount" type="number" value="10" step="any">
       </div>
+      <!-- Run Attack Button -->
       <button id="run-attack-btn" class="primary-btn">Run Attack</button>
+      <!-- Attack Output Display Area (initially hidden) -->
       <pre id="attack-output" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- Horizontal Separator -->
     <hr>
 
+    <!-- P2P Network Section -->
     <h3>-: P2P Network :-</h3>
 
+    <!-- Peer Registration Section -->
     <div class="section-box">
         <h4>Register a New Peer</h4>
         <div class="form-group">
             <label for="peer-address">Peer Address:</label>
             <input type="text" id="peer-address" placeholder="e.g., http://127.0.0.1:5001" required>
         </div>
+        <!-- Add Peer Button -->
         <button id="add-peer-btn" class="primary-btn">Add Peer</button>
+        <!-- Peer Response Display Area (initially hidden) -->
         <pre id="peer-response" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- Consensus Resolution Section -->
     <div class="section-box">
         <h4>Resolve Network Conflicts</h4>
         <p>Fetch the longest chain from all known peers and replace our chain if it's shorter.</p>
+        <!-- Run Consensus Button -->
         <button id="resolve-conflicts-btn" class="primary-btn">Run Consensus</button>
+        <!-- Consensus Response Display Area (initially hidden) -->
         <pre id="consensus-response" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- Horizontal Separator -->
     <hr>
 
+    <!-- SimBlock Simulation Section -->
     <h3>-: SimBlock Simulation :-</h3>
+    <!-- Run Simulation Button -->
     <button id="run-analysis-btn" class="primary-btn">Run Simulation</button>
+    <!-- Loading Spinner (initially hidden) -->
     <div id="loading-spinner" class="spinner" style="display:none;">⏳ Running...</div>
 
+    <!-- Simulation Summary Display Area (initially hidden) -->
     <div id="simulation-summary" class="result-box" style="display:none;">
       <h3>Simulation Summary</h3>
+      <!-- Summary Table -->
       <table id="summary-table">
         <thead>
           <tr>
@@ -186,18 +249,25 @@
         <tbody></tbody>
       </table>
 
+      <!-- SimBlock Chart Container -->
       <div id="simblock-chart-container" style="margin-top:20px;">
         <h4>Simulation Stats Chart</h4>
+        <!-- Canvas for SimBlock chart -->
         <canvas id="simblockChart"></canvas>
       </div>
     </div>
 
+    <!-- Horizontal Separator -->
     <hr>
 
+    <!-- PDF Report Section -->
+    <!-- Download PDF Report Button -->
     <button id="download-report-btn" class="primary-btn">Download Comprehensive PDF Report</button>
+    <!-- PDF Generation Spinner (initially hidden) -->
     <div id="pdf-spinner" class="spinner" style="display:none;">⏳ Generating PDF...</div>
   </main>
 
+  <!-- Website Footer -->
   <footer class="site-footer">
     <div class="footer-container">
       <p>© 2025 This project is developed under the supervision of Virtual University of Pakistan</p>

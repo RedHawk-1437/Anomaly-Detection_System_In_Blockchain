@@ -1,83 +1,178 @@
-/* ============================
-   Global Styles
-============================ */
+/* ============================ */
+/* Global Styles Section */
+/* ============================ */
+
+/* Set the base font family for the entire page with fallback fonts */
+/* Tahoma, Geneva, Verdana are fallbacks if Segoe UI is not available */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  /* Create a gradient background from light blue to lavender */
+  /* 135deg = angle of gradient, #f5f7fa = start color, #c3cfe2 = end color */
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+
+  /* Set default text color to dark gray */
   color: #333;
+
+  /* Remove default browser margins and padding */
   margin: 0;
   padding: 0;
+
+  /* Set line height for better readability */
   line-height: 1.6;
 }
 
+/* Style all heading elements with consistent spacing and color */
+/* h1, h2, h3, h4 = targets all heading levels from 1 to 4 */
 h1, h2, h3, h4 {
+  /* Add vertical spacing above and below headings */
   margin: 0.5em 0;
+
+  /* Set font weight to semi-bold (600) */
   font-weight: 600;
+
+  /* Set heading color to dark blue-gray */
   color: #2c3e50;
 }
 
+/* Style for preformatted text blocks (used for code/output display) */
 pre {
+  /* Light blue background for code blocks */
   background: #e6f2ff;
+
+  /* Dark blue text color for contrast */
   color: #003366;
+
+  /* Add padding inside the pre block */
   padding: 15px;
+
+  /* Round the corners of the block */
   border-radius: 8px;
+
+  /* Allow horizontal scrolling if content overflows */
   overflow-x: auto;
+
+  /* Set slightly larger font size for readability */
   font-size: 1.1em;
+
+  /* Add blue border around the block */
   border: 1px solid #99c2ff;
+
+  /* Set line height for better text spacing */
   line-height: 1.4;
+
+  /* Preserve line breaks but allow wrapping */
   white-space: pre-line;
+
+  /* Set maximum height with vertical scrolling */
   max-height: 300px;
   overflow-y: auto;
+
+  /* Add subtle shadow for depth */
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* ============================
-   Header Section
-============================ */
+/* ============================ */
+/* Header Section Styles */
+/* ============================ */
+
+/* Main website header styling */
 .site-header {
+  /* Dark blue gradient background for header */
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+
+  /* White text color for contrast */
   color: white;
+
+  /* Add padding inside header (20px top/bottom, 40px left/right) */
   padding: 20px 40px;
+
+  /* Make header span full width of viewport */
   width: 100%;
+
+  /* Include padding in width calculation */
   box-sizing: border-box;
+
+  /* Add shadow below header for depth */
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
+/* Container for header content using flexbox layout */
 .header-container {
+  /* Use flexbox for horizontal alignment */
   display: flex;
+
+  /* Space out items evenly with space between */
   justify-content: space-between;
+
+  /* Vertically center all items */
   align-items: center;
+
+  /* Prevent items from wrapping to new line */
   flex-wrap: nowrap;
+
+  /* Add gap between flex items */
   gap: 40px;
 }
 
+/* Center title box that grows to fill available space */
 .title-box {
+  /* Center align text */
   text-align: center;
+
+  /* Allow this box to grow and take available space */
   flex-grow: 1;
 }
 
+/* Main title styling */
 .title-box h1 {
+  /* Set large font size for main title */
   font-size: 2.4em;
+
+  /* Add letter spacing for better readability */
   letter-spacing: 1px;
+
+  /* Ensure text color is white */
   color: white;
+
+  /* Add text shadow for depth and readability */
   text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
+/* Subtitle styling */
 .title-box h2 {
+  /* Slightly smaller font than main title */
   font-size: 1.3em;
+
+  /* Normal font weight (not bold) */
   font-weight: 400;
+
+  /* Slightly transparent for subtle effect */
   opacity: 0.9;
+
+  /* Light gray-blue color */
   color: #ecf0f1;
 }
 
+/* Logo image styling */
 .logo {
+  /* Set maximum width for logo */
   max-width: 80px;
+
+  /* Maintain aspect ratio */
   height: auto;
+
+  /* Make logo circular */
   border-radius: 50%;
+
+  /* Add white border around logo */
   border: 3px solid white;
+
+  /* Add shadow for depth */
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
+/* Student photo styling (same as logo) */
 .student-pic {
   max-width: 80px;
   height: auto;
@@ -86,682 +181,1341 @@ pre {
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
+/* Instructor information panel styling */
 .instructor-info, .author-info {
+  /* Use flexbox for vertical layout */
   display: flex;
   flex-direction: column;
+
+  /* Center align items */
   align-items: center;
   text-align: center;
+
+  /* Slightly smaller font size */
   font-size: 0.9em;
+
+  /* Semi-transparent white background */
   background: rgba(255,255,255,0.1);
+
+  /* Add padding inside panel */
   padding: 10px;
+
+  /* Round the corners */
   border-radius: 10px;
+
+  /* Add blur effect to background */
   backdrop-filter: blur(10px);
 }
 
+/* Paragraph text inside info panels */
 .instructor-info p, .author-info p {
+  /* Small vertical margin between paragraphs */
   margin: 2px 0;
+
+  /* Light gray text color */
   color: #ecf0f1;
 }
 
-/* ============================
-   Main Content Layout
-============================ */
+/* ============================ */
+/* Main Content Layout */
+/* ============================ */
+
+/* Main content container */
 .container {
+  /* Set maximum width to prevent content from getting too wide */
   max-width: 1400px;
+
+  /* Center container horizontally */
   margin: 20px auto;
+
+  /* Add horizontal padding */
   padding: 0 20px;
 }
 
+/* Header text section at top of main content */
 .header-text {
+  /* Center align text */
   text-align: center;
+
+  /* Add space below this section */
   margin-bottom: 30px;
+
+  /* White background */
   background: white;
+
+  /* Add padding inside */
   padding: 20px;
+
+  /* Round the corners */
   border-radius: 10px;
+
+  /* Add shadow for depth */
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
+/* Section boxes for different content areas */
 .section-box {
+  /* White background for content sections */
   background: white;
+
+  /* Add padding inside sections */
   padding: 25px;
+
+  /* Add space below each section */
   margin-bottom: 25px;
+
+  /* Round the corners */
   border-radius: 12px;
+
+  /* Add shadow for depth */
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+
+  /* Add colored left border as accent */
   border-left: 5px solid #2a5298;
+
+  /* Smooth transitions for hover effects */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Hover effect for section boxes */
 .section-box:hover {
+  /* Lift box slightly on hover */
   transform: translateY(-2px);
+
+  /* Enhance shadow on hover for more depth */
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
+/* Section headings styling */
 .section-box h4 {
+  /* Add bottom border as underline */
   border-bottom: 3px solid #2a5298;
+
+  /* Add padding below text before border */
   padding-bottom: 12px;
+
+  /* Add space below heading */
   margin-bottom: 20px;
+
+  /* Dark blue-gray text color */
   color: #2c3e50;
+
+  /* Slightly larger font size */
   font-size: 1.3em;
 }
 
+/* Result box styling (for API responses) */
 .result-box {
+  /* Add space above result boxes */
   margin-top: 20px;
+
+  /* Ensure boxes are displayed as blocks */
   display: block;
 }
 
-/* ============================
-   Charts Dashboard
-============================ */
+/* ============================ */
+/* Charts Dashboard */
+/* ============================ */
+
+/* Grid layout for charts */
 .charts-grid {
+  /* Use CSS Grid for chart layout */
   display: grid;
+
+  /* Responsive columns - minimum 500px, flexible maximum */
   grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+
+  /* Space between grid items */
   gap: 20px;
+
+  /* Add vertical space around grid */
   margin: 20px 0;
 }
 
+/* Individual chart container */
 .chart-container {
+  /* Light gray background for charts */
   background: #f8f9fa;
+
+  /* Add border around chart */
   border: 2px solid #e9ecef;
+
+  /* Round the corners */
   border-radius: 10px;
+
+  /* Add padding inside chart container */
   padding: 20px;
+
+  /* Add shadow for depth */
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
+/* Chart title styling */
 .chart-container h4 {
+  /* Center align chart titles */
   text-align: center;
+
+  /* Blue color for chart titles */
   color: #2a5298;
+
+  /* Add space below title */
   margin-bottom: 15px;
+
+  /* Slightly larger font size */
   font-size: 1.2em;
 }
 
+/* Chart canvas sizing */
 .chart-container canvas {
+  /* Make canvas fill container width */
   width: 100% !important;
+
+  /* Set fixed height for charts */
   height: 300px !important;
 }
 
+/* Chart action buttons container */
 .chart-actions {
+  /* Use flexbox for button layout */
   display: flex;
+
+  /* Space between buttons */
   gap: 10px;
+
+  /* Center buttons horizontally */
   justify-content: center;
+
+  /* Add space above buttons */
   margin-top: 20px;
 }
 
+/* Fallback styling for when charts can't load */
 .chart-fallback {
+  /* Light gray background */
   background: #f8f9fa;
+
+  /* Add padding */
   padding: 20px;
+
+  /* Round corners */
   border-radius: 8px;
+
+  /* Add border */
   border: 1px solid #ddd;
+
+  /* Center align text */
   text-align: center;
+
+  /* Gray text color */
   color: #6c757d;
 }
 
-/* ============================
-   Forms and Buttons
-============================ */
+/* ============================ */
+/* Forms and Buttons */
+/* ============================ */
+
+/* Form group spacing */
 .form-group {
+  /* Add space below each form group */
   margin-bottom: 20px;
 }
 
+/* Form label styling */
 .form-group label {
+  /* Make labels block elements (own line) */
   display: block;
+
+  /* Add space below labels */
   margin-bottom: 8px;
+
+  /* Make labels bold */
   font-weight: bold;
+
+  /* Dark blue-gray text color */
   color: #2c3e50;
+
+  /* Slightly larger font size */
   font-size: 1.1em;
 }
 
+/* Form input styling */
 .form-group input {
+  /* Make inputs almost full width of container */
   width: 95%;
+
+  /* Add padding inside inputs */
   padding: 12px;
+
+  /* Add border around inputs */
   border: 2px solid #ddd;
+
+  /* Round input corners */
   border-radius: 8px;
+
+  /* Set font size */
   font-size: 1em;
+
+  /* Smooth transition for focus effects */
   transition: border-color 0.3s ease;
 }
 
+/* Input focus state */
 .form-group input:focus {
+  /* Remove default browser outline */
   outline: none;
+
+  /* Change border color on focus */
   border-color: #2a5298;
+
+  /* Add blue glow effect */
   box-shadow: 0 0 5px rgba(42, 82, 152, 0.3);
 }
 
+/* Primary button styling */
 button.primary-btn {
+  /* Blue gradient background */
   background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+
+  /* White text color */
   color: white;
+
+  /* Remove default button border */
   border: none;
+
+  /* Add padding inside button */
   padding: 12px 24px;
+
+  /* Round button corners */
   border-radius: 8px;
+
+  /* Change cursor to pointer on hover */
   cursor: pointer;
+
+  /* Smooth transitions for all properties */
   transition: all 0.3s ease;
+
+  /* Set font size */
   font-size: 1em;
+
+  /* Semi-bold font weight */
   font-weight: 600;
+
+  /* Add shadow below button */
   box-shadow: 0 4px 8px rgba(42, 82, 152, 0.3);
 }
 
+/* Button hover effect */
 button.primary-btn:hover {
+  /* Lift button slightly on hover */
   transform: translateY(-2px);
+
+  /* Enhance shadow on hover */
   box-shadow: 0 6px 12px rgba(42, 82, 152, 0.4);
+
+  /* Reverse gradient on hover */
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
 }
 
+/* Button active state (when clicked) */
 button.primary-btn:active {
+  /* Return button to normal position when clicked */
   transform: translateY(0);
 }
 
+/* Loading spinner styling */
 .spinner {
+  /* Add space above spinner */
   margin-top: 10px;
+
+  /* Italic text style */
   font-style: italic;
+
+  /* Gray text color */
   color: #6c757d;
+
+  /* Center align spinner text */
   text-align: center;
+
+  /* Slightly larger font size */
   font-size: 1.1em;
 }
 
-/* ============================
-   Tables
-============================ */
+/* ============================ */
+/* Tables */
+/* ============================ */
+
+/* Table styling */
 table {
+  /* Make tables full width of container */
   width: 100%;
+
+  /* Remove space between table cells */
   border-collapse: collapse;
+
+  /* Add space above tables */
   margin-top: 15px;
+
+  /* Set font size */
   font-size: 1em;
+
+  /* Set line height for readability */
   line-height: 1.4;
+
+  /* Add subtle shadow */
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+/* Table header and cell styling */
 table th,
 table td {
+  /* Add borders between cells */
   border: 1px solid #ddd;
+
+  /* Add padding inside cells */
   padding: 12px;
+
+  /* Center align cell content */
   text-align: center;
 }
 
+/* Table header styling */
 table th {
+  /* Blue gradient background for headers */
   background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+
+  /* White text color */
   color: white;
+
+  /* Bold font weight */
   font-weight: bold;
+
+  /* Slightly larger font size */
   font-size: 1.1em;
 }
 
+/* Alternate row coloring (zebra striping) */
 table tr:nth-child(even) {
+  /* Light gray background for even rows */
   background: #f8f9fa;
 }
 
+/* Row hover effect */
 table tr:hover {
+  /* Light gray background on hover */
   background: #e9ecef;
+
+  /* Smooth background transition */
   transition: background 0.3s ease;
 }
 
-/* ============================
-   Simblock Section
-============================ */
+/* ============================ */
+/* Simblock Section */
+/* ============================ */
+
+/* SimBlock chart container */
 #simblock-chart-container {
+  /* Limit maximum width */
   max-width: 100%;
+
+  /* Center container with automatic horizontal margins */
   margin: 20px auto;
+
+  /* Set fixed height */
   height: 450px;
+
+  /* Light gray background */
   background: #f8f9fa;
+
+  /* Round corners */
   border-radius: 10px;
+
+  /* Add padding inside */
   padding: 20px;
+
+  /* Add shadow for depth */
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
+/* SimBlock chart canvas */
 #simblock-chart-container canvas {
+  /* Make canvas fill container width */
   width: 100% !important;
+
+  /* Make canvas fill container height */
   height: 100% !important;
 }
 
-/* ============================
-   Footer Section
-============================ */
+/* ============================ */
+/* Footer Section */
+/* ============================ */
+
+/* Footer styling */
 .site-footer {
+  /* Blue gradient background matching header */
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+
+  /* White text color */
   color: white;
+
+  /* Center align footer text */
   text-align: center;
+
+  /* Add vertical padding */
   padding: 20px 0;
+
+  /* Add space above footer */
   margin-top: 40px;
+
+  /* Add shadow above footer */
   box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
 }
 
-/* ============================
-   User Interface Components
-============================ */
+/* ============================ */
+/* User Interface Components */
+/* ============================ */
+
+/* User-friendly output containers */
 .user-friendly-output {
+  /* Light gray background */
   background: #f8f9fa;
+
+  /* Add border */
   border: 2px solid #e9ecef;
+
+  /* Round corners */
   border-radius: 10px;
+
+  /* Add padding inside */
   padding: 20px;
+
+  /* Add vertical space around */
   margin: 15px 0;
+
+  /* Add shadow for depth */
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
+/* Output title styling */
 .user-friendly-output h4 {
+  /* Blue text color */
   color: #2a5298;
+
+  /* Add space below title */
   margin-bottom: 15px;
+
+  /* Add bottom border */
   border-bottom: 2px solid #2a5298;
+
+  /* Add padding below text before border */
   padding-bottom: 10px;
+
+  /* Slightly larger font size */
   font-size: 1.3em;
 }
 
+/* Output content styling */
 .output-content {
+  /* Set line height for readability */
   line-height: 1.6;
+
+  /* Slightly larger font size */
   font-size: 1.1em;
 }
 
+/* Balances table container */
 .balances-table {
+  /* Add vertical space around balances table */
   margin: 15px 0;
 }
 
-.balances-table table {
-  border-radius: 8px;
-  overflow: hidden;
-}
-
+/* Positive balance styling (green) */
 .balances-table .positive {
+  /* Green color for positive balances */
   color: #27ae60;
+
+  /* Bold text */
   font-weight: bold;
+
+  /* Slightly larger font size */
   font-size: 1.1em;
 }
 
+/* Negative balance styling (red) */
 .balances-table .negative {
+  /* Red color for negative balances */
   color: #e74c3c;
+
+  /* Bold text */
   font-weight: bold;
+
+  /* Slightly larger font size */
   font-size: 1.1em;
 }
 
+/* Blockchain view container */
 .chain-view {
+  /* Add vertical space around chain view */
   margin: 15px 0;
 }
 
+/* Blocks grid container */
 .blocks-container {
+  /* Use CSS Grid for block cards */
   display: grid;
+
+  /* Responsive columns - minimum 280px, flexible maximum */
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+
+  /* Space between grid items */
   gap: 15px;
+
+  /* Add vertical space around grid */
   margin: 15px 0;
 }
 
+/* Individual block card */
 .block-card {
+  /* White background */
   background: white;
+
+  /* Add border */
   border: 2px solid #e9ecef;
+
+  /* Round corners */
   border-radius: 10px;
+
+  /* Add padding inside */
   padding: 15px;
+
+  /* Add shadow for depth */
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+
+  /* Smooth transitions for hover effects */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Block card hover effect */
 .block-card:hover {
+  /* Lift card slightly on hover */
   transform: translateY(-3px);
+
+  /* Enhance shadow on hover */
   box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
+/* Block card title */
 .block-card h5 {
+  /* Remove top margin, add bottom margin */
   margin: 0 0 12px 0;
+
+  /* Blue text color */
   color: #2a5298;
+
+  /* Slightly larger font size */
   font-size: 1.2em;
+
+  /* Add bottom border */
   border-bottom: 2px solid #e9ecef;
+
+  /* Add padding below text before border */
   padding-bottom: 8px;
 }
 
+/* Attack steps container */
 .attack-steps {
+  /* Add vertical space around attack steps */
   margin: 15px 0;
 }
 
+/* Individual attack step */
 .attack-step {
+  /* Add padding inside step */
   padding: 10px;
+
+  /* Add colored left border as accent */
   border-left: 4px solid #2a5298;
+
+  /* Add vertical space between steps */
   margin: 8px 0;
+
+  /* Light gray background */
   background: #f8f9fa;
+
+  /* Round right corners only */
   border-radius: 0 8px 8px 0;
+
+  /* Smooth background transition */
   transition: background 0.3s ease;
 }
 
+/* Attack step hover effect */
 .attack-step:hover {
+  /* Darker background on hover */
   background: #e9ecef;
 }
 
+/* Attack result container */
 .attack-result {
+  /* Add padding inside result container */
   padding: 20px;
+
+  /* Round corners */
   border-radius: 10px;
+
+  /* Add vertical space around */
   margin: 15px 0;
+
+  /* Slightly larger font size */
   font-size: 1.1em;
 }
 
+/* Successful attack result (green) */
 .attack-result.success {
+  /* Green gradient background */
   background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+
+  /* Green border */
   border: 2px solid #28a745;
+
+  /* Dark green text color */
   color: #155724;
 }
 
+/* Failed attack result (red) */
 .attack-result.failure {
+  /* Red gradient background */
   background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+
+  /* Red border */
   border: 2px solid #dc3545;
+
+  /* Dark red text color */
   color: #721c24;
 }
 
+/* Loading text styling */
 .loading {
+  /* Center align loading text */
   text-align: center;
+
+  /* Add padding around loading text */
   padding: 30px;
+
+  /* Gray text color */
   color: #6c757d;
+
+  /* Slightly larger font size */
   font-size: 1.2em;
+
+  /* Italic text style */
   font-style: italic;
 }
 
-/* ============================
-   Attack Control Styles
-============================ */
+/* ============================ */
+/* Attack Control Styles */
+/* ============================ */
+
+/* Attack control panel */
 .attack-controls {
+  /* Light gray gradient background */
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+
+  /* Blue border around control panel */
   border: 3px solid #2a5298;
+
+  /* Round corners */
   border-radius: 12px;
+
+  /* Add padding inside */
   padding: 20px;
+
+  /* Add vertical space around */
   margin: 20px 0;
+
+  /* Add shadow for depth */
   box-shadow: 0 6px 12px rgba(0,0,0,0.1);
 }
 
+/* Individual control group */
 .control-group {
+  /* Add vertical space between control groups */
   margin: 15px 0;
+
+  /* Add padding inside control group */
   padding: 15px;
+
+  /* White background */
   background: white;
+
+  /* Round corners */
   border-radius: 8px;
+
+  /* Add subtle shadow */
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+/* Slider container */
 .slider-container {
+  /* Use flexbox for horizontal alignment */
   display: flex;
+
+  /* Vertically center items */
   align-items: center;
+
+  /* Space between slider and value display */
   gap: 20px;
+
+  /* Add vertical space around */
   margin: 15px 0;
 }
 
+/* Range input styling */
 .slider-container input[type="range"] {
+  /* Allow slider to grow and fill available space */
   flex: 1;
+
+  /* Set slider height */
   height: 10px;
+
+  /* Round slider ends */
   border-radius: 5px;
+
+  /* Gray background for slider track */
   background: #ddd;
+
+  /* Remove default browser outline */
   outline: none;
+
+  /* Remove default browser styling */
   -webkit-appearance: none;
 }
 
+/* Range input thumb (the draggable part) */
 .slider-container input[type="range"]::-webkit-slider-thumb {
+  /* Remove default browser styling */
   -webkit-appearance: none;
+
+  /* Set thumb size */
   width: 20px;
   height: 20px;
+
+  /* Make thumb circular */
   border-radius: 50%;
+
+  /* Blue color for thumb */
   background: #2a5298;
+
+  /* Change cursor to grab on hover */
   cursor: pointer;
+
+  /* Add shadow to thumb */
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
+/* Slider value display */
 .slider-value {
+  /* Set minimum width for value display */
   min-width: 80px;
+
+  /* Bold text */
   font-weight: bold;
+
+  /* Blue text color */
   color: #2a5298;
+
+  /* Slightly larger font size */
   font-size: 1.1em;
+
+  /* Light blue background */
   background: #e6f2ff;
+
+  /* Add padding around value */
   padding: 5px 10px;
+
+  /* Round corners */
   border-radius: 5px;
+
+  /* Center align text */
   text-align: center;
 }
 
+/* Force buttons container */
 .force-buttons {
+  /* Use flexbox for button layout */
   display: flex;
+
+  /* Space between buttons */
   gap: 15px;
+
+  /* Add vertical space around */
   margin: 15px 0;
+
+  /* Allow buttons to wrap on small screens */
   flex-wrap: wrap;
 }
 
+/* Force button styling */
 .force-btn {
+  /* Add padding inside buttons */
   padding: 10px 20px;
+
+  /* Blue border */
   border: 2px solid #2a5298;
+
+  /* White background */
   background: white;
+
+  /* Blue text color */
   color: #2a5298;
+
+  /* Round corners */
   border-radius: 8px;
+
+  /* Change cursor to pointer on hover */
   cursor: pointer;
+
+  /* Smooth transitions for all properties */
   transition: all 0.3s ease;
+
+  /* Semi-bold font weight */
   font-weight: 600;
+
+  /* Allow buttons to grow equally */
   flex: 1;
+
+  /* Set minimum button width */
   min-width: 120px;
 }
 
+/* Force button hover effect */
 .force-btn:hover {
+  /* Lift button slightly on hover */
   transform: translateY(-2px);
+
+  /* Add shadow on hover */
   box-shadow: 0 4px 8px rgba(42, 82, 152, 0.3);
 }
 
+/* Active force button (when selected) */
 .force-btn.active {
+  /* Blue background for active state */
   background: #2a5298;
+
+  /* White text color */
   color: white;
+
+  /* Enhanced shadow for active state */
   box-shadow: 0 4px 8px rgba(42, 82, 152, 0.4);
 }
 
+/* Control status display */
 .control-status {
+  /* Light blue background */
   background: #e6f2ff;
+
+  /* Add padding inside */
   padding: 15px;
+
+  /* Round corners */
   border-radius: 8px;
+
+  /* Add vertical space around */
   margin: 15px 0;
+
+  /* Set font size */
   font-size: 1em;
+
+  /* Add colored left border */
   border-left: 4px solid #2a5298;
 }
 
-/* ============================
-   Notification Styles
-============================ */
+/* ============================ */
+/* Notification Styles */
+/* ============================ */
+
+/* Notification popup */
 .notification {
+  /* Fixed position at top right of viewport */
   position: fixed;
   top: 20px;
   right: 20px;
+
+  /* Add padding inside notification */
   padding: 20px;
+
+  /* Round corners */
   border-radius: 10px;
+
+  /* High z-index to appear above other content */
   z-index: 1000;
+
+  /* Add shadow for depth */
   box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+
+  /* Use flexbox for content layout */
   display: flex;
+
+  /* Space out message and close button */
   justify-content: space-between;
+
+  /* Vertically center content */
   align-items: center;
+
+  /* Limit maximum width */
   max-width: 450px;
+
+  /* Add blur effect to background (for modern browsers) */
   backdrop-filter: blur(10px);
+
+  /* Slide-in animation */
   animation: slideIn 0.3s ease;
 }
 
+/* Slide-in animation for notifications */
 @keyframes slideIn {
   from {
+    /* Start off-screen to the right */
     transform: translateX(100%);
+
+    /* Start invisible */
     opacity: 0;
   }
   to {
+    /* End at normal position */
     transform: translateX(0);
+
+    /* End fully visible */
     opacity: 1;
   }
 }
 
+/* Notification close button */
 .notification button {
+  /* Remove default button styles */
   background: none;
   border: none;
+
+  /* White text color */
   color: white;
+
+  /* Larger font size for X icon */
   font-size: 1.5em;
+
+  /* Change cursor to pointer */
   cursor: pointer;
+
+  /* Add space to left of button */
   margin-left: 15px;
 }
 
-/* ============================
-   Modal Styles
-============================ */
+/* ============================ */
+/* Modal Styles */
+/* ============================ */
+
+/* Modal overlay (background) */
 .modal {
+  /* Fixed position covering entire viewport */
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+
+  /* Semi-transparent black background */
   background: rgba(0,0,0,0.7);
+
+  /* Use flexbox to center modal content */
   display: flex;
   justify-content: center;
   align-items: center;
+
+  /* High z-index to appear above everything */
   z-index: 2000;
+
+  /* Fade-in animation */
   animation: fadeIn 0.3s ease;
 }
 
+/* Fade-in animation for modals */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  max-width: 90%;
-  max-height: 90%;
-  overflow: auto;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  animation: scaleIn 0.3s ease;
-}
-
-@keyframes scaleIn {
   from {
-    transform: scale(0.8);
+    /* Start invisible */
     opacity: 0;
   }
   to {
-    transform: scale(1);
+    /* End fully visible */
     opacity: 1;
   }
 }
 
+/* Modal content box */
+.modal-content {
+  /* White background */
+  background: white;
+
+  /* Add padding inside */
+  padding: 30px;
+
+  /* Round corners */
+  border-radius: 12px;
+
+  /* Limit maximum size */
+  max-width: 90%;
+  max-height: 90%;
+
+  /* Allow scrolling if content overflows */
+  overflow: auto;
+
+  /* Add shadow for depth */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+
+  /* Scale-in animation */
+  animation: scaleIn 0.3s ease;
+}
+
+/* Scale-in animation for modal content */
+@keyframes scaleIn {
+  from {
+    /* Start scaled down */
+    transform: scale(0.8);
+
+    /* Start invisible */
+    opacity: 0;
+  }
+  to {
+    /* End at normal size */
+    transform: scale(1);
+
+    /* End fully visible */
+    opacity: 1;
+  }
+}
+
+/* Modal button styling */
 .modal-content button {
+  /* Blue background */
   background: #2a5298;
+
+  /* White text color */
   color: white;
+
+  /* Remove default border */
   border: none;
+
+  /* Add padding inside button */
   padding: 10px 20px;
+
+  /* Round corners */
   border-radius: 5px;
+
+  /* Change cursor to pointer */
   cursor: pointer;
+
+  /* Add space above button */
   margin-top: 15px;
 }
 
-/* ============================
-   Simblock Analysis
-============================ */
+/* ============================ */
+/* Simblock Analysis */
+/* ============================ */
+
+/* SimBlock analysis section */
 .simblock-analysis {
+  /* Add space below section */
   margin-bottom: 25px;
+
+  /* Light gray background */
   background: #f8f9fa;
+
+  /* Add padding inside */
   padding: 20px;
+
+  /* Round corners */
   border-radius: 10px;
+
+  /* Add colored left border */
   border-left: 4px solid #2a5298;
 }
 
+/* Result card styling */
 .result-card {
+  /* Add padding inside card */
   padding: 20px;
+
+  /* Round corners */
   border-radius: 8px;
+
+  /* Add vertical space around card */
   margin: 15px 0;
+
+  /* Slightly larger font size */
   font-size: 1.1em;
 }
 
+/* Successful attack card */
 .attack-success {
+  /* Green gradient background */
   background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+
+  /* Green border */
   border: 2px solid #28a745;
 }
 
+/* Failed attack card */
 .attack-fail {
+  /* Red gradient background */
   background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+
+  /* Red border */
   border: 2px solid #dc3545;
 }
 
-/* ============================
-   Responsive Design
-============================ */
+/* ============================ */
+/* Responsive Design */
+/* ============================ */
+
+/* Tablet and smaller screens (max-width: 768px) */
 @media (max-width: 768px) {
+  /* Stack header items vertically on small screens */
   .header-container {
     flex-direction: column;
     gap: 20px;
   }
 
+  /* Single column layout for charts on small screens */
   .charts-grid {
     grid-template-columns: 1fr;
   }
 
+  /* Allow chart containers to shrink */
   .chart-container {
     min-width: auto;
   }
 
+  /* Stack force buttons vertically */
   .force-buttons {
     flex-direction: column;
   }
 
+  /* Single column for block cards */
   .blocks-container {
     grid-template-columns: 1fr;
   }
 
+  /* Reduce padding on small screens */
   .section-box {
     padding: 15px;
   }
 
+  /* Adjust notification width for small screens */
   .notification {
     max-width: 90%;
     right: 5%;
   }
 }
 
+/* Mobile phones (max-width: 480px) */
 @media (max-width: 480px) {
+  /* Reduce header padding on very small screens */
   .site-header {
     padding: 15px 20px;
   }
 
+  /* Smaller main title on mobile */
   .title-box h1 {
     font-size: 1.8em;
   }
 
+  /* Smaller subtitle on mobile */
   .title-box h2 {
     font-size: 1.1em;
   }
 
+  /* Reduce container padding on mobile */
   .container {
     padding: 0 10px;
   }
 }
 
-/* ============================
-   Animation Enhancements
-============================ */
+/* ============================ */
+/* Animation Enhancements */
+/* ============================ */
+
+/* Fade-in animation class */
 .fade-in {
   animation: fadeIn 0.5s ease-in;
 }
 
+/* Slide-up animation class */
 .slide-up {
   animation: slideUp 0.5s ease-out;
 }
 
+/* Slide-up animation definition */
 @keyframes slideUp {
   from {
+    /* Start position - slightly below */
     transform: translateY(20px);
+
+    /* Start invisible */
     opacity: 0;
   }
   to {
+    /* End at normal position */
     transform: translateY(0);
+
+    /* End fully visible */
     opacity: 1;
   }
 }
 
+/* Pulsing animation class */
 .pulse {
   animation: pulse 2s infinite;
 }
 
+/* Pulsing animation definition */
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    /* Normal size */
+    transform: scale(1);
+  }
+  50% {
+    /* Slightly larger */
+    transform: scale(1.05);
+  }
+  100% {
+    /* Back to normal size */
+    transform: scale(1);
+  }
 }
 
-/* ============================
-   Print Styles
-============================ */
+/* ============================ */
+/* Print Styles */
+/* ============================ */
+
+/* Styles applied when printing the page */
 @media print {
+  /* Hide header, footer, and buttons when printing */
   .site-header, .site-footer, button {
     display: none;
   }
 
+  /* Simplify section boxes for printing */
   .section-box {
+    /* Remove shadows for cleaner print */
     box-shadow: none;
+
+    /* Simple border instead of colored left border */
     border: 1px solid #ddd;
   }
 
+  /* Simplify output containers for printing */
   .user-friendly-output {
+    /* White background for printing */
     background: white;
+
+    /* Simple border */
     border: 1px solid #ddd;
   }
 }

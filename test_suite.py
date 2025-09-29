@@ -1,5 +1,7 @@
 # test_suite.py
 # Complete Blockchain Test Suite for VIVA Demonstration
+# This file contains comprehensive tests for all blockchain functionalities
+# including core operations, attack simulations, and system integrations.
 
 import requests
 import time
@@ -9,13 +11,33 @@ from datetime import datetime
 
 
 class BlockchainTestSuite:
+    """
+    Comprehensive test suite for blockchain system validation.
+
+    This class provides methods to test all aspects of the blockchain system
+    including transactions, mining, consensus, attacks, and integrations.
+    """
+
     def __init__(self, base_url="http://127.0.0.1:5000"):
+        """
+        Initialize the test suite with target server URL.
+
+        Args:
+            base_url (str): Base URL of the blockchain server to test
+        """
         self.base_url = base_url
-        self.test_results = []
-        self.start_time = None
+        self.test_results = []  # Store all test results
+        self.start_time = None  # Track test suite start time
 
     def log_test(self, test_name, status, message=""):
-        """Log test results with timestamp"""
+        """
+        Log test results with timestamp and display to console.
+
+        Args:
+            test_name (str): Name of the test
+            status (str): Test status ('PASS', 'FAIL', 'WARNING')
+            message (str): Additional information about test result
+        """
         timestamp = datetime.now().strftime("%H:%M:%S")
         result = {
             "test": test_name,
@@ -25,11 +47,12 @@ class BlockchainTestSuite:
         }
         self.test_results.append(result)
 
+        # Display test result with appropriate emoji
         status_icon = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
         print(f"{status_icon} [{timestamp}] {test_name}: {status} - {message}")
 
     def start_suite(self):
-        """Start the test suite"""
+        """Start the test suite and display header information."""
         self.start_time = time.time()
         print("\n" + "=" * 70)
         print("🚀 BLOCKCHAIN TEST SUITE - VIVA DEMONSTRATION")
@@ -38,7 +61,12 @@ class BlockchainTestSuite:
         print("=" * 70)
 
     def end_suite(self):
-        """End the test suite and display summary"""
+        """
+        End the test suite and display comprehensive summary.
+
+        Returns:
+            tuple: (passed_count, failed_count, warning_count)
+        """
         end_time = time.time()
         duration = end_time - self.start_time
 
@@ -46,6 +74,7 @@ class BlockchainTestSuite:
         print("📊 TEST SUITE SUMMARY")
         print("=" * 70)
 
+        # Count test results by status
         passed = len([r for r in self.test_results if r["status"] == "PASS"])
         failed = len([r for r in self.test_results if r["status"] == "FAIL"])
         warning = len([r for r in self.test_results if r["status"] == "WARNING"])
@@ -54,7 +83,7 @@ class BlockchainTestSuite:
         print(f"⏱️ Duration: {duration:.2f} seconds")
         print("=" * 70)
 
-        # Detailed results
+        # Display detailed test results
         for result in self.test_results:
             icon = "✅" if result["status"] == "PASS" else "❌" if result["status"] == "FAIL" else "⚠️"
             print(f"{icon} {result['test']}")
@@ -64,13 +93,14 @@ class BlockchainTestSuite:
     # ==================== CORE BLOCKCHAIN TESTS ====================
 
     def test_blockchain_initialization(self):
-        """Test if blockchain is properly initialized"""
+        """Test if blockchain is properly initialized with genesis block."""
         try:
             response = requests.get(f"{self.base_url}/api/chain")
             if response.status_code == 200:
                 data = response.json()
                 if data.get("chain") and len(data["chain"]) > 0:
                     genesis_block = data["chain"][0]
+                    # Validate genesis block structure
                     if genesis_block["index"] == 0 and genesis_block["previous_hash"] == "0":
                         self.log_test("Blockchain Initialization", "PASS",
                                       f"Genesis block created with {len(data['chain'])} blocks")
@@ -84,8 +114,9 @@ class BlockchainTestSuite:
             self.log_test("Blockchain Initialization", "FAIL", str(e))
 
     def test_transaction_creation(self):
-        """Test transaction creation and validation"""
+        """Test transaction creation and validation functionality."""
         try:
+            # Test transaction data
             tx_data = {
                 "sender": "TestUser1",
                 "receiver": "TestUser2",
@@ -106,7 +137,7 @@ class BlockchainTestSuite:
             self.log_test("Transaction Creation", "FAIL", str(e))
 
     def test_block_mining(self):
-        """Test block mining functionality"""
+        """Test block mining functionality with transaction processing."""
         try:
             mine_data = {
                 "miner": "TestMiner"
@@ -127,7 +158,7 @@ class BlockchainTestSuite:
             self.log_test("Block Mining", "FAIL", str(e))
 
     def test_balance_calculation(self):
-        """Test balance calculation"""
+        """Test wallet balance calculation accuracy."""
         try:
             response = requests.get(f"{self.base_url}/api/balances")
             if response.status_code == 200:
@@ -141,14 +172,14 @@ class BlockchainTestSuite:
             self.log_test("Balance Calculation", "FAIL", str(e))
 
     def test_chain_validation(self):
-        """Test blockchain validation"""
+        """Test blockchain validation and integrity checks."""
         try:
             response = requests.get(f"{self.base_url}/api/chain")
             if response.status_code == 200:
                 data = response.json()
                 chain_length = len(data["chain"])
 
-                # Basic validation checks
+                # Basic validation checks - verify block linking
                 is_valid = True
                 for i in range(1, chain_length):
                     current_block = data["chain"][i]
@@ -170,10 +201,10 @@ class BlockchainTestSuite:
     # ==================== P2P NETWORK TESTS ====================
 
     def test_peer_management(self):
-        """Test peer addition and management"""
+        """Test peer addition and network management functionality."""
         try:
             peer_data = {
-                "address": "http://127.0.0.1:5001"  # Test peer
+                "address": "http://127.0.0.1:5001"  # Test peer address
             }
 
             response = requests.post(f"{self.base_url}/peers", json=peer_data)
@@ -190,7 +221,7 @@ class BlockchainTestSuite:
             self.log_test("Peer Management", "WARNING", f"Peer test skipped: {str(e)}")
 
     def test_consensus_mechanism(self):
-        """Test consensus algorithm"""
+        """Test blockchain consensus algorithm functionality."""
         try:
             response = requests.get(f"{self.base_url}/consensus")
             if response.status_code == 200:
@@ -205,7 +236,15 @@ class BlockchainTestSuite:
     # ==================== ATTACK SIMULATION TESTS ====================
 
     def test_double_spending_attack(self, probability=50, hash_power=50, force_success=False, force_failure=False):
-        """Test double spending attack with different configurations"""
+        """
+        Test double spending attack with different configurations.
+
+        Args:
+            probability (int): Attack success probability (1-100)
+            hash_power (int): Attacker hash power percentage (1-100)
+            force_success (bool): Force attack to succeed
+            force_failure (bool): Force attack to fail
+        """
         try:
             attack_config = {
                 "attacker": "TestAttacker",
@@ -224,6 +263,7 @@ class BlockchainTestSuite:
                 data = response.json()
                 success_rate = data.get("success_rate", 0) * 100
 
+                # Validate forced outcomes
                 if force_success:
                     expected_success = 100
                 elif force_failure:
@@ -232,7 +272,7 @@ class BlockchainTestSuite:
                     expected_success = probability
 
                 status = "PASS" if (force_success and data.get("successful")) or (
-                            force_failure and not data.get("successful")) else "PASS"
+                        force_failure and not data.get("successful")) else "PASS"
 
                 self.log_test("Double Spending Attack", status,
                               f"Success: {data.get('successful')}, Rate: {success_rate:.1f}%")
@@ -242,29 +282,29 @@ class BlockchainTestSuite:
             self.log_test("Double Spending Attack", "FAIL", str(e))
 
     def test_attack_scenarios(self):
-        """Test multiple attack scenarios"""
+        """Test multiple attack scenarios with different configurations."""
         print("\n🔓 TESTING ATTACK SCENARIOS")
         print("-" * 40)
 
-        # Test 1: Force Success
+        # Test 1: Force Success - should always succeed
         self.test_double_spending_attack(probability=10, hash_power=10, force_success=True)
 
-        # Test 2: Force Failure
+        # Test 2: Force Failure - should always fail
         self.test_double_spending_attack(probability=90, hash_power=90, force_failure=True)
 
-        # Test 3: Low Probability
+        # Test 3: Low Probability - unlikely to succeed
         self.test_double_spending_attack(probability=20, hash_power=30)
 
-        # Test 4: High Probability
+        # Test 4: High Probability - more likely to succeed
         self.test_double_spending_attack(probability=80, hash_power=70)
 
-        # Test 5: Balanced
+        # Test 5: Balanced - moderate chance of success
         self.test_double_spending_attack(probability=50, hash_power=50)
 
     # ==================== SIMBLOCK INTEGRATION TESTS ====================
 
     def test_simblock_integration(self):
-        """Test SimBlock integration"""
+        """Test SimBlock integration and simulation analysis."""
         try:
             response = requests.get(f"{self.base_url}/api/analyze")
             if response.status_code == 200:
@@ -283,7 +323,7 @@ class BlockchainTestSuite:
     # ==================== CHART & ANALYTICS TESTS ====================
 
     def test_chart_data_endpoints(self):
-        """Test chart data API endpoints"""
+        """Test chart data API endpoints for data visualization."""
         chart_endpoints = [
             "/api/charts/blockchain-growth",
             "/api/charts/balance-distribution",
@@ -302,7 +342,7 @@ class BlockchainTestSuite:
                 self.log_test(f"Chart API: {endpoint.split('/')[-1]}", "WARNING", str(e))
 
     def test_pdf_report_generation(self):
-        """Test PDF report generation"""
+        """Test PDF report generation functionality."""
         try:
             response = requests.get(f"{self.base_url}/api/report/pdf")
             if response.status_code == 200:
@@ -315,7 +355,12 @@ class BlockchainTestSuite:
     # ==================== COMPREHENSIVE TEST SUITE ====================
 
     def run_comprehensive_test(self):
-        """Run all tests in a comprehensive suite"""
+        """
+        Run all tests in a comprehensive suite covering all system aspects.
+
+        Returns:
+            tuple: (passed_count, failed_count, warning_count)
+        """
         self.start_suite()
 
         print("\n🔗 CORE BLOCKCHAIN FUNCTIONALITY")
@@ -349,13 +394,19 @@ class BlockchainTestSuite:
     # ==================== PERFORMANCE TESTING ====================
 
     def performance_test(self, num_transactions=10):
-        """Performance test with multiple transactions"""
+        """
+        Performance test with multiple transactions to measure system throughput.
+
+        Args:
+            num_transactions (int): Number of transactions to create for performance test
+        """
         print(f"\n⚡ PERFORMANCE TEST: {num_transactions} Transactions")
         print("-" * 50)
 
         start_time = time.time()
         successful_txs = 0
 
+        # Create multiple transactions to test performance
         for i in range(num_transactions):
             try:
                 tx_data = {
@@ -385,14 +436,14 @@ class BlockchainTestSuite:
 # ==================== DEMONSTRATION MODES ====================
 
 def run_quick_demo():
-    """Quick demonstration for VIVA"""
+    """Quick demonstration mode for VIVA presentation - essential tests only."""
     print("🎯 QUICK VIVA DEMONSTRATION MODE")
     print("=" * 50)
 
     tester = BlockchainTestSuite()
     tester.start_suite()
 
-    # Essential tests only
+    # Essential tests only for quick demo
     tester.test_blockchain_initialization()
     tester.test_transaction_creation()
     tester.test_block_mining()
@@ -403,7 +454,7 @@ def run_quick_demo():
 
 
 def run_full_demo():
-    """Full comprehensive demonstration"""
+    """Full comprehensive testing mode - all system aspects."""
     print("🔬 COMPREHENSIVE TESTING MODE")
     print("=" * 50)
 
@@ -415,7 +466,7 @@ def run_full_demo():
 
 
 def run_attack_demo():
-    """Focus on attack simulations"""
+    """Focus on attack simulation demonstrations."""
     print("🛡️ ATTACK SIMULATION DEMONSTRATION")
     print("=" * 50)
 
@@ -425,7 +476,7 @@ def run_attack_demo():
     print("\n🔓 ATTACK SCENARIOS DEMONSTRATION")
     print("-" * 40)
 
-    # Various attack scenarios
+    # Various attack scenarios for comprehensive demonstration
     scenarios = [
         ("Force Success", 10, 10, True, False),
         ("Force Failure", 90, 90, False, True),
@@ -442,6 +493,15 @@ def run_attack_demo():
 
 
 if __name__ == "__main__":
+    """
+    Main entry point for the test suite with multiple demonstration modes.
+
+    Allows user to choose between different testing scenarios:
+    1. Quick VIVA Demo - Essential tests for presentations
+    2. Full Comprehensive Test - All system functionality
+    3. Attack Simulation Demo - Focus on security aspects
+    4. All Tests - Complete testing suite
+    """
     print("Blockchain Test Suite - Choose Demo Mode:")
     print("1. Quick VIVA Demo")
     print("2. Full Comprehensive Test")

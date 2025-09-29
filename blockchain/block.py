@@ -5,11 +5,34 @@
 import json
 import hashlib
 from typing import List, Dict, Any
-from .transaction import Transaction   # Import Transaction class to store transactions inside blocks
+from .transaction import Transaction  # Import Transaction class to store transactions inside blocks
 
 
 class Block:
-    def __init__(self, index: int, transactions: List[Transaction], previous_hash: str, timestamp: int = None, nonce: int = 0):
+    """
+    Represents a single block in the blockchain.
+
+    Each block contains:
+    - Index (position in chain)
+    - Timestamp (when created)
+    - List of transactions
+    - Previous block's hash (for chain linking)
+    - Nonce (for proof-of-work)
+    - Its own hash (calculated from contents)
+    """
+
+    def __init__(self, index: int, transactions: List[Transaction], previous_hash: str, timestamp: int = None,
+                 nonce: int = 0):
+        """
+        Initialize a new Block.
+
+        Args:
+            index (int): Block number in the chain (starts from 0 for genesis block)
+            transactions (List[Transaction]): List of transactions in this block
+            previous_hash (str): Hash of the previous block in chain
+            timestamp (int, optional): When block was created. Defaults to current time.
+            nonce (int, optional): Number used in mining. Defaults to 0.
+        """
         # Block number in the chain (starts from 0 for genesis block)
         self.index = index
 
@@ -31,6 +54,15 @@ class Block:
     # Method to recreate a Block object from dictionary data
     @staticmethod
     def from_dict(block_data: Dict[str, Any]) -> 'Block':
+        """
+        Create a Block object from dictionary data (used when receiving blocks from network).
+
+        Args:
+            block_data (Dict): Dictionary containing block information
+
+        Returns:
+            Block: Reconstructed Block object
+        """
         # Convert transaction data from dicts back into Transaction objects
         transactions = [Transaction.from_dict(tx_data) for tx_data in block_data['transactions']]
 
@@ -49,6 +81,12 @@ class Block:
 
     # Method to calculate the block's hash
     def compute_hash(self) -> str:
+        """
+        Calculate the SHA-256 hash of the block's contents.
+
+        Returns:
+            str: Hexadecimal hash string
+        """
         # Create a dictionary with block information
         payload = {
             "index": self.index,
@@ -66,6 +104,12 @@ class Block:
 
     # Convert block object into a dictionary (useful for sending over network or saving)
     def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert block to dictionary for JSON serialization.
+
+        Returns:
+            Dict: Block data as dictionary
+        """
         return {
             "index": self.index,
             "timestamp": self.timestamp,
@@ -77,4 +121,10 @@ class Block:
 
     # String representation of the block (for debugging/printing)
     def __repr__(self):
+        """
+        String representation of the block for debugging.
+
+        Returns:
+            str: Human-readable block description
+        """
         return f"Block(idx={self.index} txs={len(self.transactions)} nonce={self.nonce} hash={self.hash[:10]}...)"
