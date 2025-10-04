@@ -2,6 +2,7 @@
 # This file defines the Transaction class used to represent financial transactions
 # between participants in the blockchain network.
 
+
 import time
 import hashlib
 import json

@@ -128,3 +128,4 @@ class Block:
             str: Human-readable block description
         """
         return f"Block(idx={self.index} txs={len(self.transactions)} nonce={self.nonce} hash={self.hash[:10]}...)"
+

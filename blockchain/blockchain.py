@@ -390,19 +390,60 @@ class Blockchain:
                 return False
         return True
 
-    def get_balances(self) -> Dict[str, float]:
-        """
-        Calculate balances for each participant based on transaction history.
 
-        Returns:
-            Dict: Wallet addresses and their balances
+    def get_balances(self):
         """
-        balances: Dict[str, float] = {}
+        Calculate current wallet balances including attack scenarios
+        """
+        balances = {}
+
+        # Process all transactions in the blockchain
         for block in self.chain:
             for tx in block.transactions:
-                if tx.sender != "SYSTEM":  # SYSTEM tx means mining reward
-                    balances[tx.sender] = balances.get(tx.sender, 0.0) - tx.amount
-                balances[tx.receiver] = balances.get(tx.receiver, 0.0) + tx.amount
+                sender = tx.sender
+                receiver = tx.receiver
+                amount = tx.amount
+
+                # Initialize wallets if not present
+                if sender not in balances:
+                    balances[sender] = 0
+                if receiver not in balances:
+                    balances[receiver] = 0
+
+                # ✅ FIXED: Only deduct from sender if not SYSTEM (mining reward)
+                if sender != "SYSTEM":
+                    balances[sender] -= amount
+                balances[receiver] += amount
+
+        # ✅ Include attacker balances from recent attacks
+        from main import RECENT_ATTACK_RESULTS
+        if 'last_attack' in RECENT_ATTACK_RESULTS:
+            attack_data = RECENT_ATTACK_RESULTS['last_attack']
+            attacker = attack_data.get('attacker', 'RedHawk')
+            amount = attack_data.get('amount', 0)
+            attack_success = attack_data.get('result', {}).get('successful', False)
+
+            # Initialize attacker wallet if not present
+            if attacker not in balances:
+                balances[attacker] = 0
+
+            # ✅ If attack successful, attacker gains the amount
+            if attack_success:
+                balances[attacker] += amount
+                # Find the victim (receiver in recent transactions) and deduct
+                if self.chain:
+                    last_block = self.chain[-1]
+                    for tx in last_block.transactions:
+                        if tx.sender != "SYSTEM" and tx.amount == amount:
+                            victim = tx.receiver
+                            if victim in balances:
+                                balances[victim] -= amount
+                            break
+
+        # Remove SYSTEM from balances for display
+        if "SYSTEM" in balances:
+            del balances["SYSTEM"]
+
         return balances
 
     # ---------------------

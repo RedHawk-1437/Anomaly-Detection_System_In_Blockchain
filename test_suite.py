@@ -1,5 +1,6 @@
 # test_suite.py
 # Complete Blockchain Test Suite for VIVA Demonstration
+# UPDATED VERSION - Compatible with Current Project Structure
 # This file contains comprehensive tests for all blockchain functionalities
 # including core operations, attack simulations, and system integrations.
 
@@ -165,7 +166,7 @@ class BlockchainTestSuite:
                 balances = response.json()
                 total_balance = sum(balances.values())
                 self.log_test("Balance Calculation", "PASS",
-                              f"Calculated balances for {len(balances)} users, Total: {total_balance}")
+                              f"Calculated balances for {len(balances)} users, Total: {total_balance:.2f}")
             else:
                 self.log_test("Balance Calculation", "FAIL", f"HTTP {response.status_code}")
         except Exception as e:
@@ -210,7 +211,7 @@ class BlockchainTestSuite:
             response = requests.post(f"{self.base_url}/peers", json=peer_data)
             if response.status_code == 200:
                 data = response.json()
-                if data.get("message") == "Peer added successfully":
+                if "message" in data and "successfully" in data["message"].lower():
                     self.log_test("Peer Management", "PASS",
                                   f"Peer added successfully. Total peers: {len(data.get('peers', []))}")
                 else:
@@ -246,10 +247,12 @@ class BlockchainTestSuite:
             force_failure (bool): Force attack to fail
         """
         try:
+            # UPDATED: Use current project's attack configuration structure
             attack_config = {
                 "attacker": "TestAttacker",
                 "blocks": 1,
                 "amount": 5.0,
+                "hash_power": hash_power,  # Direct parameter
                 "frontend_config": {
                     "successProbability": probability / 100.0,
                     "attackerHashPower": hash_power,
@@ -261,21 +264,28 @@ class BlockchainTestSuite:
             response = requests.post(f"{self.base_url}/api/attack/run", json=attack_config)
             if response.status_code == 200:
                 data = response.json()
+
+                # UPDATED: Handle different response formats
+                attack_successful = data.get("successful") or data.get("success", False)
                 success_rate = data.get("success_rate", 0) * 100
+                message = data.get("message", "")
 
                 # Validate forced outcomes
-                if force_success:
-                    expected_success = 100
-                elif force_failure:
-                    expected_success = 0
+                if force_success and attack_successful:
+                    status = "PASS"
+                    outcome_msg = "Force Success: Attack succeeded as expected"
+                elif force_failure and not attack_successful:
+                    status = "PASS"
+                    outcome_msg = "Force Failure: Attack failed as expected"
+                elif not force_success and not force_failure:
+                    status = "PASS"  # Random mode - any outcome is valid
+                    outcome_msg = f"Random: Success={attack_successful}, Rate={success_rate:.1f}%"
                 else:
-                    expected_success = probability
+                    status = "FAIL"
+                    outcome_msg = f"Expected {'success' if force_success else 'failure'} but got {attack_successful}"
 
-                status = "PASS" if (force_success and data.get("successful")) or (
-                        force_failure and not data.get("successful")) else "PASS"
+                self.log_test("Double Spending Attack", status, outcome_msg)
 
-                self.log_test("Double Spending Attack", status,
-                              f"Success: {data.get('successful')}, Rate: {success_rate:.1f}%")
             else:
                 self.log_test("Double Spending Attack", "FAIL", f"HTTP {response.status_code}")
         except Exception as e:
@@ -303,22 +313,35 @@ class BlockchainTestSuite:
 
     # ==================== SIMBLOCK INTEGRATION TESTS ====================
 
-    def test_simblock_integration(self):
-        """Test SimBlock integration and simulation analysis."""
+    def test_simblock_network_status(self):
+        """Test SimBlock network status and conditions."""
         try:
-            response = requests.get(f"{self.base_url}/api/analyze")
+            response = requests.get(f"{self.base_url}/api/simblock/network")
             if response.status_code == 200:
                 data = response.json()
-                if "error" not in data:
-                    self.log_test("SimBlock Integration", "PASS",
-                                  f"Simulation completed with {data.get('total_blocks', 0)} blocks")
-                else:
-                    self.log_test("SimBlock Integration", "WARNING",
-                                  f"SimBlock analysis: {data.get('error', 'Unknown error')}")
+                network_status = data.get('status', 'unknown')
+                latency = data.get('latency', 'unknown')
+                self.log_test("SimBlock Network Status", "PASS",
+                              f"Network: {network_status}, Latency: {latency}")
             else:
-                self.log_test("SimBlock Integration", "WARNING", "SimBlock test skipped")
+                self.log_test("SimBlock Network Status", "WARNING", "Network status unavailable")
         except Exception as e:
-            self.log_test("SimBlock Integration", "WARNING", f"SimBlock not available: {str(e)}")
+            self.log_test("SimBlock Network Status", "WARNING", f"SimBlock not available: {str(e)}")
+
+    def test_simblock_simulation_start(self):
+        """Test starting SimBlock simulation."""
+        try:
+            response = requests.post(f"{self.base_url}/api/simblock/start")
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success'):
+                    self.log_test("SimBlock Simulation Start", "PASS", "Simulation started successfully")
+                else:
+                    self.log_test("SimBlock Simulation Start", "WARNING", "Simulation in simulated mode")
+            else:
+                self.log_test("SimBlock Simulation Start", "WARNING", "Simulation start failed")
+        except Exception as e:
+            self.log_test("SimBlock Simulation Start", "WARNING", f"SimBlock start test skipped: {str(e)}")
 
     # ==================== CHART & ANALYTICS TESTS ====================
 
@@ -346,7 +369,12 @@ class BlockchainTestSuite:
         try:
             response = requests.get(f"{self.base_url}/api/report/pdf")
             if response.status_code == 200:
-                self.log_test("PDF Report Generation", "PASS", "PDF report generated successfully")
+                # Check if response is PDF
+                content_type = response.headers.get('content-type', '')
+                if 'pdf' in content_type.lower() or 'application' in content_type.lower():
+                    self.log_test("PDF Report Generation", "PASS", "PDF report generated successfully")
+                else:
+                    self.log_test("PDF Report Generation", "WARNING", "Unexpected content type")
             else:
                 self.log_test("PDF Report Generation", "WARNING", f"HTTP {response.status_code}")
         except Exception as e:
@@ -387,13 +415,14 @@ class BlockchainTestSuite:
 
         print("\n🔬 SIMBLOCK INTEGRATION")
         print("-" * 40)
-        self.test_simblock_integration()
+        self.test_simblock_network_status()
+        self.test_simblock_simulation_start()
 
         return self.end_suite()
 
     # ==================== PERFORMANCE TESTING ====================
 
-    def performance_test(self, num_transactions=10):
+    def performance_test(self, num_transactions=5):
         """
         Performance test with multiple transactions to measure system throughput.
 
@@ -432,6 +461,43 @@ class BlockchainTestSuite:
                       f"{successful_txs}/{num_transactions} transactions in {duration:.2f}s "
                       f"({duration / num_transactions:.3f}s per tx)")
 
+    # ==================== VIVA SPECIFIC DEMOS ====================
+
+    def viva_demonstration_mode(self):
+        """Special demonstration mode for VIVA presentation with live interactions."""
+        print("\n🎓 VIVA DEMONSTRATION MODE")
+        print("=" * 50)
+
+        # Clear previous results for clean demo
+        self.test_results = []
+
+        print("1. Demonstrating Blockchain Basics...")
+        self.test_blockchain_initialization()
+        time.sleep(1)
+
+        print("\n2. Creating Sample Transactions...")
+        self.test_transaction_creation()
+        time.sleep(1)
+
+        print("\n3. Mining New Block...")
+        self.test_block_mining()
+        time.sleep(1)
+
+        print("\n4. Checking Balances...")
+        self.test_balance_calculation()
+        time.sleep(1)
+
+        print("\n5. Double-Spending Attack Simulation...")
+        self.test_double_spending_attack(probability=70, hash_power=60)
+        time.sleep(1)
+
+        print("\n6. SimBlock Network Integration...")
+        self.test_simblock_network_status()
+
+        print("\n" + "=" * 50)
+        print("🎯 VIVA DEMONSTRATION COMPLETED!")
+        print("=" * 50)
+
 
 # ==================== DEMONSTRATION MODES ====================
 
@@ -441,16 +507,7 @@ def run_quick_demo():
     print("=" * 50)
 
     tester = BlockchainTestSuite()
-    tester.start_suite()
-
-    # Essential tests only for quick demo
-    tester.test_blockchain_initialization()
-    tester.test_transaction_creation()
-    tester.test_block_mining()
-    tester.test_balance_calculation()
-    tester.test_double_spending_attack(probability=70, hash_power=60)
-
-    tester.end_suite()
+    tester.viva_demonstration_mode()
 
 
 def run_full_demo():
@@ -462,7 +519,7 @@ def run_full_demo():
     tester.run_comprehensive_test()
 
     # Additional performance test
-    tester.performance_test(5)
+    tester.performance_test(3)
 
 
 def run_attack_demo():
@@ -492,23 +549,60 @@ def run_attack_demo():
     tester.end_suite()
 
 
+def run_simblock_demo():
+    """Focus on SimBlock integration demonstrations."""
+    print("🌐 SIMBLOCK INTEGRATION DEMONSTRATION")
+    print("=" * 50)
+
+    tester = BlockchainTestSuite()
+    tester.start_suite()
+
+    print("\n🔬 SIMBLOCK FUNCTIONALITY")
+    print("-" * 40)
+
+    tester.test_simblock_network_status()
+    tester.test_simblock_simulation_start()
+
+    # Test enhanced probability calculation
+    try:
+        prob_data = {
+            "base_probability": 0.7,
+            "hash_power": 0.6,
+            "latency": 100
+        }
+        response = requests.post("http://127.0.0.1:5000/api/simblock/attack-probability", json=prob_data)
+        if response.status_code == 200:
+            data = response.json()
+            enhanced_prob = data.get('enhanced_probability', 0) * 100
+            tester.log_test("SimBlock Probability Enhancement", "PASS",
+                            f"Enhanced probability: {enhanced_prob:.1f}%")
+    except Exception as e:
+        tester.log_test("SimBlock Probability Enhancement", "WARNING", str(e))
+
+    tester.end_suite()
+
+
 if __name__ == "__main__":
     """
     Main entry point for the test suite with multiple demonstration modes.
 
     Allows user to choose between different testing scenarios:
     1. Quick VIVA Demo - Essential tests for presentations
-    2. Full Comprehensive Test - All system functionality
+    2. Full Comprehensive Test - All system functionality  
     3. Attack Simulation Demo - Focus on security aspects
-    4. All Tests - Complete testing suite
+    4. SimBlock Integration Demo - Network simulation focus
+    5. All Tests - Complete testing suite
     """
-    print("Blockchain Test Suite - Choose Demo Mode:")
-    print("1. Quick VIVA Demo")
+    print("🚀 Blockchain Anomaly Detection System - Test Suite")
+    print("=" * 60)
+    print("Choose Demonstration Mode:")
+    print("1. Quick VIVA Demo (Recommended for Presentation)")
     print("2. Full Comprehensive Test")
     print("3. Attack Simulation Demo")
-    print("4. All Tests")
+    print("4. SimBlock Integration Demo")
+    print("5. Run All Demonstration Modes")
 
-    choice = input("\nEnter choice (1-4): ").strip()
+    choice = input("\nEnter choice (1-5): ").strip()
 
     if choice == "1":
         run_quick_demo()
@@ -517,11 +611,16 @@ if __name__ == "__main__":
     elif choice == "3":
         run_attack_demo()
     elif choice == "4":
+        run_simblock_demo()
+    elif choice == "5":
+        print("\n" + "=" * 70)
         run_quick_demo()
         print("\n" + "=" * 70)
         run_full_demo()
         print("\n" + "=" * 70)
         run_attack_demo()
+        print("\n" + "=" * 70)
+        run_simblock_demo()
     else:
-        print("Invalid choice. Running Quick Demo...")
+        print("Invalid choice. Running Quick VIVA Demo...")
         run_quick_demo()

@@ -5,21 +5,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0067b3e3-1292-47f3-9ada-6f0ab46b1c6d" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/blockchain/check_simblock.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/blockchain/simblock_integration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/blockchain/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/blockchain/attacker.py" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/attacker.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/blockchain/block.py" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/block.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/blockchain/blockchain.py" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/blockchain.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/blockchain/simblock_output/blockList.txt" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/simblock_output/blockList.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/blockchain/simblock_output/output.json" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/simblock_output/output.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/blockchain/transaction.py" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain/transaction.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reports/Comprehensive-Blockchain-Report.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/reports/Comprehensive-Blockchain-Report.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reports/balance_distribution.png" beforeDir="false" afterPath="$PROJECT_DIR$/reports/balance_distribution.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reports/blockchain_growth.png" beforeDir="false" afterPath="$PROJECT_DIR$/reports/blockchain_growth.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reports/simblock_metrics.png" beforeDir="false" afterPath="$PROJECT_DIR$/reports/simblock_metrics.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/Comprehensive-Blockchain-Report.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/Double-Spending-Report.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/balance_distribution.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/blockchain_growth.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/chain_chart.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/comparison_analysis.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/mining_analysis.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/network_activity.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/simblock_barchart.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/simblock_metrics.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/simblock_pie.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/simblock/simulator/output/output.json" beforeDir="false" afterPath="$PROJECT_DIR$/simblock/simulator/output/output.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/simblock/simulator/output/static.json" beforeDir="false" afterPath="$PROJECT_DIR$/simblock/simulator/output/static.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test_suite.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_suite.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web/static/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/web/static/app.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web/static/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/web/static/styles.css" afterDir="false" />
@@ -67,6 +75,9 @@
       <recent name="E:\Projects\Anomaly-Detection_System_In_Blockchain\blockchain" />
       <recent name="E:\Projects\Anomaly-Detection_System_In_Blockchain" />
       <recent name="E:\Projects\Anomaly-Detection_System_In_Blockchain\web\static" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\Projects\Anomaly-Detection_System_In_Blockchain\blockchain" />
     </key>
   </component>
   <component name="SharedIndexes">
