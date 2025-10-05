@@ -1,12 +1,25 @@
-/* Complete styling for Blockchain Anomaly Detection System with SimBlock integration */
+/*
+ * Blockchain Anomaly Detection System with SimBlock Integration
+ * Comprehensive styling for blockchain simulation interface
+ * Enhanced with responsive design and modern UI components
+ */
 
-/* ===== RESET AND BASE STYLES ===== */
+/* ===========================================
+   RESET AND BASE STYLES
+   =========================================== */
+
+/**
+ * Global reset for consistent styling across browsers
+ */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/**
+ * Base body styling with gradient background
+ */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.5;
@@ -15,7 +28,13 @@ body {
     min-height: 100vh;
 }
 
-/* ===== HEADER STYLES ===== */
+/* ===========================================
+   HEADER AND NAVIGATION STYLES
+   =========================================== */
+
+/**
+ * Main site header with gradient background
+ */
 .site-header {
     background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
     color: white;
@@ -23,6 +42,9 @@ body {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
+/**
+ * Header container for layout management
+ */
 .header-container {
     max-width: 1400px;
     margin: 0 auto;
@@ -33,6 +55,9 @@ body {
     gap: 80px;
 }
 
+/**
+ * Instructor and author information sections
+ */
 .instructor-info, .author-info {
     flex: 1;
     min-width: 250px;
@@ -47,6 +72,9 @@ body {
     text-align: left;
 }
 
+/**
+ * Logo and student picture styling
+ */
 .logo, .student-pic {
     width: 60px;
     height: 60px;
@@ -56,6 +84,9 @@ body {
     object-fit: cover;
 }
 
+/**
+ * Main title box styling
+ */
 .title-box {
     flex: 2;
     text-align: center;
@@ -75,13 +106,22 @@ body {
     opacity: 0.9;
 }
 
-/* ===== MAIN CONTENT STYLES ===== */
+/* ===========================================
+   MAIN CONTENT AREA STYLES
+   =========================================== */
+
+/**
+ * Main container for content sections
+ */
 .container {
     max-width: 1400px;
     margin: 30px auto;
     padding: 0 40px;
 }
 
+/**
+ * Header text section styling
+ */
 .header-text {
     text-align: center;
     margin-bottom: 40px;
@@ -105,7 +145,13 @@ body {
     line-height: 1.6;
 }
 
-/* ===== SECTION STYLES ===== */
+/* ===========================================
+   SECTION COMPONENT STYLES
+   =========================================== */
+
+/**
+ * Section box styling for content containers
+ */
 .section-box {
     background: white;
     padding: 35px;
@@ -135,7 +181,13 @@ body {
     font-size: 1.3rem;
 }
 
-/* ===== CHART INFO NOTE STYLES ===== */
+/* ===========================================
+   CHART AND DATA VISUALIZATION STYLES
+   =========================================== */
+
+/**
+ * Informational note for chart sections
+ */
 .chart-info-note {
     background: #e8f4fd;
     border: 1px solid #b3dcf9;
@@ -151,7 +203,9 @@ body {
     font-size: 0.95rem;
 }
 
-/* ===== EMPTY CHART MESSAGE STYLES ===== */
+/**
+ * Empty state styling for charts without data
+ */
 .chart-empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -163,7 +217,13 @@ body {
     margin-bottom: 10px;
 }
 
-/* ===== FORM STYLES ===== */
+/* ===========================================
+   FORM AND INPUT STYLES
+   =========================================== */
+
+/**
+ * Form group styling for input fields
+ */
 .form-group {
     margin-bottom: 25px;
 }
@@ -190,7 +250,13 @@ body {
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
-/* ===== BUTTON STYLES ===== */
+/* ===========================================
+   BUTTON AND INTERACTION STYLES
+   =========================================== */
+
+/**
+ * Primary button styling
+ */
 .primary-btn {
     background: linear-gradient(135deg, #3498db, #2980b9);
     color: white;
@@ -215,7 +281,13 @@ body {
     transform: translateY(0);
 }
 
-/* ===== ATTACK CONTROL STYLES ===== */
+/* ===========================================
+   ATTACK SIMULATION CONTROL STYLES
+   =========================================== */
+
+/**
+ * Attack controls container styling
+ */
 .attack-controls {
     background: #f8f9fa;
     padding: 30px;
@@ -235,6 +307,9 @@ body {
     color: #2c3e50;
 }
 
+/**
+ * Slider container for probability and hash power controls
+ */
 .slider-container {
     background: white;
     padding: 20px;
@@ -268,6 +343,9 @@ body {
     margin-left: 10px;
 }
 
+/**
+ * Force attack control buttons
+ */
 .force-buttons {
     display: flex;
     gap: 15px;
@@ -310,6 +388,9 @@ body {
     color: #e74c3c;
 }
 
+/**
+ * Control status display
+ */
 .control-status {
     background: white;
     padding: 20px;
@@ -319,7 +400,13 @@ body {
     margin-top: 20px;
 }
 
-/* ===== RESULT BOX STYLES ===== */
+/* ===========================================
+   RESULT AND OUTPUT DISPLAY STYLES
+   =========================================== */
+
+/**
+ * Result box for displaying operation outputs
+ */
 .result-box {
     background: #f8f9fa;
     border: 1px solid #e9ecef;
@@ -332,6 +419,9 @@ body {
     font-size: 0.9rem;
 }
 
+/**
+ * User-friendly output formatting
+ */
 .user-friendly-output {
     background: white;
     border-radius: 8px;
@@ -350,7 +440,13 @@ body {
     line-height: 1.6;
 }
 
-/* ===== CHART STYLES ===== */
+/* ===========================================
+   CHART AND GRID LAYOUT STYLES
+   =========================================== */
+
+/**
+ * Charts grid layout for responsive chart display
+ */
 .charts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
@@ -388,7 +484,13 @@ body {
     margin-top: 20px;
 }
 
-/* ===== BLOCKCHAIN SPECIFIC STYLES ===== */
+/* ===========================================
+   BLOCKCHAIN SPECIFIC COMPONENT STYLES
+   =========================================== */
+
+/**
+ * Blockchain chain view styling
+ */
 .chain-view {
     background: white;
     padding: 20px;
@@ -428,6 +530,9 @@ body {
     opacity: 0.9;
 }
 
+/**
+ * Balance table styling
+ */
 .balances-table {
     background: white;
     border-radius: 8px;
@@ -466,7 +571,13 @@ body {
     font-weight: bold;
 }
 
-/* ===== ATTACK RESULTS STYLES ===== */
+/* ===========================================
+   ATTACK RESULTS AND SIMULATION STYLES
+   =========================================== */
+
+/**
+ * Attack steps display
+ */
 .attack-steps {
     background: #f8f9fa;
     padding: 20px;
@@ -488,6 +599,9 @@ body {
     transform: translateX(5px);
 }
 
+/**
+ * Attack configuration display
+ */
 .attack-config {
     background: #e8f4fd;
     padding: 15px;
@@ -496,6 +610,9 @@ body {
     border: 1px solid #b3dcf9;
 }
 
+/**
+ * Attack result display
+ */
 .attack-result {
     padding: 20px;
     border-radius: 8px;
@@ -516,7 +633,13 @@ body {
     color: #721c24;
 }
 
-/* ===== NETWORK STYLES ===== */
+/* ===========================================
+   NETWORK AND SIMBLOCK STYLES
+   =========================================== */
+
+/**
+ * Network statistics display
+ */
 .network-stats {
     background: white;
     padding: 25px;
@@ -530,6 +653,9 @@ body {
     align-items: center;
 }
 
+/**
+ * Network health indicator animation
+ */
 .network-health-indicator {
     display: inline-block;
     width: 12px;
@@ -559,7 +685,13 @@ body {
     border: 1px solid #b3dcf9;
 }
 
-/* ===== NOTIFICATION STYLES ===== */
+/* ===========================================
+   NOTIFICATION AND FEEDBACK STYLES
+   =========================================== */
+
+/**
+ * Notification system styling
+ */
 .notification {
     position: fixed;
     top: 20px;
@@ -598,7 +730,13 @@ body {
     }
 }
 
-/* ===== SPINNER STYLES ===== */
+/* ===========================================
+   LOADING AND UTILITY STYLES
+   =========================================== */
+
+/**
+ * Spinner for loading states
+ */
 .spinner {
     text-align: center;
     padding: 20px;
@@ -607,7 +745,13 @@ body {
     font-weight: bold;
 }
 
-/* ===== FOOTER STYLES ===== */
+/* ===========================================
+   FOOTER STYLES
+   =========================================== */
+
+/**
+ * Site footer styling
+ */
 .site-footer {
     background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
     color: white;
@@ -622,7 +766,13 @@ body {
     padding: 0 40px;
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
+/* ===========================================
+   RESPONSIVE DESIGN BREAKPOINTS
+   =========================================== */
+
+/**
+ * Tablet and mobile responsive styles
+ */
 @media (max-width: 768px) {
     .header-container {
         flex-direction: column;
@@ -691,6 +841,9 @@ body {
     }
 }
 
+/**
+ * Mobile-specific responsive styles
+ */
 @media (max-width: 480px) {
     .container {
         padding: 0 20px;
@@ -715,7 +868,13 @@ body {
     }
 }
 
-/* ===== SCROLLBAR STYLING ===== */
+/* ===========================================
+   SCROLLBAR AND INTERACTION STYLES
+   =========================================== */
+
+/**
+ * Custom scrollbar styling
+ */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -733,7 +892,13 @@ body {
     background: #2980b9;
 }
 
-/* ===== HR STYLING ===== */
+/* ===========================================
+   DECORATIVE AND UTILITY STYLES
+   =========================================== */
+
+/**
+ * Horizontal rule styling
+ */
 hr {
     border: none;
     height: 2px;
@@ -741,7 +906,9 @@ hr {
     margin: 40px 0;
 }
 
-/* ===== CODE STYLING ===== */
+/**
+ * Code block styling
+ */
 code {
     background: #f8f9fa;
     padding: 2px 6px;
@@ -751,7 +918,13 @@ code {
     font-size: 0.9em;
 }
 
-/* ===== PRINT STYLES ===== */
+/* ===========================================
+   PRINT STYLES FOR REPORTS
+   =========================================== */
+
+/**
+ * Print-specific styles for report generation
+ */
 @media print {
     .primary-btn, .force-btn {
         display: none;
@@ -768,7 +941,13 @@ code {
     }
 }
 
-/* ===== ADDITIONAL UTILITY CLASSES FOR FINE-TUNED SPACING ===== */
+/* ===========================================
+   UTILITY CLASSES FOR LAYOUT MANAGEMENT
+   =========================================== */
+
+/**
+ * Utility classes for consistent spacing
+ */
 .content-padding {
     padding: 30px 40px;
 }

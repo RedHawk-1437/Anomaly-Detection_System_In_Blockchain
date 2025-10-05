@@ -1,6 +1,23 @@
-# blockchain.py - FIXED VERSION
-# This file defines the Blockchain class which handles the chain of blocks,
-# transactions, mining, and peer-to-peer communication.
+# blockchain.py
+"""
+Blockchain module for the blockchain system.
+
+This module defines the Blockchain class which serves as the core component
+managing the entire blockchain network. It handles block chain maintenance,
+transaction processing, mining operations, peer-to-peer communication,
+and consensus mechanisms.
+
+Key Features:
+- Complete blockchain management with genesis block initialization
+- Transaction validation and mempool management
+- Proof-of-work mining with configurable difficulty
+- Peer-to-peer network communication and consensus
+- Chain validation and conflict resolution
+- Balance calculation and ledger management
+
+The blockchain maintains integrity through cryptographic hashing and
+proof-of-work consensus while supporting network operations with peer nodes.
+"""
 
 import time
 import requests
@@ -21,15 +38,21 @@ class Blockchain:
     - Handle mining and proof-of-work
     - Manage peer-to-peer network
     - Validate transactions and blocks
+
+    The blockchain acts as a distributed ledger that records transactions
+    in an immutable, cryptographically secured chain of blocks.
     """
 
     def __init__(self, difficulty: int = 4, reward: float = 1.0):
         """
-        Initialize a new Blockchain.
+        Initialize a new Blockchain with genesis block.
+
+        Creates the initial blockchain structure with a genesis block and
+        sets up the foundational parameters for network operation.
 
         Args:
-            difficulty (int): Mining difficulty (number of leading zeros in hash)
-            reward (float): Mining reward for miners
+            difficulty (int): Mining difficulty (number of leading zeros in hash). Defaults to 4.
+            reward (float): Mining reward for miners. Defaults to 1.0.
         """
         # The actual chain (list of blocks)
         self.chain: List[Block] = []
@@ -58,6 +81,7 @@ class Blockchain:
     # ---------------------
     # Core helpers
     # ---------------------
+
     def last_block(self) -> Block:
         """
         Get the most recent block in the chain.
@@ -71,6 +95,9 @@ class Blockchain:
     def is_valid_transaction_structure(tx: Transaction) -> bool:
         """
         Validate the structure of a transaction.
+
+        Performs basic structural validation on transaction fields including
+        amount validation, sender/receiver existence, and non-self-sending.
 
         Args:
             tx (Transaction): Transaction to validate
@@ -95,15 +122,28 @@ class Blockchain:
     # ---------------------
     # Peer-to-Peer (P2P) Functions
     # ---------------------
+
     def new_transaction_from_dict(self, tx_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Add a new transaction received from a peer node into the mempool.
 
+        This method handles transaction data received from network peers,
+        validates its structure, and adds it to the local mempool for
+        inclusion in future blocks.
+
         Args:
-            tx_data (Dict): Transaction data from peer
+            tx_data (Dict): Transaction data from peer with keys:
+                - sender: Sender's wallet address
+                - receiver: Receiver's wallet address
+                - amount: Transaction amount
+                - timestamp: Transaction creation time (optional)
+                - id: Transaction ID (optional)
 
         Returns:
-            Dict: Result of transaction addition
+            Dict: Result of transaction addition with keys:
+                - status: "ok" on success, "error" on failure
+                - message: Descriptive message
+                - error: Error description if failed
         """
         try:
             # Create Transaction object from dictionary
@@ -121,11 +161,15 @@ class Blockchain:
         """
         Add a block received from a peer into our chain - IMPROVED VERSION.
 
+        Validates and adds a block received from a peer node to the local chain.
+        Handles both standard chain continuation and fork detection scenarios
+        with comprehensive validation checks.
+
         Args:
             new_block (Block): Block to add to chain
 
         Returns:
-            bool: True if block was added successfully
+            bool: True if block was added successfully, False otherwise
         """
         # Validate block type
         if not isinstance(new_block, Block):
@@ -183,8 +227,11 @@ class Blockchain:
         """
         Consensus Algorithm: Replace our chain with the longest valid chain among peers.
 
+        Implements the blockchain consensus mechanism by checking all peer nodes
+        for longer valid chains and adopting the longest valid chain found.
+
         Returns:
-            bool: True if our chain was replaced
+            bool: True if our chain was replaced, False otherwise
         """
         longest_chain = None
         max_length = len(self.chain)
@@ -220,11 +267,17 @@ class Blockchain:
         """
         Check if a given chain is valid.
 
+        Performs comprehensive validation of a blockchain including:
+        - Genesis block validity
+        - Block-to-block hash linkage
+        - Hash integrity verification
+        - Proof-of-work validation
+
         Args:
             chain_to_validate (List[Block]): Chain to validate
 
         Returns:
-            bool: True if chain is valid
+            bool: True if chain is valid, False otherwise
         """
         if not chain_to_validate:
             return False
@@ -252,17 +305,24 @@ class Blockchain:
     # ---------------------
     # Transactions
     # ---------------------
+
     def new_transaction(self, sender: str, receiver: str, amount: float) -> str:
         """
         Create a new transaction and add it to mempool.
 
+        Creates a transaction object, validates its structure, and adds it
+        to the mempool for inclusion in the next mined block.
+
         Args:
-            sender (str): Sender's address
-            receiver (str): Receiver's address
-            amount (float): Transaction amount
+            sender (str): Sender's wallet address
+            receiver (str): Receiver's wallet address
+            amount (float): Transaction amount (must be positive)
 
         Returns:
-            str: Transaction ID
+            str: Transaction ID of the created transaction
+
+        Raises:
+            ValueError: If transaction structure is invalid
         """
         # Create new transaction
         tx = Transaction(sender=sender, receiver=receiver, amount=amount)
@@ -276,15 +336,19 @@ class Blockchain:
     # ---------------------
     # Proof-of-Work (PoW)
     # ---------------------
+
     def _valid_proof(self, block: Block) -> bool:
         """
         Check if block hash has required leading zeros (proof-of-work).
+
+        Validates that a block meets the proof-of-work requirement by
+        checking if its hash starts with the required number of leading zeros.
 
         Args:
             block (Block): Block to validate
 
         Returns:
-            bool: True if proof is valid
+            bool: True if proof is valid, False otherwise
         """
         return block.hash.startswith('0' * self.difficulty)
 
@@ -292,11 +356,14 @@ class Blockchain:
         """
         Perform proof-of-work by finding a nonce that creates valid hash.
 
+        Implements the mining process by incrementing the nonce value until
+        a valid hash meeting the difficulty requirement is found.
+
         Args:
             block (Block): Block to mine
 
         Returns:
-            Block: Mined block with valid nonce
+            Block: Mined block with valid nonce and hash
         """
         # Start with nonce 0
         block.nonce = 0
@@ -315,6 +382,9 @@ class Blockchain:
         """
         Special case: mine the first (genesis) block.
 
+        Handles the initial mining of the genesis block which has special
+        characteristics as the first block in the chain.
+
         Args:
             genesis_block (Block): Genesis block to mine
 
@@ -328,16 +398,20 @@ class Blockchain:
     # ---------------------
     # Mining
     # ---------------------
+
     def mine_pending_transactions(self, miner_address: str, max_txs_per_block: int = 5) -> Block:
         """
         Mine pending transactions into a new block.
 
+        Creates and mines a new block containing pending transactions from
+        the mempool, including a mining reward transaction for the miner.
+
         Args:
             miner_address (str): Address to receive mining reward
-            max_txs_per_block (int): Maximum transactions per block
+            max_txs_per_block (int): Maximum transactions per block. Defaults to 5.
 
         Returns:
-            Block: Newly mined block
+            Block: Newly mined block added to the chain
         """
         # Select transactions to include in block (limit per block)
         if not self.mempool:
@@ -368,12 +442,16 @@ class Blockchain:
     # ---------------------
     # Validation & Ledger
     # ---------------------
+
     def is_chain_valid(self) -> bool:
         """
         Validate the entire chain block by block.
 
+        Performs comprehensive validation of the entire blockchain including
+        hash integrity, block linkage, and proof-of-work verification.
+
         Returns:
-            bool: True if chain is valid
+            bool: True if chain is valid, False otherwise
         """
         for i in range(1, len(self.chain)):
             curr = self.chain[i]
@@ -390,10 +468,16 @@ class Blockchain:
                 return False
         return True
 
-
     def get_balances(self):
         """
-        Calculate current wallet balances including attack scenarios
+        Calculate current wallet balances including attack scenarios.
+
+        Computes the current balance of all wallets by processing all
+        transactions in the blockchain. Handles special cases including
+        mining rewards and recent attack results.
+
+        Returns:
+            Dict: Dictionary mapping wallet addresses to their current balances
         """
         balances = {}
 
@@ -449,12 +533,21 @@ class Blockchain:
     # ---------------------
     # Utilities
     # ---------------------
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert chain and mempool into dictionary format (for APIs or saving).
 
+        Serializes the entire blockchain state including chain data, mempool,
+        network parameters, and peer information for external use.
+
         Returns:
-            Dict: Blockchain data as dictionary
+            Dict: Blockchain data as dictionary with keys:
+                - chain: List of block dictionaries
+                - mempool: List of transaction dictionaries
+                - difficulty: Current mining difficulty
+                - peers: List of peer node addresses
+                - miner_reward: Current mining reward amount
         """
         return {
             "chain": [blk.to_dict() for blk in self.chain],

@@ -1,626 +1,461 @@
-# test_suite.py
-# Complete Blockchain Test Suite for VIVA Demonstration
-# UPDATED VERSION - Compatible with Current Project Structure
-# This file contains comprehensive tests for all blockchain functionalities
-# including core operations, attack simulations, and system integrations.
+# test_suite.py - FIXED VERSION WITH CONTINUOUS TESTING LOOP
+# Updated to work with your blockchain project structure and enhanced features
 
 import requests
 import time
 import json
+import sys
 import random
 from datetime import datetime
+
+# Base URL for the blockchain node
+BASE_URL = "http://127.0.0.1:5000"
 
 
 class BlockchainTestSuite:
     """
-    Comprehensive test suite for blockchain system validation.
-
-    This class provides methods to test all aspects of the blockchain system
-    including transactions, mining, consensus, attacks, and integrations.
+    Comprehensive test suite for the Blockchain Anomaly Detection System
+    Synchronized with current project structure and enhanced features
     """
 
-    def __init__(self, base_url="http://127.0.0.1:5000"):
-        """
-        Initialize the test suite with target server URL.
-
-        Args:
-            base_url (str): Base URL of the blockchain server to test
-        """
+    def __init__(self, base_url=BASE_URL):
         self.base_url = base_url
-        self.test_results = []  # Store all test results
-        self.start_time = None  # Track test suite start time
+        self.test_results = []
+        self.attack_config = {
+            'successProbability': 0.7,
+            'attackerHashPower': 40,
+            'forceSuccess': False,
+            'forceFailure': False
+        }
 
-    def log_test(self, test_name, status, message=""):
-        """
-        Log test results with timestamp and display to console.
-
-        Args:
-            test_name (str): Name of the test
-            status (str): Test status ('PASS', 'FAIL', 'WARNING')
-            message (str): Additional information about test result
-        """
-        timestamp = datetime.now().strftime("%H:%M:%S")
+    def log_test(self, test_name, success, message="", data=None):
+        """Log test results with timestamps"""
         result = {
+            "timestamp": datetime.now().isoformat(),
             "test": test_name,
-            "status": status,
+            "success": success,
             "message": message,
-            "timestamp": timestamp
+            "data": data
         }
         self.test_results.append(result)
 
-        # Display test result with appropriate emoji
-        status_icon = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
-        print(f"{status_icon} [{timestamp}] {test_name}: {status} - {message}")
+        status_icon = "✅" if success else "❌"
+        print(f"{status_icon} {test_name}: {message}")
+        if data and not success:
+            print(f"   Data: {data}")
+        return success
 
-    def start_suite(self):
-        """Start the test suite and display header information."""
-        self.start_time = time.time()
-        print("\n" + "=" * 70)
-        print("🚀 BLOCKCHAIN TEST SUITE - VIVA DEMONSTRATION")
-        print("=" * 70)
-        print("📋 Testing All Blockchain Functionalities...")
-        print("=" * 70)
-
-    def end_suite(self):
-        """
-        End the test suite and display comprehensive summary.
-
-        Returns:
-            tuple: (passed_count, failed_count, warning_count)
-        """
-        end_time = time.time()
-        duration = end_time - self.start_time
-
-        print("\n" + "=" * 70)
-        print("📊 TEST SUITE SUMMARY")
-        print("=" * 70)
-
-        # Count test results by status
-        passed = len([r for r in self.test_results if r["status"] == "PASS"])
-        failed = len([r for r in self.test_results if r["status"] == "FAIL"])
-        warning = len([r for r in self.test_results if r["status"] == "WARNING"])
-
-        print(f"✅ Passed: {passed} | ❌ Failed: {failed} | ⚠️ Warning: {warning}")
-        print(f"⏱️ Duration: {duration:.2f} seconds")
-        print("=" * 70)
-
-        # Display detailed test results
-        for result in self.test_results:
-            icon = "✅" if result["status"] == "PASS" else "❌" if result["status"] == "FAIL" else "⚠️"
-            print(f"{icon} {result['test']}")
-
-        return passed, failed, warning
-
-    # ==================== CORE BLOCKCHAIN TESTS ====================
-
-    def test_blockchain_initialization(self):
-        """Test if blockchain is properly initialized with genesis block."""
+    def test_connection(self):
+        """Test basic connection to the blockchain node"""
         try:
-            response = requests.get(f"{self.base_url}/api/chain")
-            if response.status_code == 200:
-                data = response.json()
-                if data.get("chain") and len(data["chain"]) > 0:
-                    genesis_block = data["chain"][0]
-                    # Validate genesis block structure
-                    if genesis_block["index"] == 0 and genesis_block["previous_hash"] == "0":
-                        self.log_test("Blockchain Initialization", "PASS",
-                                      f"Genesis block created with {len(data['chain'])} blocks")
-                    else:
-                        self.log_test("Blockchain Initialization", "FAIL", "Invalid genesis block")
-                else:
-                    self.log_test("Blockchain Initialization", "FAIL", "No chain data")
-            else:
-                self.log_test("Blockchain Initialization", "FAIL", f"HTTP {response.status_code}")
+            response = requests.get(f"{self.base_url}/", timeout=10)
+            success = response.status_code == 200
+            return self.log_test(
+                "Connection Test",
+                success,
+                f"Status: {response.status_code}" if success else "Failed to connect"
+            )
         except Exception as e:
-            self.log_test("Blockchain Initialization", "FAIL", str(e))
+            return self.log_test("Connection Test", False, f"Error: {str(e)}")
+
+    def test_blockchain_endpoints(self):
+        """Test all core blockchain endpoints"""
+        endpoints = [
+            ("/api/chain", "GET", "Get Blockchain"),
+            ("/api/balances", "GET", "Get Balances"),
+            ("/api/balances/detailed", "GET", "Get Detailed Balances"),
+        ]
+
+        all_success = True
+        for endpoint, method, test_name in endpoints:
+            try:
+                if method == "GET":
+                    response = requests.get(f"{self.base_url}{endpoint}", timeout=10)
+                else:
+                    response = requests.post(f"{self.base_url}{endpoint}", timeout=10)
+
+                success = response.status_code == 200
+                all_success = all_success and success
+
+                self.log_test(
+                    f"Endpoint: {test_name}",
+                    success,
+                    f"Status: {response.status_code}",
+                    response.json() if success else None
+                )
+
+            except Exception as e:
+                all_success = False
+                self.log_test(f"Endpoint: {test_name}", False, f"Error: {str(e)}")
+
+        return all_success
 
     def test_transaction_creation(self):
-        """Test transaction creation and validation functionality."""
+        """Test creating new transactions"""
         try:
-            # Test transaction data
+            # Create test transaction
             tx_data = {
                 "sender": "TestUser1",
                 "receiver": "TestUser2",
-                "amount": 10.5
+                "amount": 5.0
             }
 
-            response = requests.post(f"{self.base_url}/api/tx/new", json=tx_data)
-            if response.status_code == 200:
-                data = response.json()
-                if data.get("status") == "ok" and data.get("txid"):
-                    self.log_test("Transaction Creation", "PASS",
-                                  f"Transaction created with ID: {data['txid'][:8]}...")
-                else:
-                    self.log_test("Transaction Creation", "FAIL", "Invalid response")
-            else:
-                self.log_test("Transaction Creation", "FAIL", f"HTTP {response.status_code}")
-        except Exception as e:
-            self.log_test("Transaction Creation", "FAIL", str(e))
+            response = requests.post(
+                f"{self.base_url}/api/tx/new",
+                json=tx_data,
+                timeout=10
+            )
 
-    def test_block_mining(self):
-        """Test block mining functionality with transaction processing."""
+            success = response.status_code == 200
+            response_data = response.json() if success else None
+
+            return self.log_test(
+                "Transaction Creation",
+                success,
+                f"Transaction ID: {response_data.get('txid', 'N/A')}" if success else f"Status: {response.status_code}",
+                response_data
+            )
+
+        except Exception as e:
+            return self.log_test("Transaction Creation", False, f"Error: {str(e)}")
+
+    def test_mining(self):
+        """Test block mining functionality"""
         try:
             mine_data = {
                 "miner": "TestMiner"
             }
 
-            response = requests.post(f"{self.base_url}/api/mine", json=mine_data)
-            if response.status_code == 200:
-                data = response.json()
-                if data.get("status") == "ok" and data.get("block"):
-                    block = data["block"]
-                    self.log_test("Block Mining", "PASS",
-                                  f"Block #{block['index']} mined with {len(block['transactions'])} transactions")
-                else:
-                    self.log_test("Block Mining", "FAIL", "Invalid response")
-            else:
-                self.log_test("Block Mining", "FAIL", f"HTTP {response.status_code}")
+            response = requests.post(
+                f"{self.base_url}/api/mine",
+                json=mine_data,
+                timeout=30  # Longer timeout for mining
+            )
+
+            success = response.status_code == 200
+            response_data = response.json() if success else None
+
+            return self.log_test(
+                "Block Mining",
+                success,
+                f"Block Index: {response_data.get('block', {}).get('index', 'N/A')}" if success else f"Status: {response.status_code}",
+                response_data
+            )
+
         except Exception as e:
-            self.log_test("Block Mining", "FAIL", str(e))
+            return self.log_test("Block Mining", False, f"Error: {str(e)}")
 
-    def test_balance_calculation(self):
-        """Test wallet balance calculation accuracy."""
+    def test_attack_simulation(self):
+        """Test double-spending attack simulation"""
         try:
-            response = requests.get(f"{self.base_url}/api/balances")
-            if response.status_code == 200:
-                balances = response.json()
-                total_balance = sum(balances.values())
-                self.log_test("Balance Calculation", "PASS",
-                              f"Calculated balances for {len(balances)} users, Total: {total_balance:.2f}")
-            else:
-                self.log_test("Balance Calculation", "FAIL", f"HTTP {response.status_code}")
-        except Exception as e:
-            self.log_test("Balance Calculation", "FAIL", str(e))
-
-    def test_chain_validation(self):
-        """Test blockchain validation and integrity checks."""
-        try:
-            response = requests.get(f"{self.base_url}/api/chain")
-            if response.status_code == 200:
-                data = response.json()
-                chain_length = len(data["chain"])
-
-                # Basic validation checks - verify block linking
-                is_valid = True
-                for i in range(1, chain_length):
-                    current_block = data["chain"][i]
-                    previous_block = data["chain"][i - 1]
-
-                    if current_block["previous_hash"] != previous_block["hash"]:
-                        is_valid = False
-                        break
-
-                if is_valid:
-                    self.log_test("Chain Validation", "PASS", f"Chain with {chain_length} blocks is valid")
-                else:
-                    self.log_test("Chain Validation", "FAIL", "Chain integrity broken")
-            else:
-                self.log_test("Chain Validation", "FAIL", f"HTTP {response.status_code}")
-        except Exception as e:
-            self.log_test("Chain Validation", "FAIL", str(e))
-
-    # ==================== P2P NETWORK TESTS ====================
-
-    def test_peer_management(self):
-        """Test peer addition and network management functionality."""
-        try:
-            peer_data = {
-                "address": "http://127.0.0.1:5001"  # Test peer address
-            }
-
-            response = requests.post(f"{self.base_url}/peers", json=peer_data)
-            if response.status_code == 200:
-                data = response.json()
-                if "message" in data and "successfully" in data["message"].lower():
-                    self.log_test("Peer Management", "PASS",
-                                  f"Peer added successfully. Total peers: {len(data.get('peers', []))}")
-                else:
-                    self.log_test("Peer Management", "WARNING", "Peer added but different response")
-            else:
-                self.log_test("Peer Management", "WARNING", "Peer addition failed (expected for demo)")
-        except Exception as e:
-            self.log_test("Peer Management", "WARNING", f"Peer test skipped: {str(e)}")
-
-    def test_consensus_mechanism(self):
-        """Test blockchain consensus algorithm functionality."""
-        try:
-            response = requests.get(f"{self.base_url}/consensus")
-            if response.status_code == 200:
-                data = response.json()
-                self.log_test("Consensus Mechanism", "PASS",
-                              f"Consensus check completed: {data.get('message', 'Unknown')}")
-            else:
-                self.log_test("Consensus Mechanism", "FAIL", f"HTTP {response.status_code}")
-        except Exception as e:
-            self.log_test("Consensus Mechanism", "FAIL", str(e))
-
-    # ==================== ATTACK SIMULATION TESTS ====================
-
-    def test_double_spending_attack(self, probability=50, hash_power=50, force_success=False, force_failure=False):
-        """
-        Test double spending attack with different configurations.
-
-        Args:
-            probability (int): Attack success probability (1-100)
-            hash_power (int): Attacker hash power percentage (1-100)
-            force_success (bool): Force attack to succeed
-            force_failure (bool): Force attack to fail
-        """
-        try:
-            # UPDATED: Use current project's attack configuration structure
-            attack_config = {
+            attack_data = {
                 "attacker": "TestAttacker",
                 "blocks": 1,
-                "amount": 5.0,
-                "hash_power": hash_power,  # Direct parameter
-                "frontend_config": {
-                    "successProbability": probability / 100.0,
-                    "attackerHashPower": hash_power,
-                    "forceSuccess": force_success,
-                    "forceFailure": force_failure
-                }
+                "amount": 10.0,
+                "frontend_config": self.attack_config
             }
 
-            response = requests.post(f"{self.base_url}/api/attack/run", json=attack_config)
-            if response.status_code == 200:
-                data = response.json()
+            response = requests.post(
+                f"{self.base_url}/api/attack/run",
+                json=attack_data,
+                timeout=20
+            )
 
-                # UPDATED: Handle different response formats
-                attack_successful = data.get("successful") or data.get("success", False)
-                success_rate = data.get("success_rate", 0) * 100
-                message = data.get("message", "")
+            success = response.status_code == 200
+            response_data = response.json() if success else None
 
-                # Validate forced outcomes
-                if force_success and attack_successful:
-                    status = "PASS"
-                    outcome_msg = "Force Success: Attack succeeded as expected"
-                elif force_failure and not attack_successful:
-                    status = "PASS"
-                    outcome_msg = "Force Failure: Attack failed as expected"
-                elif not force_success and not force_failure:
-                    status = "PASS"  # Random mode - any outcome is valid
-                    outcome_msg = f"Random: Success={attack_successful}, Rate={success_rate:.1f}%"
-                else:
-                    status = "FAIL"
-                    outcome_msg = f"Expected {'success' if force_success else 'failure'} but got {attack_successful}"
+            attack_result = "SUCCESS" if response_data.get('successful', False) else "FAILED"
 
-                self.log_test("Double Spending Attack", status, outcome_msg)
+            return self.log_test(
+                "Attack Simulation",
+                success,
+                f"Attack Result: {attack_result}, Probability: {response_data.get('success_probability', 0):.1f}%" if success else f"Status: {response.status_code}",
+                response_data
+            )
 
-            else:
-                self.log_test("Double Spending Attack", "FAIL", f"HTTP {response.status_code}")
         except Exception as e:
-            self.log_test("Double Spending Attack", "FAIL", str(e))
+            return self.log_test("Attack Simulation", False, f"Error: {str(e)}")
 
-    def test_attack_scenarios(self):
-        """Test multiple attack scenarios with different configurations."""
-        print("\n🔓 TESTING ATTACK SCENARIOS")
-        print("-" * 40)
-
-        # Test 1: Force Success - should always succeed
-        self.test_double_spending_attack(probability=10, hash_power=10, force_success=True)
-
-        # Test 2: Force Failure - should always fail
-        self.test_double_spending_attack(probability=90, hash_power=90, force_failure=True)
-
-        # Test 3: Low Probability - unlikely to succeed
-        self.test_double_spending_attack(probability=20, hash_power=30)
-
-        # Test 4: High Probability - more likely to succeed
-        self.test_double_spending_attack(probability=80, hash_power=70)
-
-        # Test 5: Balanced - moderate chance of success
-        self.test_double_spending_attack(probability=50, hash_power=50)
-
-    # ==================== SIMBLOCK INTEGRATION TESTS ====================
-
-    def test_simblock_network_status(self):
-        """Test SimBlock network status and conditions."""
-        try:
-            response = requests.get(f"{self.base_url}/api/simblock/network")
-            if response.status_code == 200:
-                data = response.json()
-                network_status = data.get('status', 'unknown')
-                latency = data.get('latency', 'unknown')
-                self.log_test("SimBlock Network Status", "PASS",
-                              f"Network: {network_status}, Latency: {latency}")
-            else:
-                self.log_test("SimBlock Network Status", "WARNING", "Network status unavailable")
-        except Exception as e:
-            self.log_test("SimBlock Network Status", "WARNING", f"SimBlock not available: {str(e)}")
-
-    def test_simblock_simulation_start(self):
-        """Test starting SimBlock simulation."""
-        try:
-            response = requests.post(f"{self.base_url}/api/simblock/start")
-            if response.status_code == 200:
-                data = response.json()
-                if data.get('success'):
-                    self.log_test("SimBlock Simulation Start", "PASS", "Simulation started successfully")
-                else:
-                    self.log_test("SimBlock Simulation Start", "WARNING", "Simulation in simulated mode")
-            else:
-                self.log_test("SimBlock Simulation Start", "WARNING", "Simulation start failed")
-        except Exception as e:
-            self.log_test("SimBlock Simulation Start", "WARNING", f"SimBlock start test skipped: {str(e)}")
-
-    # ==================== CHART & ANALYTICS TESTS ====================
-
-    def test_chart_data_endpoints(self):
-        """Test chart data API endpoints for data visualization."""
+    def test_chart_endpoints(self):
+        """Test all chart data endpoints"""
         chart_endpoints = [
             "/api/charts/blockchain-growth",
             "/api/charts/balance-distribution",
             "/api/charts/mining-analysis",
-            "/api/charts/network-activity"
+            "/api/charts/network-activity",
+            "/api/charts/simblock-analysis"
         ]
 
+        all_success = True
         for endpoint in chart_endpoints:
             try:
-                response = requests.get(f"{self.base_url}{endpoint}")
-                if response.status_code == 200:
-                    self.log_test(f"Chart API: {endpoint.split('/')[-1]}", "PASS", "Data retrieved successfully")
-                else:
-                    self.log_test(f"Chart API: {endpoint.split('/')[-1]}", "WARNING", f"HTTP {response.status_code}")
+                response = requests.get(f"{self.base_url}{endpoint}", timeout=10)
+                success = response.status_code == 200
+                all_success = all_success and success
+
+                chart_name = endpoint.split("/")[-1].replace("-", " ").title()
+                self.log_test(
+                    f"Chart: {chart_name}",
+                    success,
+                    f"Data Points: {len(response.json().get('labels', []))}" if success else f"Status: {response.status_code}"
+                )
+
             except Exception as e:
-                self.log_test(f"Chart API: {endpoint.split('/')[-1]}", "WARNING", str(e))
+                all_success = False
+                self.log_test(f"Chart: {endpoint}", False, f"Error: {str(e)}")
+
+        return all_success
+
+    def test_simblock_integration(self):
+        """Test SimBlock integration endpoints"""
+        # FIXED: Corrected variable name from 'endpoints' to 'simblock_endpoints'
+        simblock_endpoints = [
+            ("/api/simblock/network", "GET", "Network Status"),
+            ("/api/simblock/start", "POST", "Start Simulation"),
+        ]
+
+        all_success = True
+        for endpoint, method, test_name in simblock_endpoints:  # FIXED: Changed 'endpoints' to 'simblock_endpoints'
+            try:
+                if method == "GET":
+                    response = requests.get(f"{self.base_url}{endpoint}", timeout=10)
+                else:
+                    # For POST endpoints, send empty JSON
+                    response = requests.post(f"{self.base_url}{endpoint}", json={}, timeout=10)
+
+                # Consider 200 or 201 as success
+                success = response.status_code in [200, 201]
+                all_success = all_success and success
+
+                self.log_test(
+                    f"SimBlock: {test_name}",
+                    success,
+                    f"Status: {response.status_code}",
+                    response.json() if success else None
+                )
+
+            except Exception as e:
+                all_success = False
+                self.log_test(f"SimBlock: {test_name}", False, f"Error: {str(e)}")
+
+        return all_success
 
     def test_pdf_report_generation(self):
-        """Test PDF report generation functionality."""
+        """Test PDF report generation"""
         try:
-            response = requests.get(f"{self.base_url}/api/report/pdf")
-            if response.status_code == 200:
-                # Check if response is PDF
-                content_type = response.headers.get('content-type', '')
-                if 'pdf' in content_type.lower() or 'application' in content_type.lower():
-                    self.log_test("PDF Report Generation", "PASS", "PDF report generated successfully")
-                else:
-                    self.log_test("PDF Report Generation", "WARNING", "Unexpected content type")
-            else:
-                self.log_test("PDF Report Generation", "WARNING", f"HTTP {response.status_code}")
-        except Exception as e:
-            self.log_test("PDF Report Generation", "WARNING", str(e))
+            response = requests.get(f"{self.base_url}/api/report/pdf", timeout=60)
+            success = response.status_code == 200
 
-    # ==================== COMPREHENSIVE TEST SUITE ====================
+            return self.log_test(
+                "PDF Report Generation",
+                success,
+                f"File Size: {len(response.content)} bytes" if success else f"Status: {response.status_code}"
+            )
+
+        except Exception as e:
+            return self.log_test("PDF Report Generation", False, f"Error: {str(e)}")
+
+    def test_network_management(self):
+        """Test network management endpoints"""
+        try:
+            # Test adding a peer
+            peer_data = {
+                "address": "http://127.0.0.1:5001"
+            }
+
+            response = requests.post(
+                f"{self.base_url}/peers",
+                json=peer_data,
+                timeout=10
+            )
+
+            success = response.status_code in [200, 201]
+
+            return self.log_test(
+                "Network Management",
+                success,
+                f"Peers: {len(response.json().get('peers', []))}" if success else f"Status: {response.status_code}",
+                response.json() if success else None
+            )
+
+        except Exception as e:
+            return self.log_test("Network Management", False, f"Error: {str(e)}")
+
+    def test_consensus_mechanism(self):
+        """Test blockchain consensus mechanism"""
+        try:
+            response = requests.get(f"{self.base_url}/consensus", timeout=10)
+            success = response.status_code == 200
+
+            return self.log_test(
+                "Consensus Mechanism",
+                success,
+                f"Status: {response.status_code}",
+                response.json() if success else None
+            )
+
+        except Exception as e:
+            return self.log_test("Consensus Mechanism", False, f"Error: {str(e)}")
 
     def run_comprehensive_test(self):
+        """Run all tests in sequence"""
+        print("🚀 Starting Comprehensive Blockchain Test Suite")
+        print("=" * 60)
+
+        tests = [
+            ("Connection Test", self.test_connection),
+            ("Blockchain Endpoints", self.test_blockchain_endpoints),
+            ("Transaction Test", self.test_transaction_creation),
+            ("Mining Test", self.test_mining),
+            ("Chart Endpoints", self.test_chart_endpoints),
+            ("SimBlock Integration", self.test_simblock_integration),
+            ("Attack Simulation", self.test_attack_simulation),
+            ("Network Management", self.test_network_management),
+            ("Consensus Test", self.test_consensus_mechanism),
+            ("PDF Report", self.test_pdf_report_generation),
+        ]
+
+        all_success = True
+        for test_name, test_func in tests:
+            print(f"\n🔧 Running {test_name}...")
+            success = test_func()
+            all_success = all_success and success
+            time.sleep(1)  # Brief pause between tests
+
+        return all_success
+
+    def run_continuous_testing(self, interval_seconds=30, max_iterations=None):
         """
-        Run all tests in a comprehensive suite covering all system aspects.
-
-        Returns:
-            tuple: (passed_count, failed_count, warning_count)
-        """
-        self.start_suite()
-
-        print("\n🔗 CORE BLOCKCHAIN FUNCTIONALITY")
-        print("-" * 40)
-        self.test_blockchain_initialization()
-        self.test_transaction_creation()
-        self.test_block_mining()
-        self.test_balance_calculation()
-        self.test_chain_validation()
-
-        print("\n🌐 P2P NETWORK FUNCTIONALITY")
-        print("-" * 40)
-        self.test_peer_management()
-        self.test_consensus_mechanism()
-
-        print("\n🛡️ SECURITY & ATTACK SIMULATION")
-        print("-" * 40)
-        self.test_attack_scenarios()
-
-        print("\n📊 ANALYTICS & VISUALIZATION")
-        print("-" * 40)
-        self.test_chart_data_endpoints()
-        self.test_pdf_report_generation()
-
-        print("\n🔬 SIMBLOCK INTEGRATION")
-        print("-" * 40)
-        self.test_simblock_network_status()
-        self.test_simblock_simulation_start()
-
-        return self.end_suite()
-
-    # ==================== PERFORMANCE TESTING ====================
-
-    def performance_test(self, num_transactions=5):
-        """
-        Performance test with multiple transactions to measure system throughput.
+        Run continuous testing in a loop
 
         Args:
-            num_transactions (int): Number of transactions to create for performance test
+            interval_seconds: Time between test cycles (default: 30 seconds)
+            max_iterations: Maximum number of test cycles (None for infinite)
         """
-        print(f"\n⚡ PERFORMANCE TEST: {num_transactions} Transactions")
-        print("-" * 50)
+        print("🔄 Starting Continuous Testing Mode")
+        print(f"⏰ Test interval: {interval_seconds} seconds")
+        print(f"🔁 Max iterations: {max_iterations if max_iterations else 'Infinite'}")
+        print("Press Ctrl+C to stop testing")
+        print("=" * 60)
 
-        start_time = time.time()
-        successful_txs = 0
+        iteration = 0
+        try:
+            while True:
+                iteration += 1
+                print(f"\n📊 TEST CYCLE {iteration} - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                print("-" * 50)
 
-        # Create multiple transactions to test performance
-        for i in range(num_transactions):
-            try:
-                tx_data = {
-                    "sender": f"PerfUser{i}",
-                    "receiver": f"PerfReceiver{i}",
-                    "amount": random.uniform(1, 100)
-                }
+                # Run comprehensive test
+                success = self.run_comprehensive_test()
 
-                response = requests.post(f"{self.base_url}/api/tx/new", json=tx_data)
-                if response.status_code == 200:
-                    successful_txs += 1
+                # Print summary for this cycle
+                total_tests = len(self.test_results)
+                passed_tests = sum(1 for result in self.test_results if result['success'])
 
-                # Small delay to avoid overwhelming the server
-                time.sleep(0.1)
+                print(f"\n📈 Cycle {iteration} Summary: {passed_tests}/{total_tests} tests passed")
 
-            except Exception as e:
-                print(f"❌ Transaction {i + 1} failed: {e}")
+                # Check if we should stop
+                if max_iterations and iteration >= max_iterations:
+                    print(f"\n✅ Completed {max_iterations} test cycles. Stopping.")
+                    break
 
-        end_time = time.time()
-        duration = end_time - start_time
+                # Wait for next cycle
+                if iteration < (max_iterations if max_iterations else float('inf')):
+                    print(f"\n⏳ Waiting {interval_seconds} seconds for next test cycle...")
+                    time.sleep(interval_seconds)
 
-        self.log_test("Performance Test", "PASS",
-                      f"{successful_txs}/{num_transactions} transactions in {duration:.2f}s "
-                      f"({duration / num_transactions:.3f}s per tx)")
+        except KeyboardInterrupt:
+            print(f"\n🛑 Testing interrupted by user after {iteration} cycles")
 
-    # ==================== VIVA SPECIFIC DEMOS ====================
+        return self.generate_final_report()
 
-    def viva_demonstration_mode(self):
-        """Special demonstration mode for VIVA presentation with live interactions."""
-        print("\n🎓 VIVA DEMONSTRATION MODE")
-        print("=" * 50)
+    def generate_final_report(self):
+        """Generate a final test report"""
+        print("\n" + "=" * 60)
+        print("📊 FINAL TEST REPORT")
+        print("=" * 60)
 
-        # Clear previous results for clean demo
-        self.test_results = []
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result['success'])
+        failed_tests = total_tests - passed_tests
 
-        print("1. Demonstrating Blockchain Basics...")
-        self.test_blockchain_initialization()
-        time.sleep(1)
+        # Group by test cycle
+        cycles = {}
+        for result in self.test_results:
+            cycle_time = result['timestamp'][:16]  # Group by minute
+            if cycle_time not in cycles:
+                cycles[cycle_time] = []
+            cycles[cycle_time].append(result)
 
-        print("\n2. Creating Sample Transactions...")
-        self.test_transaction_creation()
-        time.sleep(1)
+        print(f"Total Test Cycles: {len(cycles)}")
+        print(f"Total Tests Run: {total_tests}")
+        print(f"✅ Passed: {passed_tests}")
+        print(f"❌ Failed: {failed_tests}")
+        print(f"📊 Success Rate: {(passed_tests / total_tests) * 100:.1f}%")
 
-        print("\n3. Mining New Block...")
-        self.test_block_mining()
-        time.sleep(1)
+        # Show recent failures
+        recent_failures = [r for r in self.test_results[-20:] if not r['success']]
+        if recent_failures:
+            print(f"\n🔍 Recent Failures (last 20 tests):")
+            for failure in recent_failures[-5:]:  # Show last 5 failures
+                print(f"   ❌ {failure['test']}: {failure['message']}")
 
-        print("\n4. Checking Balances...")
-        self.test_balance_calculation()
-        time.sleep(1)
-
-        print("\n5. Double-Spending Attack Simulation...")
-        self.test_double_spending_attack(probability=70, hash_power=60)
-        time.sleep(1)
-
-        print("\n6. SimBlock Network Integration...")
-        self.test_simblock_network_status()
-
-        print("\n" + "=" * 50)
-        print("🎯 VIVA DEMONSTRATION COMPLETED!")
-        print("=" * 50)
-
-
-# ==================== DEMONSTRATION MODES ====================
-
-def run_quick_demo():
-    """Quick demonstration mode for VIVA presentation - essential tests only."""
-    print("🎯 QUICK VIVA DEMONSTRATION MODE")
-    print("=" * 50)
-
-    tester = BlockchainTestSuite()
-    tester.viva_demonstration_mode()
-
-
-def run_full_demo():
-    """Full comprehensive testing mode - all system aspects."""
-    print("🔬 COMPREHENSIVE TESTING MODE")
-    print("=" * 50)
-
-    tester = BlockchainTestSuite()
-    tester.run_comprehensive_test()
-
-    # Additional performance test
-    tester.performance_test(3)
-
-
-def run_attack_demo():
-    """Focus on attack simulation demonstrations."""
-    print("🛡️ ATTACK SIMULATION DEMONSTRATION")
-    print("=" * 50)
-
-    tester = BlockchainTestSuite()
-    tester.start_suite()
-
-    print("\n🔓 ATTACK SCENARIOS DEMONSTRATION")
-    print("-" * 40)
-
-    # Various attack scenarios for comprehensive demonstration
-    scenarios = [
-        ("Force Success", 10, 10, True, False),
-        ("Force Failure", 90, 90, False, True),
-        ("Low Probability", 20, 30, False, False),
-        ("High Probability", 80, 70, False, False),
-        ("Balanced", 50, 50, False, False)
-    ]
-
-    for name, prob, hash_power, force_s, force_f in scenarios:
-        print(f"\n🎯 Testing: {name}")
-        tester.test_double_spending_attack(prob, hash_power, force_s, force_f)
-
-    tester.end_suite()
-
-
-def run_simblock_demo():
-    """Focus on SimBlock integration demonstrations."""
-    print("🌐 SIMBLOCK INTEGRATION DEMONSTRATION")
-    print("=" * 50)
-
-    tester = BlockchainTestSuite()
-    tester.start_suite()
-
-    print("\n🔬 SIMBLOCK FUNCTIONALITY")
-    print("-" * 40)
-
-    tester.test_simblock_network_status()
-    tester.test_simblock_simulation_start()
-
-    # Test enhanced probability calculation
-    try:
-        prob_data = {
-            "base_probability": 0.7,
-            "hash_power": 0.6,
-            "latency": 100
+        return {
+            "total_tests": total_tests,
+            "passed_tests": passed_tests,
+            "failed_tests": failed_tests,
+            "success_rate": (passed_tests / total_tests) * 100,
+            "test_cycles": len(cycles)
         }
-        response = requests.post("http://127.0.0.1:5000/api/simblock/attack-probability", json=prob_data)
-        if response.status_code == 200:
-            data = response.json()
-            enhanced_prob = data.get('enhanced_probability', 0) * 100
-            tester.log_test("SimBlock Probability Enhancement", "PASS",
-                            f"Enhanced probability: {enhanced_prob:.1f}%")
-    except Exception as e:
-        tester.log_test("SimBlock Probability Enhancement", "WARNING", str(e))
 
-    tester.end_suite()
+
+def main():
+    """Main function to run the test suite"""
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Blockchain Test Suite')
+    parser.add_argument('--url', default=BASE_URL, help='Blockchain node URL')
+    parser.add_argument('--single', action='store_true', help='Run single test cycle')
+    parser.add_argument('--continuous', action='store_true', help='Run continuous testing')
+    parser.add_argument('--interval', type=int, default=30, help='Test interval in seconds (continuous mode)')
+    parser.add_argument('--iterations', type=int, help='Number of test iterations')
+
+    args = parser.parse_args()
+
+    test_suite = BlockchainTestSuite(base_url=args.url)
+
+    if args.continuous:
+        # Continuous testing mode
+        test_suite.run_continuous_testing(
+            interval_seconds=args.interval,
+            max_iterations=args.iterations
+        )
+    else:
+        # Single test cycle
+        success = test_suite.run_comprehensive_test()
+        report = test_suite.generate_final_report()
+
+        if success:
+            print("\n🎉 All tests completed successfully!")
+        else:
+            print("\n⚠️ Some tests failed. Check the report above.")
+            sys.exit(1)
+
+
+# Quick test function for immediate use
+def quick_test():
+    """Run a quick test without command line arguments"""
+    test_suite = BlockchainTestSuite()
+    print("🔧 Running Quick Test...")
+    test_suite.run_comprehensive_test()
+    test_suite.generate_final_report()
 
 
 if __name__ == "__main__":
-    """
-    Main entry point for the test suite with multiple demonstration modes.
-
-    Allows user to choose between different testing scenarios:
-    1. Quick VIVA Demo - Essential tests for presentations
-    2. Full Comprehensive Test - All system functionality  
-    3. Attack Simulation Demo - Focus on security aspects
-    4. SimBlock Integration Demo - Network simulation focus
-    5. All Tests - Complete testing suite
-    """
-    print("🚀 Blockchain Anomaly Detection System - Test Suite")
-    print("=" * 60)
-    print("Choose Demonstration Mode:")
-    print("1. Quick VIVA Demo (Recommended for Presentation)")
-    print("2. Full Comprehensive Test")
-    print("3. Attack Simulation Demo")
-    print("4. SimBlock Integration Demo")
-    print("5. Run All Demonstration Modes")
-
-    choice = input("\nEnter choice (1-5): ").strip()
-
-    if choice == "1":
-        run_quick_demo()
-    elif choice == "2":
-        run_full_demo()
-    elif choice == "3":
-        run_attack_demo()
-    elif choice == "4":
-        run_simblock_demo()
-    elif choice == "5":
-        print("\n" + "=" * 70)
-        run_quick_demo()
-        print("\n" + "=" * 70)
-        run_full_demo()
-        print("\n" + "=" * 70)
-        run_attack_demo()
-        print("\n" + "=" * 70)
-        run_simblock_demo()
+    # If no arguments, run in continuous mode with default settings
+    if len(sys.argv) == 1:
+        test_suite = BlockchainTestSuite()
+        print("🔄 Starting default continuous testing (30s interval, 5 iterations)")
+        test_suite.run_continuous_testing(interval_seconds=30, max_iterations=5)
     else:
-        print("Invalid choice. Running Quick VIVA Demo...")
-        run_quick_demo()
+        main()

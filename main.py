@@ -1,4 +1,23 @@
-# Enhanced Flask application with working charts, attacker balance tracking, and auto-refresh
+"""
+main.py - Blockchain Anomaly Detection System Main Application
+
+This module serves as the main Flask web server for the blockchain anomaly detection system.
+It provides a comprehensive web interface for blockchain simulation, attack detection,
+analytics visualization, and report generation.
+
+Key Features:
+- Flask web server with RESTful API endpoints
+- Real-time blockchain simulation and visualization
+- Double-spending attack simulation and detection
+- Interactive chart generation and analytics
+- PDF report generation with comprehensive analysis
+- SimBlock network integration for realistic simulations
+- Peer-to-peer network management
+- Balance calculation with attack impact tracking
+
+The application combines blockchain technology, network simulation, and security analysis
+to provide a complete platform for studying blockchain anomalies and attack vectors.
+"""
 
 import os
 import json
@@ -14,16 +33,16 @@ from flask import Flask, jsonify, render_template, send_file, request
 from fpdf import FPDF
 from fpdf.enums import XPos, YPos
 
-# Set matplotlib to non-interactive backend for server use
+# Configure matplotlib for server environment
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-# Import blockchain components
+# Blockchain core components
 from blockchain.blockchain import Blockchain
 from blockchain.block import Block
 from blockchain.transaction import Transaction
 
-# Import SimBlock integration
+# SimBlock integration for network simulation
 from blockchain.simblock_integration import (
     start_simulation,
     get_network_info,
@@ -32,31 +51,32 @@ from blockchain.simblock_integration import (
 )
 
 # ================================
-# FLASK APPLICATION SETUP
+# FLASK APPLICATION CONFIGURATION
 # ================================
 
 app = Flask(__name__, template_folder='web/templates', static_folder='web/static')
 
 # ================================
-# GLOBAL VARIABLES
+# APPLICATION STATE MANAGEMENT
 # ================================
 
-# Core blockchain instance
-blockchain_instance = Blockchain(difficulty=3, reward=1.0)
+# Primary blockchain instance
+blockchain_instance = Blockchain(difficulty=3, reward=2.0)
 
-# Network peers and node configuration
+# Network connectivity settings
 PEERS = set()
 NODE_ADDRESS = os.environ.get("NODE_ADDRESS", "http://127.0.0.1:5000")
 
-# Analytics and attack tracking
+# Attack simulation results storage
 RECENT_ATTACK_RESULTS = {}
 
-# ✅ ADDED: Dynamic chart data storage
+# Real-time chart data containers
 NETWORK_ACTIVITY_DATA = {
     'labels': [],
     'data': []
 }
 
+# Network performance metrics
 SIMBLOCK_METRICS_DATA = {
     'network_latency': 0,
     'node_health': 0,
@@ -66,58 +86,66 @@ SIMBLOCK_METRICS_DATA = {
 
 
 # ================================
-# ENHANCED BALANCE CALCULATION WITH ATTACKER TRACKING
+# BALANCE CALCULATION ENGINE
 # ================================
 
 def get_balances_with_attackers() -> Tuple[Dict[str, float], Dict[str, Any]]:
     """
-    Calculate current wallet balances including attackers and victims
-    Returns: (balances, attack_victims)
+    Compute wallet balances with attack impact integration.
+
+    Processes all transactions in the blockchain and applies attack results
+    to modify balances, tracking both successful and failed attack attempts.
+    Handles special cases like mining rewards and double-spending impacts.
+
+    Returns:
+        Tuple containing:
+        - balances: Dictionary mapping wallet addresses to their current balances
+        - attack_victims: Dictionary containing attack impact details including
+                         victim information, amounts, and success status
     """
     balances = {}
     attack_victims = {}
 
-    # Process all transactions in the blockchain
+    # Process all blockchain transactions
     for block in blockchain_instance.chain:
         for tx in block.transactions:
             sender = tx.sender
             receiver = tx.receiver
             amount = tx.amount
 
-            # Initialize wallets if not present
+            # Initialize new wallets
             if sender not in balances:
                 balances[sender] = 0
             if receiver not in balances:
                 balances[receiver] = 0
 
-            # Only deduct from sender if not SYSTEM (mining reward)
+            # Apply transaction amounts (skip deduction for SYSTEM rewards)
             if sender != "SYSTEM":
                 balances[sender] -= amount
             balances[receiver] += amount
 
-    # ✅ ENHANCED: Include attacker balances and track victims
+    # Integrate attack results into balances
     if 'last_attack' in RECENT_ATTACK_RESULTS:
         attack_data = RECENT_ATTACK_RESULTS['last_attack']
         attacker = attack_data.get('attacker', 'RedHawk')
         amount = attack_data.get('amount', 0)
         attack_success = attack_data.get('result', {}).get('successful', False)
 
-        # Initialize attacker wallet if not present
+        # Ensure attacker wallet exists
         if attacker not in balances:
             balances[attacker] = 0
 
-        # If attack successful, attacker gains the amount and victim loses
+        # Apply successful attack transfers
         if attack_success:
             balances[attacker] += amount
 
-            # ✅ Find the victim from recent transactions
+            # Locate victim transaction in recent blocks
             victim_found = False
             if blockchain_instance.chain:
-                # Look in recent blocks for the transaction
-                for block in reversed(blockchain_instance.chain[-3:]):  # Check last 3 blocks
+                for block in reversed(blockchain_instance.chain[-3:]):
                     for tx in block.transactions:
                         if (tx.sender != "SYSTEM" and
-                                abs(tx.amount - amount) < 0.01 and  # Allow small floating point differences
+                                abs(tx.amount - amount) < 0.01 and
                                 tx.receiver != attacker):
                             victim = tx.receiver
                             if victim in balances:
@@ -133,11 +161,11 @@ def get_balances_with_attackers() -> Tuple[Dict[str, float], Dict[str, Any]]:
                     if victim_found:
                         break
 
-            # If no victim found in transactions, create a generic one
+            # Create generic victim if none found
             if not victim_found:
                 generic_victim = "Victim_Wallet"
                 if generic_victim not in balances:
-                    balances[generic_victim] = 100  # Start with some balance
+                    balances[generic_victim] = 100
                 balances[generic_victim] -= amount
                 attack_victims[attacker] = {
                     'victim': generic_victim,
@@ -146,7 +174,7 @@ def get_balances_with_attackers() -> Tuple[Dict[str, float], Dict[str, Any]]:
                     'timestamp': attack_data.get('timestamp', time.time())
                 }
         else:
-            # Track failed attacks too
+            # Record failed attack attempt
             attack_victims[attacker] = {
                 'victim': 'None (Attack Failed)',
                 'amount': amount,
@@ -154,7 +182,7 @@ def get_balances_with_attackers() -> Tuple[Dict[str, float], Dict[str, Any]]:
                 'timestamp': attack_data.get('timestamp', time.time())
             }
 
-    # Remove SYSTEM from balances for display
+    # Remove system account from display
     if "SYSTEM" in balances:
         del balances["SYSTEM"]
 
@@ -162,18 +190,26 @@ def get_balances_with_attackers() -> Tuple[Dict[str, float], Dict[str, Any]]:
 
 
 # ================================
-# CHART GENERATION FUNCTIONS - FIXED TO RETURN FIGURE OBJECTS
+# CHART GENERATION SYSTEM
 # ================================
 
 def generate_blockchain_growth_chart(chain_data: Dict[str, Any]):
     """
-    Generate blockchain growth chart for PDF report.
+    Create blockchain growth visualization showing transactions per block.
+
+    Generates a bar chart displaying the number of transactions in each block
+    to visualize blockchain growth and transaction patterns over time.
+
+    Args:
+        chain_data: Blockchain data dictionary containing chain information
+
+    Returns:
+        matplotlib.figure.Figure: Configured matplotlib figure object
     """
     try:
         fig, ax = plt.subplots(figsize=(10, 6))
 
         if not chain_data.get("chain"):
-            # Return empty chart
             ax.text(0.5, 0.5, 'No blockchain data available\nfor growth chart',
                     ha='center', va='center', fontsize=12, fontweight='bold')
             ax.set_title('Blockchain Growth - Transactions per Block', fontsize=14, fontweight='bold')
@@ -192,13 +228,11 @@ def generate_blockchain_growth_chart(chain_data: Dict[str, Any]):
         ax.set_ylabel('Number of Transactions', fontsize=12, fontweight='bold')
         ax.set_title('Blockchain Growth - Transactions per Block', fontsize=14, fontweight='bold')
 
-        # Fix for tick labels warning
         ax.set_xticks(range(len(labels)))
         ax.set_xticklabels(labels, rotation=45, ha='right')
 
         ax.grid(axis='y', alpha=0.3)
 
-        # Add value labels on bars
         for bar, count in zip(bars, tx_counts):
             ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.1,
                     str(count), ha='center', va='bottom', fontweight='bold')
@@ -208,7 +242,6 @@ def generate_blockchain_growth_chart(chain_data: Dict[str, Any]):
 
     except Exception as e:
         print(f"❌ Error creating blockchain growth chart: {e}")
-        # Return empty chart on error
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.text(0.5, 0.5, f'Error generating chart:\n{str(e)}',
                 ha='center', va='center', fontsize=10, color='red')
@@ -219,7 +252,17 @@ def generate_blockchain_growth_chart(chain_data: Dict[str, Any]):
 
 def generate_balance_distribution_chart(balances: Dict[str, float]):
     """
-    Generate balance distribution chart for PDF report.
+    Generate wallet balance distribution pie chart.
+
+    Creates a pie chart visualization of wallet balances, showing the
+    distribution of coins across different wallet addresses with color
+    coding for positive and negative balances.
+
+    Args:
+        balances: Dictionary mapping wallet addresses to their balances
+
+    Returns:
+        matplotlib.figure.Figure: Configured matplotlib figure object
     """
     try:
         fig, ax = plt.subplots(figsize=(8, 8))
@@ -230,7 +273,6 @@ def generate_balance_distribution_chart(balances: Dict[str, float]):
             ax.set_title('Wallet Balance Distribution', fontsize=14, fontweight='bold')
             return fig
 
-        # ✅ FIXED: Include ALL balances (positive and negative) but exclude zero balances
         non_zero_balances = {k: v for k, v in balances.items() if v != 0}
 
         if not non_zero_balances:
@@ -242,25 +284,22 @@ def generate_balance_distribution_chart(balances: Dict[str, float]):
         labels = list(non_zero_balances.keys())
         values = list(non_zero_balances.values())
 
-        # ✅ Use different colors for positive and negative balances
         colors = []
         for balance in values:
             if balance > 0:
-                colors.append('#2ecc71')  # Green for positive
+                colors.append('#2ecc71')
             else:
-                colors.append('#e74c3c')  # Red for negative
+                colors.append('#e74c3c')
 
         wedges, texts, autotexts = ax.pie([abs(v) for v in values], labels=labels, colors=colors,
                                           autopct='%1.1f%%', startangle=90, shadow=True)
 
         ax.set_title('Wallet Balance Distribution (All Active Wallets)', fontsize=14, fontweight='bold')
 
-        # Improve text appearance
         for text in texts + autotexts:
             text.set_fontsize(10)
             text.set_fontweight('bold')
 
-        # ✅ Add legend for balance types
         ax.legend(wedges, [f'{label}: {value:.2f} coins' for label, value in zip(labels, values)],
                   title="Wallet Balances", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
 
@@ -268,7 +307,6 @@ def generate_balance_distribution_chart(balances: Dict[str, float]):
 
     except Exception as e:
         print(f"❌ Error creating balance distribution chart: {e}")
-        # Return empty chart on error
         fig, ax = plt.subplots(figsize=(8, 8))
         ax.text(0.5, 0.5, f'Error generating chart:\n{str(e)}',
                 ha='center', va='center', fontsize=10, color='red')
@@ -278,7 +316,16 @@ def generate_balance_distribution_chart(balances: Dict[str, float]):
 
 def generate_mining_analysis_chart(chain_data: Dict[str, Any]):
     """
-    Generate mining analysis chart for PDF report.
+    Create mining performance analysis chart.
+
+    Generates a line chart showing simulated mining times across blocks
+    with trend analysis to visualize mining difficulty and performance.
+
+    Args:
+        chain_data: Blockchain data dictionary containing chain information
+
+    Returns:
+        matplotlib.figure.Figure: Configured matplotlib figure object
     """
     try:
         fig, ax = plt.subplots(figsize=(10, 6))
@@ -294,7 +341,7 @@ def generate_mining_analysis_chart(chain_data: Dict[str, Any]):
             return fig
 
         blocks = chain_data["chain"]
-        mining_times = [i * 2.5 for i in range(len(blocks))]  # Simulated times
+        mining_times = [i * 2.5 for i in range(len(blocks))]
 
         ax.plot(range(len(blocks)), mining_times, marker='o', linewidth=2, markersize=8,
                 color='#e74c3c', markerfacecolor='#c0392b')
@@ -304,7 +351,6 @@ def generate_mining_analysis_chart(chain_data: Dict[str, Any]):
         ax.set_title('Block Mining Time Analysis', fontsize=14, fontweight='bold')
         ax.grid(True, alpha=0.3)
 
-        # Add trend line
         z = np.polyfit(range(len(blocks)), mining_times, 1)
         p = np.poly1d(z)
         ax.plot(range(len(blocks)), p(range(len(blocks))), "r--", alpha=0.7)
@@ -314,7 +360,6 @@ def generate_mining_analysis_chart(chain_data: Dict[str, Any]):
 
     except Exception as e:
         print(f"❌ Error creating mining analysis chart: {e}")
-        # Return empty chart on error
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.text(0.5, 0.5, f'Error generating chart:\n{str(e)}',
                 ha='center', va='center', fontsize=10, color='red')
@@ -325,14 +370,19 @@ def generate_mining_analysis_chart(chain_data: Dict[str, Any]):
 
 def generate_network_activity_chart():
     """
-    Generate network activity chart for PDF report - UPDATED to use dynamic data
+    Generate network activity timeline chart.
+
+    Creates a line chart showing network activity levels over time based on
+    attack simulations and network conditions. Visualizes the impact of
+    attacks on network behavior.
+
+    Returns:
+        matplotlib.figure.Figure: Configured matplotlib figure object
     """
     try:
         fig, ax = plt.subplots(figsize=(10, 6))
 
-        # ✅ UPDATED: Use dynamic network activity data
         if not NETWORK_ACTIVITY_DATA['labels']:
-            # Show empty chart with message
             ax.text(0.5, 0.5, 'No network activity data available\nRun attacks to see network activity',
                     ha='center', va='center', fontsize=12, fontweight='bold')
             ax.set_xlabel('Time', fontsize=12, fontweight='bold')
@@ -353,7 +403,6 @@ def generate_network_activity_chart():
         ax.set_title('Network Activity During Attacks', fontsize=14, fontweight='bold')
         ax.grid(True, alpha=0.3)
 
-        # Set x-axis labels
         ax.set_xticks(range(len(labels)))
         ax.set_xticklabels(labels, rotation=45, ha='right')
 
@@ -362,7 +411,6 @@ def generate_network_activity_chart():
 
     except Exception as e:
         print(f"❌ Error creating network activity chart: {e}")
-        # Return empty chart on error
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.text(0.5, 0.5, f'Error generating chart:\n{str(e)}',
                 ha='center', va='center', fontsize=10, color='red')
@@ -373,14 +421,20 @@ def generate_network_activity_chart():
 
 def generate_simblock_analysis_chart():
     """
-    Generate SimBlock network analysis chart for PDF - UPDATED to use dynamic data
+    Create SimBlock network performance radar chart.
+
+    Generates a bar chart showing various network performance metrics
+    including latency, node health, message delivery, and attack resistance
+    based on SimBlock simulation data.
+
+    Returns:
+        matplotlib.figure.Figure: Configured matplotlib figure object
     """
     try:
         fig, ax = plt.subplots(figsize=(10, 6))
 
         metrics = ['Network Latency', 'Node Health', 'Message Delivery', 'Attack Resistance']
 
-        # ✅ UPDATED: Use dynamic SimBlock metrics
         values = [
             SIMBLOCK_METRICS_DATA['network_latency'],
             SIMBLOCK_METRICS_DATA['node_health'],
@@ -388,7 +442,6 @@ def generate_simblock_analysis_chart():
             SIMBLOCK_METRICS_DATA['attack_resistance']
         ]
 
-        # If all values are zero, show empty chart
         if all(v == 0 for v in values):
             ax.text(0.5, 0.5, 'No SimBlock metrics available\nRun attacks to see network performance',
                     ha='center', va='center', fontsize=12, fontweight='bold')
@@ -408,7 +461,6 @@ def generate_simblock_analysis_chart():
         ax.set_ylim(0, 100)
         ax.grid(axis='y', alpha=0.3)
 
-        # Add value labels
         for bar, value in zip(bars, values):
             ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 1,
                     f'{value}%', ha='center', va='bottom', fontweight='bold')
@@ -418,7 +470,6 @@ def generate_simblock_analysis_chart():
 
     except Exception as e:
         print(f"❌ Error creating SimBlock chart: {e}")
-        # Return empty chart on error
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.text(0.5, 0.5, f'Error generating chart:\n{str(e)}',
                 ha='center', va='center', fontsize=10, color='red')
@@ -427,48 +478,48 @@ def generate_simblock_analysis_chart():
         return fig
 
 
-# ✅ ADDED: Function to update network data after attacks
 def update_network_chart_data(attack_successful, hash_power, probability):
     """
-    Update network activity and SimBlock metrics based on attack results
+    Update network metrics based on attack simulation results.
+
+    Modifies network activity data and SimBlock metrics based on the
+    outcome of attack simulations, creating realistic network behavior
+    patterns for visualization.
+
+    Args:
+        attack_successful: Boolean indicating whether the attack succeeded
+        hash_power: Attacker's computational power percentage
+        probability: Calculated attack success probability
     """
     try:
-        # Update network activity data
         attack_count = len(NETWORK_ACTIVITY_DATA['labels']) + 1
         NETWORK_ACTIVITY_DATA['labels'].append(f"Attack {attack_count}")
 
-        # Calculate activity level based on attack parameters
-        base_activity = hash_power * 2  # Higher hash power = more activity
+        base_activity = hash_power * 2
         if attack_successful:
-            activity_level = min(100, base_activity + 30)  # Successful attacks create more activity
+            activity_level = min(100, base_activity + 30)
         else:
-            activity_level = max(10, base_activity - 10)  # Failed attacks create less activity
+            activity_level = max(10, base_activity - 10)
 
-        # Add some randomness to make it realistic
         activity_level += np.random.randint(-5, 15)
         activity_level = max(5, min(100, activity_level))
 
         NETWORK_ACTIVITY_DATA['data'].append(activity_level)
 
-        # Keep only last 10 attacks for chart clarity
         if len(NETWORK_ACTIVITY_DATA['labels']) > 10:
             NETWORK_ACTIVITY_DATA['labels'] = NETWORK_ACTIVITY_DATA['labels'][-10:]
             NETWORK_ACTIVITY_DATA['data'] = NETWORK_ACTIVITY_DATA['data'][-10:]
 
-        # Update SimBlock metrics
         SIMBLOCK_METRICS_DATA['network_latency'] = min(100, max(10, hash_power + np.random.randint(5, 25)))
 
-        # Node health decreases with successful attacks, increases with failures
         if attack_successful:
             SIMBLOCK_METRICS_DATA['node_health'] = max(10, SIMBLOCK_METRICS_DATA.get('node_health', 100) - 15)
         else:
             SIMBLOCK_METRICS_DATA['node_health'] = min(100, SIMBLOCK_METRICS_DATA.get('node_health', 50) + 10)
 
-        # Message delivery affected by attack success and hash power
         SIMBLOCK_METRICS_DATA['message_delivery'] = 100 - (hash_power / 2) + np.random.randint(-10, 10)
         SIMBLOCK_METRICS_DATA['message_delivery'] = max(10, min(100, SIMBLOCK_METRICS_DATA['message_delivery']))
 
-        # Attack resistance based on failure rate
         if attack_successful:
             SIMBLOCK_METRICS_DATA['attack_resistance'] = max(10,
                                                              SIMBLOCK_METRICS_DATA.get('attack_resistance', 100) - 20)
@@ -482,9 +533,8 @@ def update_network_chart_data(attack_successful, hash_power, probability):
         print(f"❌ Error updating network chart data: {e}")
 
 
-# ✅ ADDED: Function to reset chart data
 def reset_chart_data():
-    """Reset all chart data to initial empty state"""
+    """Reset all chart data to initial state."""
     global NETWORK_ACTIVITY_DATA, SIMBLOCK_METRICS_DATA
     NETWORK_ACTIVITY_DATA = {'labels': [], 'data': []}
     SIMBLOCK_METRICS_DATA = {
@@ -497,29 +547,37 @@ def reset_chart_data():
 
 
 # ================================
-# PDF REPORT GENERATION - FIXED WITH BETTER CHART HANDLING
+# PDF REPORT GENERATION SYSTEM
 # ================================
 
 class BlockchainPDF(FPDF):
     """
-    Custom PDF class for blockchain reports using standard fonts.
+    Custom PDF generator for blockchain analysis reports.
+
+    Extends FPDF to provide specialized formatting for blockchain analytics
+    with custom headers, footers, and section layouts. Includes institutional
+    branding and comprehensive data presentation.
+
+    Features:
+    - Custom header with institutional logos
+    - Professional section formatting
+    - Data table generation
+    - Image embedding for charts
+    - Automated pagination
     """
 
     def header(self):
-        """Create custom header with logos and project information."""
+        """Generate PDF header with institutional branding."""
         script_dir = os.path.dirname(__file__)
         logo_path = os.path.join(script_dir, "web", "static", "vu_logo.png")
         author_pic = os.path.join(script_dir, "web", "static", "student_pic.png")
 
-        # Add university logo
         if os.path.exists(logo_path):
             self.image(logo_path, 10, 8, 20)
 
-        # Add author photo
         if os.path.exists(author_pic):
             self.image(author_pic, self.w - 30, 8, 20)
 
-        # Title and project information
         self.set_font("helvetica", "B", 16)
         self.set_xy(0, 10)
         self.cell(0, 8, "Blockchain Anomaly Detection System", align="C", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
@@ -531,7 +589,6 @@ class BlockchainPDF(FPDF):
         self.cell(0, 5, f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
                   align="C", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
-        # Instructor and author information
         self.set_font("helvetica", "", 9)
         self.set_xy(10, 35)
         self.multi_cell(80, 4,
@@ -545,27 +602,28 @@ class BlockchainPDF(FPDF):
                         "VU ID: BC220200917\n"
                         "Email: bc220200917mis@vu.edu.pk")
 
-        # Separator line
         self.set_line_width(0.5)
         self.line(10, 55, self.w - 10, 55)
         self.set_y(65)
 
     def footer(self):
-        """Create custom footer with page numbers and copyright."""
+        """Generate PDF footer with pagination and copyright."""
         self.set_y(-15)
         self.set_font("helvetica", "I", 8)
         self.set_text_color(128)
 
-        # Page number
-        self.cell(0, 10, f"Page {self.page_no()}", align="C")
+        self.cell(0, 10, f"Page {self.page_no()}", align="L")
 
-        # Copyright line
         self.set_y(-12)
         self.cell(0, 10, "© 2025 Virtual University of Pakistan - Blockchain Anomaly Detection Research",
                   align="C")
 
     def add_section_title(self, title: str):
-        """Add a section title with consistent formatting."""
+        """Add formatted section title to PDF.
+
+        Args:
+            title: Section title text to display
+        """
         self.set_font("helvetica", "B", 14)
         self.set_fill_color(240, 240, 240)
         self.cell(0, 10, title, border=1, fill=True, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
@@ -573,18 +631,21 @@ class BlockchainPDF(FPDF):
 
     def add_table(self, title: str, data: Dict[str, Any], col_widths: tuple = (60, 120)):
         """
-        Add a formatted table to the PDF.
+        Add formatted data table to PDF.
+
+        Args:
+            title: Table title to display above the table
+            data: Dictionary of key-value pairs to display in the table
+            col_widths: Tuple specifying column widths (metric_col, value_col)
         """
         self.set_font("helvetica", "B", 12)
         self.cell(0, 8, title, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
-        # Table headers
         self.set_font("helvetica", "B", 10)
         self.set_fill_color(200, 200, 200)
         self.cell(col_widths[0], 8, "Metric", border=1, fill=True, align="C")
         self.cell(col_widths[1], 8, "Value", border=1, fill=True, align="C", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
-        # Table rows
         self.set_font("helvetica", "", 9)
         for key, value in data.items():
             if self.get_y() > self.h - 30:
@@ -603,32 +664,33 @@ class BlockchainPDF(FPDF):
 
 def generate_charts_for_pdf(chain_data: Dict[str, Any], balances: Dict[str, float], charts_dir: str) -> Dict[str, str]:
     """
-    Generate chart images for inclusion in the PDF report.
+    Generate all chart images for PDF report inclusion.
+
+    Creates and saves all visualization charts to temporary files for
+    embedding in the PDF report. Handles error cases gracefully.
 
     Args:
-        chain_data: Blockchain data
-        balances: Wallet balances
-        charts_dir: Directory to save chart images
+        chain_data: Blockchain data dictionary
+        balances: Wallet balances dictionary
+        charts_dir: Output directory for chart images
 
     Returns:
-        Dictionary of chart file paths
+        Dict[str, str]: Dictionary mapping chart types to their file paths
     """
     chart_paths = {}
 
     try:
         print("🔄 Generating charts for PDF report...")
 
-        # Generate Blockchain Growth Chart
         print("  📊 Generating blockchain growth chart...")
         growth_fig = generate_blockchain_growth_chart(chain_data)
         if growth_fig:
             chart_path = os.path.join(charts_dir, "blockchain_growth.png")
             growth_fig.savefig(chart_path, dpi=150, bbox_inches='tight')
-            plt.close(growth_fig)  # Close the figure properly
+            plt.close(growth_fig)
             chart_paths['blockchain_growth'] = chart_path
             print(f"    ✅ Blockchain growth chart saved: {chart_path}")
 
-        # Generate Balance Distribution Chart
         print("  📊 Generating balance distribution chart...")
         balance_fig = generate_balance_distribution_chart(balances)
         if balance_fig:
@@ -638,7 +700,6 @@ def generate_charts_for_pdf(chain_data: Dict[str, Any], balances: Dict[str, floa
             chart_paths['balance_distribution'] = chart_path
             print(f"    ✅ Balance distribution chart saved: {chart_path}")
 
-        # Generate Mining Analysis Chart
         print("  📊 Generating mining analysis chart...")
         mining_fig = generate_mining_analysis_chart(chain_data)
         if mining_fig:
@@ -648,7 +709,6 @@ def generate_charts_for_pdf(chain_data: Dict[str, Any], balances: Dict[str, floa
             chart_paths['mining_analysis'] = chart_path
             print(f"    ✅ Mining analysis chart saved: {chart_path}")
 
-        # Generate Network Activity Chart
         print("  📊 Generating network activity chart...")
         network_fig = generate_network_activity_chart()
         if network_fig:
@@ -658,7 +718,6 @@ def generate_charts_for_pdf(chain_data: Dict[str, Any], balances: Dict[str, floa
             chart_paths['network_activity'] = chart_path
             print(f"    ✅ Network activity chart saved: {chart_path}")
 
-        # Generate SimBlock Analysis Chart
         print("  📊 Generating SimBlock analysis chart...")
         simblock_fig = generate_simblock_analysis_chart()
         if simblock_fig:
@@ -680,32 +739,37 @@ def generate_charts_for_pdf(chain_data: Dict[str, Any], balances: Dict[str, floa
 
 def generate_comprehensive_pdf_report() -> str:
     """
-    Generate a comprehensive PDF report with all blockchain analytics and charts.
+    Generate complete PDF analysis report with charts and analytics.
+
+    Creates a comprehensive PDF report containing blockchain statistics,
+    transaction analysis, wallet balances, attack simulations, network
+    performance metrics, and security recommendations.
+
+    Returns:
+        str: File path to the generated PDF report
+
+    Raises:
+        Exception: If PDF generation fails
     """
     try:
         print("🚀 Starting comprehensive PDF report generation...")
 
-        # Create reports directory
         script_dir = os.path.dirname(__file__)
         reports_dir = os.path.join(script_dir, "reports")
         charts_dir = os.path.join(reports_dir, "charts")
         os.makedirs(charts_dir, exist_ok=True)
 
-        # Collect all data for the report
         chain_data = blockchain_instance.to_dict()
         balances, attack_victims = get_balances_with_attackers()
         network_info = get_network_info()
 
         print(f"📊 Collected data: {len(chain_data.get('chain', []))} blocks, {len(balances)} wallets")
 
-        # Generate charts for PDF
         chart_paths = generate_charts_for_pdf(chain_data, balances, charts_dir)
 
-        # Initialize PDF
         pdf = BlockchainPDF()
         pdf.add_page()
 
-        # ===== EXECUTIVE SUMMARY =====
         pdf.add_section_title("1. Executive Summary")
         pdf.set_font("helvetica", "", 11)
         pdf.multi_cell(0, 6,
@@ -715,7 +779,6 @@ def generate_comprehensive_pdf_report() -> str:
                        "from the live blockchain data and includes visual charts for better analysis.")
         pdf.ln(10)
 
-        # ===== BLOCKCHAIN OVERVIEW =====
         pdf.add_section_title("2. Blockchain Overview")
 
         blockchain_stats = {
@@ -728,7 +791,6 @@ def generate_comprehensive_pdf_report() -> str:
         }
         pdf.add_table("Blockchain Statistics", blockchain_stats)
 
-        # Add Blockchain Growth Chart if available
         if chart_paths.get('blockchain_growth'):
             pdf.ln(5)
             pdf.set_font("helvetica", "B", 12)
@@ -746,11 +808,9 @@ def generate_comprehensive_pdf_report() -> str:
                 pdf.cell(0, 8, f"Chart not available: {str(e)}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
                 print(f"❌ Error adding blockchain growth chart: {e}")
 
-        # ===== TRANSACTION ANALYSIS =====
         pdf.add_section_title("3. Transaction Analysis")
 
         if chain_data.get("chain"):
-            # Recent transactions
             recent_txs = []
             for block in chain_data["chain"][-5:]:
                 for tx in block["transactions"][-3:]:
@@ -766,7 +826,6 @@ def generate_comprehensive_pdf_report() -> str:
                     pdf.cell(0, 6, f"- {tx}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
                 pdf.ln(5)
 
-        # ===== WALLET BALANCES =====
         pdf.add_section_title("4. Wallet Balances")
 
         if balances:
@@ -775,7 +834,6 @@ def generate_comprehensive_pdf_report() -> str:
                 balance_data[wallet] = f"{balance:.2f} coins"
             pdf.add_table("Current Wallet Balances", balance_data)
 
-            # Add Balance Distribution Chart if available
             if chart_paths.get('balance_distribution'):
                 pdf.ln(5)
                 pdf.set_font("helvetica", "B", 12)
@@ -796,7 +854,6 @@ def generate_comprehensive_pdf_report() -> str:
             pdf.set_font("helvetica", "", 10)
             pdf.cell(0, 8, "No wallet balance data available.", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
-        # ===== MINING ANALYSIS =====
         if chart_paths.get('mining_analysis'):
             pdf.add_page()
             pdf.add_section_title("5. Mining Analysis")
@@ -815,7 +872,6 @@ def generate_comprehensive_pdf_report() -> str:
                 pdf.cell(0, 8, f"Chart not available: {str(e)}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
                 print(f"❌ Error adding mining analysis chart: {e}")
 
-            # Add mining statistics if available
             if chain_data.get("chain"):
                 mining_stats = {
                     "Total Blocks Mined": len(chain_data["chain"]),
@@ -825,7 +881,6 @@ def generate_comprehensive_pdf_report() -> str:
                 }
                 pdf.add_table("Mining Statistics", mining_stats)
 
-        # ===== SIMBLOCK NETWORK ANALYSIS =====
         pdf.add_page()
         pdf.add_section_title("6. SimBlock P2P Network Analysis")
 
@@ -839,7 +894,6 @@ def generate_comprehensive_pdf_report() -> str:
         }
         pdf.add_table("Network Conditions", simblock_stats)
 
-        # Add Network Activity Chart if available
         if chart_paths.get('network_activity'):
             pdf.ln(5)
             pdf.set_font("helvetica", "B", 12)
@@ -857,7 +911,6 @@ def generate_comprehensive_pdf_report() -> str:
                 pdf.cell(0, 8, f"Chart not available: {str(e)}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
                 print(f"❌ Error adding network activity chart: {e}")
 
-        # Add SimBlock Analysis Chart if available
         if chart_paths.get('simblock_analysis'):
             pdf.ln(5)
             pdf.set_font("helvetica", "B", 12)
@@ -875,7 +928,6 @@ def generate_comprehensive_pdf_report() -> str:
                 pdf.cell(0, 8, f"Chart not available: {str(e)}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
                 print(f"❌ Error adding SimBlock analysis chart: {e}")
 
-        # ===== ATTACK SIMULATION RESULTS =====
         if 'last_attack' in RECENT_ATTACK_RESULTS:
             pdf.add_page()
             pdf.add_section_title("7. Double-Spending Attack Simulation")
@@ -883,22 +935,18 @@ def generate_comprehensive_pdf_report() -> str:
             attack_data = RECENT_ATTACK_RESULTS['last_attack']
             attack_result = attack_data.get('result', {})
 
-            # Debug information
             print(f"🔍 PDF Debug - Attack Data: {attack_data}")
             print(f"🔍 PDF Debug - Frontend Config: {attack_data.get('config', {})}")
 
-            # Get hash power and probability from frontend config or use defaults
             frontend_config = attack_data.get('config', {})
             hash_power = frontend_config.get('hash_power', 0)
             success_probability = frontend_config.get('success_probability', 0)
 
-            # If not in frontend config, try to get from attack result
             if hash_power == 0 and attack_result.get('hash_power'):
                 hash_power = attack_result.get('hash_power', 0)
             if success_probability == 0 and attack_result.get('success_probability'):
                 success_probability = attack_result.get('success_probability', 0)
 
-            # Attack configuration
             attack_config = {
                 "Attacker": attack_data.get('attacker', 'Unknown'),
                 "Private Blocks Mined": attack_data.get('blocks', 0),
@@ -908,26 +956,24 @@ def generate_comprehensive_pdf_report() -> str:
             }
             pdf.add_table("Attack Configuration", attack_config)
 
-            # Attack results
             attack_successful = attack_result.get('success', False)
             pdf.set_font("helvetica", "B", 12)
             pdf.cell(0, 8, "Attack Outcome:", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
             pdf.set_font("helvetica", "B", 14)
             if attack_successful:
-                pdf.set_text_color(0, 128, 0)  # Green for success
+                pdf.set_text_color(0, 128, 0)
                 pdf.cell(0, 10, "SUCCESS - Attack Successful", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
             else:
-                pdf.set_text_color(255, 0, 0)  # Red for failure
+                pdf.set_text_color(255, 0, 0)
                 pdf.cell(0, 10, "FAILED - Attack Prevented", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
-            pdf.set_text_color(0, 0, 0)  # Reset to black
+            pdf.set_text_color(0, 0, 0)
 
             if attack_result.get('message'):
                 pdf.set_font("helvetica", "", 10)
                 pdf.multi_cell(0, 6, f"Details: {attack_result.get('message')}")
 
-            # ✅ ADDED: Show victim information
             if attack_victims:
                 pdf.ln(5)
                 pdf.set_font("helvetica", "B", 12)
@@ -941,7 +987,6 @@ def generate_comprehensive_pdf_report() -> str:
                         pdf.multi_cell(0, 6,
                                        f"Attacker '{attacker}'s attack failed - no coins stolen")
 
-        # ===== NETWORK PERFORMANCE =====
         pdf.add_page()
         pdf.add_section_title("8. Network Performance Metrics")
 
@@ -955,10 +1000,8 @@ def generate_comprehensive_pdf_report() -> str:
         }
         pdf.add_table("Performance Metrics", performance_data)
 
-        # ===== SECURITY ANALYSIS =====
         pdf.add_section_title("9. Security Analysis")
 
-        # Calculate security metrics based on recent attacks
         total_attacks = 0
         successful_attacks = 0
 
@@ -977,7 +1020,6 @@ def generate_comprehensive_pdf_report() -> str:
         }
         pdf.add_table("Security Metrics", security_metrics)
 
-        # ===== RECOMMENDATIONS =====
         pdf.add_section_title("10. Security Recommendations")
 
         recommendations = [
@@ -993,14 +1035,12 @@ def generate_comprehensive_pdf_report() -> str:
         for i, recommendation in enumerate(recommendations, 1):
             pdf.cell(0, 6, f"{i}. {recommendation}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
-        # ===== CONCLUSION =====
         pdf.ln(10)
         pdf.set_font("helvetica", "B", 12)
         pdf.cell(0, 8, "Conclusion", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
         pdf.set_font("helvetica", "", 10)
 
-        # Dynamic conclusion based on attack results
         if 'last_attack' in RECENT_ATTACK_RESULTS:
             attack_result = RECENT_ATTACK_RESULTS['last_attack'].get('result', {})
             if attack_result.get('success'):
@@ -1025,7 +1065,6 @@ def generate_comprehensive_pdf_report() -> str:
 
         pdf.multi_cell(0, 6, conclusion_text)
 
-        # ===== TECHNICAL DETAILS =====
         pdf.add_page()
         pdf.add_section_title("11. Technical Details")
 
@@ -1041,20 +1080,17 @@ def generate_comprehensive_pdf_report() -> str:
         }
         pdf.add_table("System Configuration", technical_details)
 
-        # Clean up chart files
         try:
             for chart_path in chart_paths.values():
                 if os.path.exists(chart_path):
                     os.remove(chart_path)
                     print(f"🧹 Cleaned up chart file: {chart_path}")
-            # Only remove directory if it's empty
             if os.path.exists(charts_dir) and not os.listdir(charts_dir):
                 os.rmdir(charts_dir)
                 print(f"🧹 Cleaned up charts directory: {charts_dir}")
         except Exception as e:
             print(f"Note: Could not clean up chart files: {e}")
 
-        # Save PDF
         report_path = os.path.join(reports_dir, f"Blockchain-Report-{datetime.now().strftime('%Y%m%d-%H%M%S')}.pdf")
         pdf.output(report_path)
 
@@ -1069,7 +1105,7 @@ def generate_comprehensive_pdf_report() -> str:
 
 
 # ================================
-# CHART API ENDPOINTS - UPDATED FOR DYNAMIC DATA
+# CHART DATA API ENDPOINTS
 # ================================
 
 @app.route('/api/charts/blockchain-growth', methods=['GET'])
@@ -1079,7 +1115,6 @@ def get_blockchain_growth_chart():
         chain_data = blockchain_instance.to_dict()
 
         if not chain_data.get("chain"):
-            # Return empty dataset for initial load
             return jsonify({
                 "labels": [],
                 "datasets": [{
@@ -1114,11 +1149,9 @@ def get_balance_distribution_chart():
     try:
         balances, _ = get_balances_with_attackers()
 
-        # ✅ FIXED: Include ALL wallets (positive and negative balances)
         active_wallets = {k: v for k, v in balances.items() if v != 0}
 
         if not active_wallets:
-            # Return empty dataset for initial load
             return jsonify({
                 "labels": ["No Data"],
                 "datasets": [{
@@ -1148,7 +1181,6 @@ def get_mining_analysis_chart():
         chain_data = blockchain_instance.to_dict()
 
         if len(chain_data.get("chain", [])) < 2:
-            # Return empty dataset for initial load
             return jsonify({
                 "labels": [],
                 "datasets": [{
@@ -1163,7 +1195,6 @@ def get_mining_analysis_chart():
 
         blocks = chain_data["chain"]
         block_indices = [b['index'] for b in blocks]
-        # Simulate mining times
         mining_times = [i * 2.5 for i in range(len(blocks))]
 
         return jsonify({
@@ -1183,9 +1214,8 @@ def get_mining_analysis_chart():
 
 @app.route('/api/charts/network-activity', methods=['GET'])
 def get_network_activity_chart():
-    """API endpoint for network activity chart data - UPDATED for dynamic data"""
+    """API endpoint for network activity chart data"""
     try:
-        # ✅ UPDATED: Return dynamic network activity data
         return jsonify({
             "labels": NETWORK_ACTIVITY_DATA['labels'],
             "datasets": [{
@@ -1202,9 +1232,8 @@ def get_network_activity_chart():
 
 @app.route('/api/charts/simblock-analysis', methods=['GET'])
 def get_simblock_analysis_chart():
-    """API endpoint for SimBlock network analysis chart - UPDATED for dynamic data"""
+    """API endpoint for SimBlock network analysis chart"""
     try:
-        # ✅ UPDATED: Return dynamic SimBlock metrics
         chart_data = {
             "labels": ["Network Latency", "Node Health", "Message Delivery", "Attack Resistance"],
             "datasets": [{
@@ -1225,10 +1254,9 @@ def get_simblock_analysis_chart():
         return jsonify({"error": str(e)}), 500
 
 
-# ✅ ADDED: Endpoint to reset chart data
 @app.route('/api/charts/reset', methods=['POST'])
 def reset_chart_data_endpoint():
-    """Reset all chart data to initial empty state"""
+    """Reset all chart data to initial state"""
     try:
         reset_chart_data()
         return jsonify({
@@ -1240,7 +1268,7 @@ def reset_chart_data_endpoint():
 
 
 # ================================
-# CORE API ENDPOINTS (Keep all existing endpoints)
+# CORE BLOCKCHAIN API ENDPOINTS
 # ================================
 
 @app.route('/')
@@ -1298,7 +1326,6 @@ def new_transaction():
 
         txid = blockchain_instance.new_transaction(sender, receiver, amount)
 
-        # Broadcast to peers
         tx_to_broadcast = {
             "id": txid,
             "sender": sender,
@@ -1332,7 +1359,6 @@ def mine_block():
 
         block = blockchain_instance.mine_pending_transactions(miner)
 
-        # Broadcast to peers
         for peer in PEERS:
             try:
                 requests.post(f"{peer}/blocks/receive", json=block.to_dict(), timeout=5)
@@ -1351,7 +1377,7 @@ def mine_block():
 
 @app.route('/api/attack/run', methods=['POST'])
 def api_run_attack():
-    """Run a double-spending attack simulation - UPDATED to update network charts"""
+    """Execute double-spending attack simulation"""
     try:
         data = request.get_json() or {}
         print(f"🎯 RAW REQUEST DATA: {data}")
@@ -1364,7 +1390,6 @@ def api_run_attack():
         print(f"🎯 Attack Request: {attacker}, {blocks} blocks, {amount} coins")
         print(f"🔧 Frontend Config: {frontend_config}")
 
-        # ✅ DEBUG: Print ALL possible parameter names
         all_possible_keys = []
         for key in frontend_config.keys():
             all_possible_keys.append(key)
@@ -1375,43 +1400,41 @@ def api_run_attack():
             if 'force' in key.lower():
                 print(f"   🔍 Found force-related key: {key} = {frontend_config[key]}")
 
-        # ✅ FIXED: Try multiple possible parameter names from frontend
         hash_power = (
                 frontend_config.get('attackerHashPower') or
                 frontend_config.get('hash_power') or
                 frontend_config.get('hashPower') or
                 frontend_config.get('attacker_hash_power') or
-                30  # default fallback
+                30
         )
 
         success_probability = (
                 frontend_config.get('successProbability') or
                 frontend_config.get('success_probability') or
                 frontend_config.get('probability') or
-                50  # default fallback
+                50
         )
 
         force_success = (
                 frontend_config.get('forceSuccess') or
                 frontend_config.get('force_success') or
                 frontend_config.get('forceSuccess') or
-                False  # default fallback
+                False
         )
 
         force_failure = (
                 frontend_config.get('forceFailure') or
                 frontend_config.get('force_failure') or
                 frontend_config.get('forceFail') or
-                False  # default fallback
+                False
         )
 
-        # ✅ ADDED: Extract hash power for chart updates
         hash_power = (
                 frontend_config.get('attackerHashPower') or
                 frontend_config.get('hash_power') or
                 frontend_config.get('hashPower') or
                 frontend_config.get('attacker_hash_power') or
-                30  # default fallback
+                30
         )
 
         corrected_config = {
@@ -1424,7 +1447,6 @@ def api_run_attack():
 
         print(f"✅ FINAL Corrected Config: {corrected_config}")
 
-        # Store attack configuration with corrected data
         RECENT_ATTACK_RESULTS['last_attack'] = {
             'config': corrected_config,
             'timestamp': time.time(),
@@ -1433,7 +1455,6 @@ def api_run_attack():
             'amount': amount
         }
 
-        # Import and run attack
         from blockchain.attacker import run_attack
 
         result = run_attack(
@@ -1445,13 +1466,11 @@ def api_run_attack():
             frontend_config=corrected_config
         )
 
-        # ✅ ADDED: Update network charts with attack results
         attack_successful = result.get('successful', False)
         success_probability_value = result.get('success_probability', 0)
 
         update_network_chart_data(attack_successful, hash_power, success_probability_value)
 
-        # Store results with enhanced data
         RECENT_ATTACK_RESULTS['last_attack']['result'] = result
 
         print(f"✅ Attack completed: {'SUCCESS' if result.get('successful') else 'FAILED'}")
@@ -1489,7 +1508,7 @@ def generate_pdf_report_route():
 
 
 # ================================
-# NETWORK MANAGEMENT ENDPOINTS (Keep all existing endpoints)
+# NETWORK MANAGEMENT ENDPOINTS
 # ================================
 
 @app.route('/peers', methods=['POST'])
@@ -1576,7 +1595,7 @@ def receive_block():
 
 
 # ================================
-# SIMBLOCK INTEGRATION ENDPOINTS (Keep all existing endpoints)
+# SIMBLOCK INTEGRATION ENDPOINTS
 # ================================
 
 @app.route('/api/simblock/network', methods=['GET'])
@@ -1631,28 +1650,23 @@ def calculate_attack_probability():
 
 if __name__ == '__main__':
     """Main entry point for the Flask application."""
-    # Get port from command line or use default
     port = 5000
     if len(sys.argv) > 1 and sys.argv[1] == '--port':
         port = int(sys.argv[2])
 
-    # Initialize blockchain with genesis block if empty
     if len(blockchain_instance.chain) == 0:
         blockchain_instance.create_genesis_block()
         print("✅ Genesis block created")
 
-    # Create necessary directories
     import pathlib
 
     pathlib.Path("reports").mkdir(exist_ok=True)
     pathlib.Path("blockchain/simblock_output").mkdir(parents=True, exist_ok=True)
 
-    # Startup information
     print("🚀 Starting Anomaly Detection System in Blockchain...")
     print("📊 Prototype: Double Spending Attack Simulation")
     print("🌐 Server running on: http://127.0.0.1:5000")
     print("🔧 Debug mode: ON")
     print("🛠️ SimBlock Integration: ACTIVE")
 
-    # Start Flask application
     app.run(host='0.0.0.0', port=port, debug=True)

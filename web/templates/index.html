@@ -5,16 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Anomaly Detection in Blockchain - Double Spending Attack Simulation</title>
 
+  <!-- External Stylesheets -->
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 
+  <!-- Chart.js Library for Data Visualization -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- Main Application Script -->
   <script defer src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 <body>
+  <!-- ===========================================
+       SITE HEADER WITH PROJECT INFORMATION
+       =========================================== -->
   <header class="site-header">
     <div class="header-container">
 
+      <!-- Instructor Information Section -->
       <div class="instructor-info">
         <img src="{{ url_for('static', filename='vu_logo.png') }}" alt="Virtual University Logo" class="logo">
         <p><strong>Project Instructor:</strong> Fouzia Jumani</p>
@@ -22,11 +29,13 @@
         <p>Email: fouziajumani@vu.edu.pk</p>
       </div>
 
+      <!-- Main Project Title Section -->
       <div class="title-box">
         <h1>Anomaly Detection System in Blockchain</h1>
         <h2>Prototype: Double Spending Attack Simulation with SimBlock Integration</h2>
       </div>
 
+      <!-- Author Information Section -->
       <div class="author-info">
         <img src="{{ url_for('static', filename='student_pic.png') }}" alt="Project Author" class="student-pic">
         <p><strong>Project Author:</strong> Eng. Muhammad Imtiaz Shaffi</p>
@@ -36,18 +45,28 @@
     </div>
   </header>
 
+  <!-- ===========================================
+       MAIN CONTENT AREA
+       =========================================== -->
   <main class="container">
 
+    <!-- Project Introduction Section -->
     <div class="header-text">
       <h2>Blockchain Anomaly Detection Prototype</h2>
       <p>This interactive prototype demonstrates a complete blockchain network with double-spending attack simulation,
          comprehensive analytics, and SimBlock P2P network integration for research and educational purposes.</p>
-      </div>
+    </div>
 
-    <hr> <div id="charts-dashboard"></div>
+    <!-- Charts Dashboard Section (Dynamically Generated) -->
+    <hr>
+    <div id="charts-dashboard"></div>
 
+    <!-- ===========================================
+         BLOCKCHAIN OPERATIONS SECTION
+         =========================================== -->
     <h3>-: Custom Blockchain Implementation :-</h3>
 
+    <!-- Transaction Creation Section -->
     <div class="section-box">
       <h4>💸 Create New Transaction</h4>
       <div id="tx-form">
@@ -68,6 +87,7 @@
       <pre id="tx-response" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- Block Mining Section -->
     <div class="section-box">
       <h4>⛏️ Mine Pending Transactions</h4>
       <div class="form-group">
@@ -78,24 +98,32 @@
       <pre id="mine-response" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- Wallet Balances Section -->
     <div class="section-box">
       <h4>💰 Current Wallet Balances</h4>
       <button id="refresh-balances-btn" class="primary-btn">Refresh Balances</button>
       <pre id="balances-output"></pre>
     </div>
 
+    <!-- Blockchain Explorer Section -->
     <div class="section-box">
       <h4>⛓️ Blockchain Explorer</h4>
       <button id="refresh-chain-btn" class="primary-btn">Refresh Blockchain</button>
       <pre id="chain-output"></pre>
     </div>
 
-    <hr> <div class="section-box">
+    <!-- ===========================================
+         ATTACK SIMULATION SECTION
+         =========================================== -->
+    <hr>
+    <div class="section-box">
       <h4>🎯 Double-Spending Attack Simulation</h4>
 
+      <!-- Attack Control Panel -->
       <div class="attack-controls">
         <h4>🎮 Attack Control Panel</h4>
 
+        <!-- Success Probability Control -->
         <div class="control-group">
           <label>Success Probability: <span id="probability-value" class="slider-value">50%</span></label>
           <div class="slider-container">
@@ -106,6 +134,7 @@
           </div>
         </div>
 
+        <!-- Hash Power Control -->
         <div class="control-group">
           <label>Attacker Hash Power: <span id="hashpower-value" class="slider-value">30%</span></label>
           <div class="slider-container">
@@ -116,6 +145,7 @@
           </div>
         </div>
 
+        <!-- Force Outcome Controls -->
         <div class="control-group">
           <label>Force Attack Outcome:</label>
           <div class="force-buttons">
@@ -132,12 +162,14 @@
           <small>Override probability for testing specific scenarios</small>
         </div>
 
+        <!-- Current Mode Display -->
         <div class="control-status">
           <strong>Current Mode:</strong>
           <span id="current-mode">RANDOM (Based on probability and hash power)</span>
         </div>
       </div>
 
+      <!-- Attack Parameters Form -->
       <div class="form-group">
         <label for="attack-attacker">Attacker Name:</label>
         <input id="attack-attacker" placeholder="e.g., Hacker">
@@ -149,13 +181,18 @@
         <input id="attack-amount" type="number" value="10" step="any" min="0.01">
       </div>
 
+      <!-- Attack Execution Button -->
       <button id="run-attack-btn" class="primary-btn">🚀 Run Attack Simulation</button>
       <pre id="attack-output" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- ===========================================
+         P2P NETWORK MANAGEMENT SECTION
+         =========================================== -->
+    <hr>
+    <h3>-: P2P Network Management :-</h3>
 
-    <hr> <h3>-: P2P Network Management :-</h3>
-
+    <!-- Network Management Section -->
     <div class="section-box">
       <h4>🌐 P2P Network Management</h4>
       <p><strong>Dual Network Architecture:</strong></p>
@@ -164,6 +201,7 @@
         <li>✅ <strong>Traditional P2P</strong> - Basic peer connectivity and consensus</li>
       </ul>
 
+      <!-- Peer Addition Form -->
       <div class="form-group">
         <label for="peer-address">Peer Node Address:</label>
         <input type="text" id="peer-address" placeholder="http://127.0.0.1:5001" required>
@@ -171,6 +209,7 @@
 
       <button id="add-peer-btn" class="primary-btn">Add Peer to Network</button>
 
+      <!-- Network Status Display -->
       <div class="network-status">
         <p><strong>Current Network Status:</strong></p>
         <p>🔗 SimBlock Nodes: <span id="simblock-nodes">4</span> (Simulated)</p>
@@ -180,6 +219,7 @@
       <pre id="peer-response" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- Network Consensus Section -->
     <div class="section-box">
       <h4>🔄 Network Consensus</h4>
       <p>Resolve conflicts with other nodes in the network using the longest chain rule.</p>
@@ -187,8 +227,11 @@
       <pre id="consensus-response" class="result-box" style="display:none;"></pre>
     </div>
 
-
-    <hr> <div class="section-box">
+    <!-- ===========================================
+         REPORTING SECTION
+         =========================================== -->
+    <hr>
+    <div class="section-box">
       <h4>📊 Comprehensive Reporting</h4>
       <p>Generate detailed PDF reports with blockchain analytics, attack simulations, and network analysis.</p>
       <button id="download-report-btn" class="primary-btn">Download Comprehensive PDF Report</button>
@@ -197,6 +240,9 @@
 
   </main>
 
+  <!-- ===========================================
+       SITE FOOTER
+       =========================================== -->
   <footer class="site-footer">
     <div class="footer-container">
       <p>© 2025 This project is developed under the supervision of Virtual University of Pakistan</p>

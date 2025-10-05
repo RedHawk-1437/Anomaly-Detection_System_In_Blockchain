@@ -1,6 +1,19 @@
 # block.py
-# This file defines the Block class used in the blockchain system.
-# A Block stores transactions, its own hash, and links to the previous block.
+"""
+Block module for the blockchain system.
+
+This module defines the Block class which represents a single block in the blockchain.
+Each block contains transactional data, cryptographic hashes for chain integrity,
+and proof-of-work components. Blocks are linked together through cryptographic hashes
+to form an immutable chain.
+
+Key Features:
+- Block creation and initialization
+- Cryptographic hash computation using SHA-256
+- Serialization to/from dictionary format for storage and transmission
+- Transaction management within blocks
+- Proof-of-work support through nonce values
+"""
 
 import json
 import hashlib
@@ -19,6 +32,9 @@ class Block:
     - Previous block's hash (for chain linking)
     - Nonce (for proof-of-work)
     - Its own hash (calculated from contents)
+
+    The block uses cryptographic hashing to maintain integrity and links to the
+    previous block to form an immutable chain structure.
     """
 
     def __init__(self, index: int, transactions: List[Transaction], previous_hash: str, timestamp: int = None,
@@ -51,17 +67,26 @@ class Block:
         # Each block has its own unique hash based on its content
         self.hash = self.compute_hash()
 
-    # Method to recreate a Block object from dictionary data
     @staticmethod
     def from_dict(block_data: Dict[str, Any]) -> 'Block':
         """
         Create a Block object from dictionary data (used when receiving blocks from network).
 
+        This method reconstructs a Block object from serialized dictionary data,
+        typically received over the network or loaded from storage. It preserves
+        the original hash without recalculation to maintain data integrity.
+
         Args:
-            block_data (Dict): Dictionary containing block information
+            block_data (Dict): Dictionary containing block information with keys:
+                - index: Block position in chain
+                - transactions: List of transaction dictionaries
+                - previous_hash: Hash of previous block
+                - timestamp: Block creation time
+                - nonce: Proof-of-work nonce value
+                - hash: Block's cryptographic hash
 
         Returns:
-            Block: Reconstructed Block object
+            Block: Reconstructed Block object with original hash preserved
         """
         # Convert transaction data from dicts back into Transaction objects
         transactions = [Transaction.from_dict(tx_data) for tx_data in block_data['transactions']]
@@ -79,13 +104,16 @@ class Block:
         block.hash = block_data['hash']
         return block
 
-    # Method to calculate the block's hash
     def compute_hash(self) -> str:
         """
         Calculate the SHA-256 hash of the block's contents.
 
+        The hash is computed from a JSON-serialized representation of the block's
+        core data including index, timestamp, transactions, previous hash, and nonce.
+        This hash serves as the block's unique identifier and integrity check.
+
         Returns:
-            str: Hexadecimal hash string
+            str: 64-character hexadecimal hash string representing the block's contents
         """
         # Create a dictionary with block information
         payload = {
@@ -102,13 +130,22 @@ class Block:
         # Return SHA-256 hash of the block string
         return hashlib.sha256(block_string).hexdigest()
 
-    # Convert block object into a dictionary (useful for sending over network or saving)
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert block to dictionary for JSON serialization.
 
+        This method prepares the block data for network transmission or storage
+        by converting all attributes to a dictionary format. The resulting
+        dictionary can be easily serialized to JSON.
+
         Returns:
-            Dict: Block data as dictionary
+            Dict: Block data as dictionary with keys:
+                - index: Block position in chain
+                - timestamp: Block creation time
+                - transactions: List of transaction dictionaries
+                - previous_hash: Hash of previous block
+                - nonce: Proof-of-work nonce value
+                - hash: Block's cryptographic hash
         """
         return {
             "index": self.index,
@@ -119,13 +156,16 @@ class Block:
             "hash": self.hash
         }
 
-    # String representation of the block (for debugging/printing)
     def __repr__(self):
         """
         String representation of the block for debugging.
 
+        Provides a concise, human-readable summary of the block's key attributes
+        including index, transaction count, nonce, and a truncated hash for quick
+        identification during debugging.
+
         Returns:
-            str: Human-readable block description
+            str: Human-readable block description in format:
+                 "Block(idx={index} txs={tx_count} nonce={nonce} hash={hash_prefix}...)"
         """
         return f"Block(idx={self.index} txs={len(self.transactions)} nonce={self.nonce} hash={self.hash[:10]}...)"
-

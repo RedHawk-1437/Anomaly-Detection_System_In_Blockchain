@@ -7,7 +7,10 @@ console.log('🔧 app.js loading with enhanced features and auto-refresh...');
 // GLOBAL VARIABLES & CONFIGURATION
 // ================================
 
-// Chart management objects
+/**
+ * Manages all Chart.js instances for blockchain visualization
+ * @type {Object}
+ */
 let blockchainCharts = {
     growthChart: null,        // Blockchain growth visualization
     balanceChart: null,       // Wallet balance distribution
@@ -16,7 +19,10 @@ let blockchainCharts = {
     simblockChart: null       // SimBlock network analysis
 };
 
-// Attack simulation configuration
+/**
+ * Configuration for attack simulation parameters
+ * @type {Object}
+ */
 let attackConfig = {
     successProbability: 0.5,   // Base success probability (0.0 - 1.0)
     attackerHashPower: 30,     // Attacker's hash power percentage (1-100)
@@ -30,7 +36,7 @@ let attackConfig = {
 
 /**
  * Display user notification with type-based styling
- * @param {string} message - Notification content
+ * @param {string} message - Notification content to display
  * @param {string} type - Notification type: 'info', 'success', 'error'
  */
 function showNotification(message, type = 'info') {
@@ -296,7 +302,7 @@ function updateBalanceDistributionChart(chartData) {
         const labels = chartData.labels || [];
         const data = chartData.datasets?.[0]?.data || [];
 
-        // ✅ If no data, show informative message
+        // Show informative message when no data
         if (labels.length === 0 || data.length === 0 || labels[0] === 'No Data') {
             // Create empty state chart
             blockchainCharts.balanceChart = new Chart(ctx, {
@@ -448,6 +454,7 @@ function updateMiningAnalysisChart(chartData) {
 
 /**
  * Update network activity area chart with dynamic data
+ * @param {Object} chartData - Network activity data from API
  */
 function updateNetworkActivityChart(chartData) {
     const ctx = document.getElementById('networkActivityChart');
@@ -461,7 +468,7 @@ function updateNetworkActivityChart(chartData) {
         const labels = chartData.labels || [];
         const data = chartData.datasets?.[0]?.data || [];
 
-        // ✅ UPDATED: Show empty state message when no data
+        // Show empty state message when no data
         if (labels.length === 0 || data.length === 0) {
             blockchainCharts.networkChart = new Chart(ctx, {
                 type: 'line',
@@ -572,7 +579,7 @@ async function updateSimBlockAnalysisChart() {
     }
 
     try {
-        // ✅ UPDATED: Get dynamic SimBlock data from API
+        // Get dynamic SimBlock data from API
         const response = await fetch('/api/charts/simblock-analysis');
         let chartData = {
             labels: ['Network Latency', 'Node Health', 'Message Delivery', 'Attack Resistance'],
@@ -588,7 +595,7 @@ async function updateSimBlockAnalysisChart() {
         if (response.ok) {
             const apiData = await response.json();
 
-            // ✅ UPDATED: Check if we have real data (not all zeros)
+            // Check if we have real data (not all zeros)
             const hasData = apiData.datasets && apiData.datasets[0] &&
                            apiData.datasets[0].data.some(val => val > 0);
 
@@ -646,7 +653,9 @@ async function updateSimBlockAnalysisChart() {
     }
 }
 
-// ✅ ADDED: Function to reset all chart data
+/**
+ * Reset all chart data to initial state
+ */
 async function resetAllCharts() {
     try {
         const response = await fetch('/api/charts/reset', {
@@ -748,7 +757,7 @@ async function startSimBlockSimulation() {
         if (data.success) {
             showNotification('✅ SimBlock simulation completed successfully!', 'success');
             displaySimBlockNetwork(); // Refresh display
-            // ✅ Auto-refresh charts after simulation
+            // Auto-refresh charts after simulation
             setTimeout(loadAllCharts, 1000);
         } else {
             showNotification('❌ SimBlock simulation failed', 'error');
@@ -795,14 +804,14 @@ async function calculateEnhancedProbability() {
 // ================================
 
 /**
- * Load all charts with data from blockchain API - IMPROVED VERSION
+ * Load all charts with data from blockchain API
  */
 async function loadAllCharts() {
     try {
         showNotification('📊 Loading all charts...', 'info');
         console.log('Loading comprehensive chart data...');
 
-        // ✅ FIXED: Use Promise.allSettled to handle individual chart failures
+        // Use Promise.allSettled to handle individual chart failures
         const chartPromises = [
             loadBlockchainGrowthChart(),
             loadBalanceDistributionChart(),
@@ -831,7 +840,7 @@ async function loadAllCharts() {
 }
 
 /**
- * Enhanced blockchain growth chart loading
+ * Load blockchain growth chart data from API
  */
 async function loadBlockchainGrowthChart() {
     try {
@@ -848,7 +857,7 @@ async function loadBlockchainGrowthChart() {
 }
 
 /**
- * Enhanced balance distribution chart loading
+ * Load balance distribution chart data from API
  */
 async function loadBalanceDistributionChart() {
     try {
@@ -865,7 +874,7 @@ async function loadBalanceDistributionChart() {
 }
 
 /**
- * Enhanced mining analysis chart loading
+ * Load mining analysis chart data from API
  */
 async function loadMiningAnalysisChart() {
     try {
@@ -882,7 +891,7 @@ async function loadMiningAnalysisChart() {
 }
 
 /**
- * Enhanced network activity chart loading
+ * Load network activity chart data from API
  */
 async function loadNetworkActivityChart() {
     try {
@@ -906,7 +915,7 @@ async function loadSimBlockAnalysisChart() {
         const response = await fetch('/api/charts/simblock-analysis');
         if (response.ok) {
             const data = await response.json();
-            // ✅ FIXED: Use the updated function that fetches real data
+            // Use the updated function that fetches real data
             await updateSimBlockAnalysisChart();
         }
     } catch (error) {
@@ -940,7 +949,7 @@ function toggleChartSection(sectionId) {
 // ================================
 
 /**
- * Setup automatic chart refresh after actions
+ * Setup automatic chart refresh after blockchain actions
  */
 function setupChartAutoRefresh() {
     console.log('🔄 Setting up chart auto-refresh...');
@@ -1091,7 +1100,7 @@ async function mineBlock() {
  */
 async function refreshEnhancedBalances() {
     try {
-        // ✅ FIXED: Use detailed balances endpoint
+        // Use detailed balances endpoint
         const response = await fetch('/api/balances/detailed');
         if (!response.ok) throw new Error('Failed to fetch balances');
 
@@ -1104,7 +1113,7 @@ async function refreshEnhancedBalances() {
         if (output) {
             let html = '<div class="balances-table"><h4>💰 Current Balances</h4>';
 
-            // ✅ Show attack information if available
+            // Show attack information if available
             if (Object.keys(attackInfo).length > 0) {
                 html += '<div class="attack-alert">';
                 html += '<h5>🚨 Recent Attack Activity</h5>';
@@ -1125,7 +1134,7 @@ async function refreshEnhancedBalances() {
                 const cls = balance >= 0 ? 'positive' : 'negative';
                 const status = balance > 0 ? '💰' : balance < 0 ? '⚠️' : '➖';
 
-                // ✅ Determine role
+                // Determine role
                 let role = 'User';
                 if (user in attackInfo) {
                     role = '🦹 Attacker';
@@ -1154,7 +1163,7 @@ async function refreshEnhancedBalances() {
 
         console.log('✅ Enhanced balances refreshed with attack info');
 
-        // ✅ AUTO-REFRESH: Update balance chart
+        // AUTO-REFRESH: Update balance chart
         setTimeout(() => {
             loadBalanceDistributionChart();
         }, 500);
@@ -1165,7 +1174,9 @@ async function refreshEnhancedBalances() {
     }
 }
 
-// Keep original refreshBalances for compatibility
+/**
+ * Compatibility function for original refreshBalances
+ */
 async function refreshBalances() {
     await refreshEnhancedBalances();
 }
@@ -1228,17 +1239,17 @@ async function runAttack() {
     try {
         showNotification('🎯 Starting attack simulation...', 'info');
 
-        // ✅ FIXED: Prepare attack payload with proper frontend_config
+        // Prepare attack payload with proper frontend_config
         const payload = {
             attacker: attacker,
             blocks: blocks,
             amount: amount,
             frontend_config: {
-                hash_power: attackConfig.attackerHashPower,  // ✅ Correct key name
-                success_probability: attackConfig.successProbability * 100,  // ✅ Convert to percentage
+                hash_power: attackConfig.attackerHashPower,  // Correct key name
+                success_probability: attackConfig.successProbability * 100,  // Convert to percentage
                 force_success: attackConfig.forceSuccess,
                 force_failure: attackConfig.forceFailure,
-                latency: 100  // ✅ Add latency for SimBlock
+                latency: 100  // Add latency for SimBlock
             }
         };
 
@@ -1456,7 +1467,7 @@ async function downloadPDF() {
 // ================================
 
 /**
- * Create charts dashboard section dynamically - UPDATED with reset button
+ * Create charts dashboard section dynamically with reset button
  */
 function createChartsDashboard() {
     const chartsSection = document.createElement('div');
@@ -1580,7 +1591,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCharts();
     initializeEventListeners();
 
-    // ✅ Setup auto-refresh functionality
+    // Setup auto-refresh functionality
     setTimeout(setupChartAutoRefresh, 3000);
 
     // Load initial data after short delay
