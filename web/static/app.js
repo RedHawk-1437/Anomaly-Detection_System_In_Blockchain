@@ -1,24 +1,60 @@
+/**
+ * APP.JS - BLOCKCHAIN ANOMALY DETECTION FRONTEND
+ * ==============================================
+ *
+ * This is the main frontend JavaScript file that powers the Blockchain Double Spending
+ * Attack Simulation and Detection System. It provides:
+ * - Real-time attack visualization with step-by-step animation
+ * - Interactive charts for network analysis
+ * - User-friendly output formatting
+ * - Blockchain operations interface
+ * - CSV report generation
+ *
+ * Key Features:
+ * - Double spending attack simulation with visual feedback
+ * - Real-time network metrics and charts
+ * - Comprehensive data visualization
+ * - Educational-focused user interface
+ *
+ * Author: Student Project
+ * Institution: Virtual University of Pakistan
+ * Course: Final Year Project - Blockchain Security
+ */
+
 // app.js - USER-FRIENDLY OUTPUT VERSION WITH ATTACK VISUALIZATION
 console.log('🔧 app.js loading with user-friendly outputs and attack visualization...');
 
 // ================================
 // GLOBAL VARIABLES
 // ================================
+
+/**
+ * Attack Configuration Object
+ *
+ * Stores the current attack simulation parameters that can be adjusted by the user.
+ * These settings control how double spending attacks are simulated and visualized.
+ */
 let attackConfig = {
-    successProbability: 0.5,
-    attackerHashPower: 30,
-    forceSuccess: false,
-    forceFailure: false
+    successProbability: 0.5,      // Base chance of attack success (0.0 to 1.0)
+    attackerHashPower: 30,        // Percentage of network hash power controlled by attacker
+    forceSuccess: false,          // Override to always make attacks succeed (for demo)
+    forceFailure: false           // Override to always make attacks fail (for demo)
 };
 
+/**
+ * Chart Storage Object
+ *
+ * Stores references to all Chart.js instances for easy management and updates.
+ * This allows us to dynamically update charts with real-time data.
+ */
 let networkCharts = {
-    activityChart: null,
-    blockchainDataChart: null,
-    attackAnalysisChart: null,
-    nodeDistributionChart: null
+    activityChart: null,          // Network activity over time
+    blockchainDataChart: null,    // Blockchain structure visualization
+    attackAnalysisChart: null,    // Attack success metrics
+    nodeDistributionChart: null   // Geographic node distribution
 };
 
-// Store attack history for analysis
+// Store attack history for analysis and trend tracking
 let attackHistory = [];
 
 // ================================
@@ -27,25 +63,42 @@ let attackHistory = [];
 
 /**
  * Update attack visualization with transaction details
+ *
+ * This function orchestrates the entire attack visualization process by calling
+ * individual step functions in sequence. It creates an educational experience
+ * showing exactly how double spending attacks work step by step.
+ *
+ * @param {Object} attackData - Contains attacker details, amount, and configuration
+ *
+ * Student Note: This visualization helps understand the double spending process:
+ * 1. Legitimate transaction to victim
+ * 2. Malicious transaction to self
+ * 3. Private mining to create alternative chain
+ * 4. Network race between chains
  */
 function updateAttackVisualization(attackData) {
     if (!attackData) return;
 
-    // Step 1: Legitimate Transaction
+    // Step 1: Legitimate Transaction - Show the initial honest transaction
     updateLegitimateTransaction(attackData);
 
-    // Step 2: Malicious Transaction
+    // Step 2: Malicious Transaction - Show the secret double spending transaction
     updateMaliciousTransaction(attackData);
 
-    // Step 3: Private Mining
+    // Step 3: Private Mining - Visualize the attacker mining blocks privately
     updatePrivateMining(attackData);
 
-    // Step 4: Network Race
+    // Step 4: Network Race - Show the race between honest and attacker chains
     simulateNetworkRace(attackData); // FIXED: Changed from updateNetworkRace to simulateNetworkRace
 }
 
 /**
  * Update legitimate transaction display
+ *
+ * Shows the initial transaction that appears legitimate to the network.
+ * This is the transaction the victim sees and accepts.
+ *
+ * @param {Object} attackData - Attack configuration and details
  */
 function updateLegitimateTransaction(attackData) {
     const sender = attackData.attacker || 'RedHawk';
@@ -53,35 +106,47 @@ function updateLegitimateTransaction(attackData) {
     const amount = attackData.amount || 10;
     const timestamp = new Date().toLocaleString();
 
+    // Update DOM elements with transaction details
     document.getElementById('attack-sender').textContent = sender;
     document.getElementById('attack-victim').textContent = victim;
     document.getElementById('attack-amount-display').textContent = amount;
     document.getElementById('attack-time').textContent = timestamp;
 
-    // Mark step as completed
+    // Mark step as completed in the visualization
     document.getElementById('step1').classList.add('completed');
 }
 
 /**
  * Update malicious transaction display
+ *
+ * Shows the secret transaction where the attacker tries to spend the same coins
+ * again, typically sending them back to themselves or to a different wallet.
+ *
+ * @param {Object} attackData - Attack configuration and details
  */
 function updateMaliciousTransaction(attackData) {
     const sender = attackData.attacker || 'RedHawk';
-    const receiver = attackData.attacker || 'RedHawk'; // Sending to self
+    const receiver = attackData.attacker || 'RedHawk'; // Sending to self (shadow wallet)
     const amount = attackData.amount || 10;
     const timestamp = new Date().toLocaleString();
 
+    // Update DOM elements with malicious transaction details
     document.getElementById('malicious-sender').textContent = sender;
     document.getElementById('malicious-receiver').textContent = receiver;
     document.getElementById('malicious-amount').textContent = amount;
     document.getElementById('malicious-time').textContent = timestamp;
 
-    // Mark step as completed
+    // Mark step as completed in the visualization
     document.getElementById('step2').classList.add('completed');
 }
 
 /**
  * Update private mining visualization
+ *
+ * Simulates the attacker mining blocks privately to create an alternative chain.
+ * This is the computational work required for a successful double spending attack.
+ *
+ * @param {Object} attackData - Attack configuration and details
  */
 function updatePrivateMining(attackData) {
     const blocksToMine = attackData.blocks || 1;
@@ -90,10 +155,10 @@ function updatePrivateMining(attackData) {
     const progressText = document.getElementById('mining-text');
     const privateBlocksList = document.getElementById('private-blocks-list');
 
-    // Clear previous blocks
+    // Clear previous blocks from visualization
     privateBlocksList.innerHTML = '';
 
-    // Simulate mining progress
+    // Simulate mining progress with animation
     let progress = 0;
     const interval = setInterval(() => {
         progress += 5;
@@ -104,7 +169,7 @@ function updatePrivateMining(attackData) {
         } else {
             clearInterval(interval);
 
-            // Add private blocks to display
+            // Add private blocks to display after mining completes
             for (let i = 0; i < blocksToMine; i++) {
                 const blockElement = document.createElement('div');
                 blockElement.className = 'private-block';
@@ -115,7 +180,7 @@ function updatePrivateMining(attackData) {
             miningStatus.textContent = '✅ Private blocks mined successfully!';
             miningStatus.style.color = '#27ae60';
 
-            // Mark step as completed
+            // Mark step as completed in the visualization
             document.getElementById('step3').classList.add('completed');
         }
     }, 200);
@@ -123,13 +188,21 @@ function updatePrivateMining(attackData) {
 
 /**
  * Simulate network race between honest and attacker chains - FIXED FUNCTION NAME
+ *
+ * Visualizes the race between the honest network chain and the attacker's private chain.
+ * This demonstrates the core concept of blockchain consensus - the longest valid chain wins.
+ *
+ * @param {Object} attackData - Attack configuration and results
+ *
+ * Student Note: This race determines attack success. If the attacker's chain becomes longer
+ * than the honest chain and gets broadcast, the network will accept it, making the attack successful.
  */
 function simulateNetworkRace(attackData) {
     const honestBlocks = document.getElementById('honest-blocks');
     const attackerBlocks = document.getElementById('attacker-blocks');
     const raceResult = document.getElementById('race-result');
 
-    // Clear previous blocks
+    // Clear previous blocks from visualization
     honestBlocks.innerHTML = '';
     attackerBlocks.innerHTML = '';
     raceResult.innerHTML = '';
@@ -137,7 +210,7 @@ function simulateNetworkRace(attackData) {
     const blocksToMine = attackData.blocks || 1;
     const isSuccessful = attackData.result?.successful || false;
 
-    // Add existing honest blocks
+    // Add existing honest blocks to represent the current network state
     for (let i = 0; i < 3; i++) {
         const block = document.createElement('div');
         block.className = 'block honest-block';
@@ -145,7 +218,7 @@ function simulateNetworkRace(attackData) {
         honestBlocks.appendChild(block);
     }
 
-    // Add attacker blocks with animation
+    // Add attacker blocks with animation to show mining progress
     let attackerBlockCount = 0;
     const attackerInterval = setInterval(() => {
         if (attackerBlockCount < blocksToMine) {
@@ -157,7 +230,7 @@ function simulateNetworkRace(attackData) {
         } else {
             clearInterval(attackerInterval);
 
-            // Show race result
+            // Show race result based on attack success
             if (isSuccessful) {
                 raceResult.className = 'race-result race-success';
                 raceResult.innerHTML = '🎯 ATTACK SUCCESSFUL!<br>Attacker chain is longer and wins the race!';
@@ -166,12 +239,12 @@ function simulateNetworkRace(attackData) {
                 raceResult.innerHTML = '🛡️ ATTACK FAILED!<br>Honest chain remains the longest!';
             }
 
-            // Mark step as completed
+            // Mark step as completed in the visualization
             document.getElementById('step4').classList.add('completed');
         }
     }, 500);
 
-    // Add one more honest block to show the race
+    // Add one more honest block to show the ongoing network mining
     setTimeout(() => {
         if (!isSuccessful) {
             const block = document.createElement('div');
@@ -183,28 +256,31 @@ function simulateNetworkRace(attackData) {
 }
 
 /**
- * Reset attack visualization
+ * Reset attack visualization to initial state
+ *
+ * Clears all visualization elements and resets the attack steps.
+ * Used when starting a new attack simulation or clearing the current one.
  */
 function resetAttackVisualization() {
-    // Reset all steps
+    // Reset all steps in the attack process visualization
     const steps = document.querySelectorAll('.process-step');
     steps.forEach(step => {
         step.classList.remove('active', 'completed', 'failed');
     });
 
-    // Reset mining progress
+    // Reset mining progress bar and status
     document.getElementById('mining-progress').style.width = '0%';
     document.getElementById('mining-text').textContent = '0%';
     document.getElementById('mining-status').textContent = '⏳ Waiting for attack...';
     document.getElementById('mining-status').style.color = '';
 
-    // Clear blocks
+    // Clear all block visualizations
     document.getElementById('private-blocks-list').innerHTML = '';
     document.getElementById('honest-blocks').innerHTML = '';
     document.getElementById('attacker-blocks').innerHTML = '';
     document.getElementById('race-result').innerHTML = '';
 
-    // Reset transaction displays
+    // Reset transaction display fields to default values
     const txElements = [
         'attack-sender', 'attack-victim', 'attack-amount-display', 'attack-time',
         'malicious-sender', 'malicious-receiver', 'malicious-amount', 'malicious-time'
@@ -217,17 +293,28 @@ function resetAttackVisualization() {
 
 /**
  * Enhanced attack simulation with visualization
+ *
+ * Main function that runs a complete double spending attack simulation.
+ * Coordinates between the backend API and frontend visualization.
+ *
+ * Student Note: This function demonstrates the complete attack workflow:
+ * 1. User configures attack parameters
+ * 2. Frontend shows visual steps
+ * 3. Backend calculates attack success
+ * 4. Results are displayed with educational explanations
  */
 async function runAttackWithVisualization() {
     console.log('🎯 Running attack simulation with visualization...');
 
-    // Reset previous visualization
+    // Reset previous visualization to ensure clean state
     resetAttackVisualization();
 
+    // Get attack parameters from user input
     const attacker = document.getElementById('attack-attacker').value.trim() || 'RedHawk';
     const blocks = parseInt(document.getElementById('attack-blocks').value) || 1;
     const amount = parseFloat(document.getElementById('attack-amount').value) || 10.0;
 
+    // Validate input parameters
     if (blocks <= 0 || amount <= 0) {
         showNotification('❌ Please enter valid values for blocks and amount', 'error');
         return;
@@ -236,6 +323,7 @@ async function runAttackWithVisualization() {
     try {
         showNotification('🚀 Starting attack simulation with visualization...', 'info');
 
+        // Prepare attack payload for backend API
         const payload = {
             attacker: attacker,
             blocks: blocks,
@@ -257,9 +345,10 @@ async function runAttackWithVisualization() {
             config: payload.frontend_config
         };
 
-        // Start visualization
+        // Start visualization immediately (don't wait for backend response)
         updateAttackVisualization(attackData);
 
+        // Send attack request to backend API
         const response = await fetch('/api/attack/run', {
             method: 'POST',
             headers: {
@@ -275,16 +364,18 @@ async function runAttackWithVisualization() {
         const data = await response.json();
         console.log('🎯 Attack response:', data);
 
-        // Update visualization with actual result
+        // Update visualization with actual result from backend
         attackData.result = data;
         simulateNetworkRace(attackData); // FIXED: Use correct function name
 
+        // Display formatted attack results
         const box = document.getElementById('attack-output');
         if (box) {
             box.style.display = 'block';
             box.textContent = formatAttackResponse(data);
         }
 
+        // Show appropriate notification based on attack result
         const attackSuccessful = data.successful || false;
         if (attackSuccessful) {
             showNotification('🎯 Attack successful! Double spending achieved!', 'success');
@@ -292,7 +383,7 @@ async function runAttackWithVisualization() {
             showNotification('🛡️ Attack prevented! Network security maintained.', 'info');
         }
 
-        // Refresh all data and charts after attack
+        // Refresh all data displays and charts to show attack impact
         refreshEnhancedBalances();
         refreshChain();
         setTimeout(refreshAllCharts, 1500);
@@ -301,13 +392,14 @@ async function runAttackWithVisualization() {
         console.error('Attack simulation error:', error);
         showNotification('💥 Attack failed: ' + error.message, 'error');
 
+        // Display error details to user
         const box = document.getElementById('attack-output');
         if (box) {
             box.style.display = 'block';
             box.textContent = `❌ ATTACK SIMULATION FAILED\n\n📛 Error: ${error.message}\n\n💡 Please make sure the backend server is running on http://127.0.0.1:5000`;
         }
 
-        // Mark steps as failed
+        // Mark steps as failed in visualization
         document.getElementById('step3').classList.add('failed');
         document.getElementById('step4').classList.add('failed');
     }
@@ -319,6 +411,12 @@ async function runAttackWithVisualization() {
 
 /**
  * Format transaction response for user-friendly display
+ *
+ * Converts raw transaction API response into an educational, readable format
+ * that explains what happened in the transaction process.
+ *
+ * @param {Object} data - Raw transaction response from API
+ * @returns {string} Formatted user-friendly output
  */
 function formatTransactionResponse(data) {
     if (!data) return 'No response data received';
@@ -342,6 +440,12 @@ function formatTransactionResponse(data) {
 
 /**
  * Format mining response for user-friendly display
+ *
+ * Converts raw mining API response into an educational format that explains
+ * the block mining process and results.
+ *
+ * @param {Object} data - Raw mining response from API
+ * @returns {string} Formatted user-friendly output
  */
 function formatMiningResponse(data) {
     if (!data) return 'No response data received';
@@ -356,7 +460,7 @@ function formatMiningResponse(data) {
         output += `📊 Transactions in block: ${data.block.transactions.length}\n`;
         output += `⛓️ Total blocks in chain: ${data.chain_length}\n\n`;
 
-        // Show transaction summary
+        // Show transaction summary with categorization
         const userTransactions = data.block.transactions.filter(tx => tx.sender !== 'SYSTEM');
         const rewardTransactions = data.block.transactions.filter(tx => tx.sender === 'SYSTEM');
 
@@ -385,6 +489,12 @@ function formatMiningResponse(data) {
 
 /**
  * Format balances for user-friendly display
+ *
+ * Converts wallet balance data into an educational format that shows
+ * current balances and any attack-related information.
+ *
+ * @param {Object} data - Raw balances response from API
+ * @returns {string} Formatted user-friendly output
  */
 function formatBalancesResponse(data) {
     if (!data) return 'No balance data received';
@@ -397,14 +507,14 @@ function formatBalancesResponse(data) {
     output += `📊 Total Wallets: ${total_wallets}\n`;
     output += `🛡️ Active Attacks: ${active_attacks}\n\n`;
 
-    // Display balances
+    // Display balances with visual indicators
     output += '💳 CURRENT BALANCES:\n';
     Object.entries(balances).forEach(([wallet, balance]) => {
         const status = balance >= 0 ? '✅' : '⚠️';
         output += `   ${status} ${wallet}: ${balance.toFixed(2)} coins\n`;
     });
 
-    // Display attack information
+    // Display attack information if available
     if (Object.keys(attack_info).length > 0) {
         output += '\n🦠 ATTACK ACTIVITY:\n';
         Object.entries(attack_info).forEach(([attacker, info]) => {
@@ -420,6 +530,12 @@ function formatBalancesResponse(data) {
 
 /**
  * Format blockchain data for user-friendly display
+ *
+ * Converts blockchain chain data into an educational explorer format
+ * that helps understand blockchain structure and recent activity.
+ *
+ * @param {Object} data - Raw chain data from API
+ * @returns {string} Formatted user-friendly output
  */
 function formatChainResponse(data) {
     if (!data) return 'No blockchain data received';
@@ -460,6 +576,12 @@ function formatChainResponse(data) {
 
 /**
  * Format attack simulation response for user-friendly display
+ *
+ * Converts attack simulation results into an educational format that
+ * explains the attack outcome and execution steps.
+ *
+ * @param {Object} data - Raw attack response from API
+ * @returns {string} Formatted user-friendly output
  */
 function formatAttackResponse(data) {
     if (!data) return 'No attack data received';
@@ -483,7 +605,7 @@ function formatAttackResponse(data) {
         output += `   • Reason: ${data.message || 'Network consensus rejected private chain'}\n\n`;
     }
 
-    // Add execution steps
+    // Add execution steps for educational purposes
     if (data.steps && data.steps.length > 0) {
         output += '🔧 Attack Execution Steps:\n';
         data.steps.forEach((step, index) => {
@@ -509,6 +631,11 @@ function formatAttackResponse(data) {
 
 /**
  * Format peer network response for user-friendly display
+ *
+ * Converts peer network operations into educational explanations.
+ *
+ * @param {Object} data - Raw peer response from API
+ * @returns {string} Formatted user-friendly output
  */
 function formatPeerResponse(data) {
     if (!data) return 'No network data received';
@@ -537,6 +664,11 @@ function formatPeerResponse(data) {
 
 /**
  * Format consensus response for user-friendly display
+ *
+ * Explains consensus resolution results in an educational format.
+ *
+ * @param {Object} data - Raw consensus response from API
+ * @returns {string} Formatted user-friendly output
  */
 function formatConsensusResponse(data) {
     if (!data) return 'No consensus data received';
@@ -570,6 +702,11 @@ function formatConsensusResponse(data) {
 
 /**
  * Format SimBlock response for user-friendly display
+ *
+ * Converts SimBlock simulation results into educational explanations.
+ *
+ * @param {Object} data - Raw SimBlock response from API
+ * @returns {string} Formatted user-friendly output
  */
 function formatSimBlockResponse(data) {
     if (!data) return 'No simulation data received';
@@ -597,19 +734,30 @@ function formatSimBlockResponse(data) {
 // ================================
 // NOTIFICATION SYSTEM
 // ================================
+
+/**
+ * Show user notification with styling based on type
+ *
+ * Displays temporary notifications to keep users informed about
+ * system operations, successes, and errors.
+ *
+ * @param {string} message - The notification message to display
+ * @param {string} type - Notification type: 'info', 'success', or 'error'
+ */
 function showNotification(message, type = 'info') {
     console.log(`📢 ${type.toUpperCase()}:`, message);
 
-    // Clear existing notifications
+    // Clear existing notifications to prevent stacking
     document.querySelectorAll('.notification').forEach(n => n.remove());
 
     const notification = document.createElement('div');
     notification.className = 'notification';
 
+    // Color coding for different notification types
     const colors = {
-        info: '#3498db',
-        success: '#27ae60',
-        error: '#e74c3c'
+        info: '#3498db',      // Blue for information
+        success: '#27ae60',   // Green for success
+        error: '#e74c3c'      // Red for errors
     };
 
     notification.innerHTML = `
@@ -617,6 +765,7 @@ function showNotification(message, type = 'info') {
         <button onclick="this.parentElement.remove()">×</button>
     `;
 
+    // Style the notification with appropriate colors and positioning
     notification.style.cssText = `
         position: fixed;
         top: 20px;
@@ -635,6 +784,8 @@ function showNotification(message, type = 'info') {
     `;
 
     document.body.appendChild(notification);
+
+    // Auto-remove notification after 5 seconds
     setTimeout(() => notification.remove(), 5000);
 }
 
@@ -644,29 +795,42 @@ function showNotification(message, type = 'info') {
 
 /**
  * Initialize synchronized charts
+ *
+ * Sets up all Chart.js instances with proper configuration and styling.
+ * This creates the foundation for real-time blockchain data visualization.
+ *
+ * Student Note: Charts help visualize complex blockchain concepts like:
+ * - Network activity patterns
+ * - Attack success rates
+ * - Node distribution
+ * - Blockchain growth
  */
 function initializeNetworkCharts() {
     console.log('📊 Initializing synchronized charts...');
 
-    // Destroy existing charts to prevent duplicates
+    // Destroy existing charts to prevent duplicates and memory leaks
     Object.values(networkCharts).forEach(chart => {
         if (chart) {
             chart.destroy();
         }
     });
 
+    // Initialize all chart types
     createNetworkActivityChart();
     createBlockchainDataChart();
     createAttackAnalysisChart();
     createNodeDistributionChart();
 
-    // Load initial data immediately
+    // Load initial data immediately after chart initialization
     setTimeout(updateChartsWithRealData, 500);
     showNotification('📈 Charts initialized! Loading real data...', 'info');
 }
 
 /**
  * Create network activity chart
+ *
+ * Line chart showing transaction activity across blocks over time.
+ * Helps visualize network usage patterns and attack impacts.
  */
 function createNetworkActivityChart() {
     const ctx = document.getElementById('networkActivityChart');
@@ -718,6 +882,9 @@ function createNetworkActivityChart() {
 
 /**
  * Create blockchain data chart - INDIVIDUAL BLOCKS
+ *
+ * Bar chart showing individual blocks categorized as honest or attack blocks.
+ * Visualizes the blockchain structure and identifies compromised blocks.
  */
 function createBlockchainDataChart() {
     const ctx = document.getElementById('blockchainDataChart');
@@ -791,6 +958,9 @@ function createBlockchainDataChart() {
 
 /**
  * Create enhanced attack analysis chart with ATTACKER NODES metric
+ *
+ * Bar chart showing comprehensive attack metrics including the new
+ * "Attacker Nodes" metric that estimates malicious node count.
  */
 function createAttackAnalysisChart() {
     const ctx = document.getElementById('attackAnalysisChart');
@@ -807,7 +977,7 @@ function createAttackAnalysisChart() {
                 'Hash Power',
                 'Blocks Mined',
                 'Amount Stolen',
-                'Attacker Nodes',
+                'Attacker Nodes',  // NEW METRIC: Estimated malicious nodes
                 'Latency Impact',
                 'Network Health'
             ],
@@ -851,6 +1021,7 @@ function createAttackAnalysisChart() {
                             const value = context.parsed.y;
                             const metric = context.chart.data.labels[context.dataIndex];
 
+                            // Custom tooltip formatting for each metric type
                             switch(metric) {
                                 case 'Success Rate':
                                     return `${label}: ${value.toFixed(1)}%`;
@@ -886,6 +1057,9 @@ function createAttackAnalysisChart() {
 
 /**
  * Create node distribution chart as bar chart
+ *
+ * Shows the geographic distribution of blockchain nodes across different regions.
+ * Helps understand the decentralized nature of blockchain networks.
  */
 function createNodeDistributionChart() {
     const ctx = document.getElementById('nodeDistributionChart');
@@ -946,11 +1120,18 @@ function createNodeDistributionChart() {
 
 /**
  * Update charts with real blockchain data
+ *
+ * Fetches current blockchain data from the backend API and updates
+ * all charts with real-time information. Falls back to demo data if API fails.
+ *
+ * Student Note: This demonstrates how real blockchain applications
+ * continuously sync with network data for accurate visualization.
  */
 async function updateChartsWithRealData() {
     try {
         console.log('🔄 Fetching real data for charts...');
 
+        // Fetch all data sources in parallel for efficiency
         const [chainResponse, balancesResponse, networkResponse] = await Promise.allSettled([
             fetch('/api/chain').catch(() => ({ ok: false })),
             fetch('/api/balances/detailed').catch(() => ({ ok: false })),
@@ -961,34 +1142,44 @@ async function updateChartsWithRealData() {
         let balancesData = { balances: {}, attack_info: {} };
         let networkData = {};
 
+        // Process chain data if available
         if (chainResponse.status === 'fulfilled' && chainResponse.value.ok) {
             chainData = await chainResponse.value.json();
             console.log('📦 Chain data loaded:', chainData.chain.length, 'blocks');
         }
 
+        // Process balance data if available
         if (balancesResponse.status === 'fulfilled' && balancesResponse.value.ok) {
             balancesData = await balancesResponse.value.json();
             console.log('💰 Balance data loaded');
         }
 
+        // Process network data if available
         if (networkResponse.status === 'fulfilled' && networkResponse.value.ok) {
             networkData = await networkResponse.value.json();
             console.log('🌐 Network data loaded');
         }
 
+        // Update all charts with the fetched data
         updateAllChartsWithData(chainData, balancesData, networkData);
         showNotification('📈 Charts updated with real data!', 'success');
 
     } catch (error) {
         console.error('Error updating charts:', error);
         showNotification('❌ Failed to update charts with real data', 'error');
-        // Fallback to demo data
+        // Fallback to demo data if real data fetching fails
         updateChartsWithDemoData();
     }
 }
 
 /**
  * Update all charts with real data
+ *
+ * Coordinates the update of all chart types with the latest blockchain data.
+ *
+ * @param {Object} chainData - Blockchain structure data
+ * @param {Object} balancesData - Wallet balance and attack information
+ * @param {Object} networkData - Network metrics and node information
  */
 function updateAllChartsWithData(chainData, balancesData, networkData) {
     console.log('🔄 Updating all charts with real data...');
@@ -1001,6 +1192,10 @@ function updateAllChartsWithData(chainData, balancesData, networkData) {
 
 /**
  * Update network activity chart with real data - FIXED to show ALL blocks
+ *
+ * Updates the line chart with transaction counts for all blocks in the chain.
+ *
+ * @param {Object} chainData - Blockchain data containing all blocks
  */
 function updateNetworkActivityChart(chainData) {
     if (!networkCharts.activityChart) return;
@@ -1008,11 +1203,12 @@ function updateNetworkActivityChart(chainData) {
     const blocks = chainData.chain || [];
 
     if (blocks.length === 0) {
+        // Show placeholder data if no blocks exist
         networkCharts.activityChart.data.labels = ['No blocks yet'];
         networkCharts.activityChart.data.datasets[0].data = [0];
         networkCharts.activityChart.data.datasets[0].label = 'No transactions';
     } else {
-        // Show ALL blocks, not just recent ones
+        // Show ALL blocks, not just recent ones for complete historical view
         const labels = blocks.map(block => `Block ${block.index}`);
         const txCounts = blocks.map(block => block.transactions ? block.transactions.length : 0);
 
@@ -1028,6 +1224,11 @@ function updateNetworkActivityChart(chainData) {
 
 /**
  * Update blockchain data chart with INDIVIDUAL BLOCKS - FIXED to show ALL blocks
+ *
+ * Updates the block categorization chart showing honest vs attack blocks.
+ *
+ * @param {Object} chainData - Blockchain structure data
+ * @param {Object} balancesData - Attack information for block categorization
  */
 function updateBlockchainDataChart(chainData, balancesData) {
     if (!networkCharts.blockchainDataChart) return;
@@ -1035,7 +1236,7 @@ function updateBlockchainDataChart(chainData, balancesData) {
     const blocks = chainData.chain || [];
     const attackInfo = balancesData.attack_info || {};
 
-    // Get successful attacks
+    // Calculate successful attacks for accurate block categorization
     const successfulAttacks = Object.values(attackInfo).filter(info => info.success === true);
     const successfulAttackBlocks = successfulAttacks.length;
 
@@ -1080,6 +1281,13 @@ function updateBlockchainDataChart(chainData, balancesData) {
 
 /**
  * Update enhanced attack analysis with ATTACKER NODES metric
+ *
+ * Updates the comprehensive attack analysis chart with current attack metrics
+ * including the new "Attacker Nodes" estimation.
+ *
+ * @param {Object} chainData - Blockchain data for context
+ * @param {Object} balancesData - Attack success and amount information
+ * @param {Object} networkData - Network metrics for node calculations
  */
 function updateAttackAnalysisChart(chainData, balancesData, networkData) {
     if (!networkCharts.attackAnalysisChart) return;
@@ -1088,7 +1296,7 @@ function updateAttackAnalysisChart(chainData, balancesData, networkData) {
     const attackInfo = balancesData.attack_info || {};
     const totalNodes = networkData.node_count || 120;
 
-    // Calculate accurate attack metrics
+    // Calculate accurate attack metrics from real data
     const totalAttacks = Object.keys(attackInfo).length;
     const successfulAttacks = Object.values(attackInfo).filter(info => info.success === true).length;
     const failedAttacks = totalAttacks - successfulAttacks;
@@ -1143,11 +1351,17 @@ function updateAttackAnalysisChart(chainData, balancesData, networkData) {
 
 /**
  * Update node distribution chart with real data
+ *
+ * Updates the geographic node distribution chart with current network data.
+ *
+ * @param {Object} networkData - Network information including node count
  */
 function updateNodeDistributionChart(networkData) {
     if (!networkCharts.nodeDistributionChart) return;
 
     const nodeCount = networkData.node_count || 120;
+
+    // Simulated geographic distribution (in real system, this would come from API)
     const distribution = [
         Math.floor(nodeCount * 0.35), // North America
         Math.floor(nodeCount * 0.28), // Europe
@@ -1164,6 +1378,9 @@ function updateNodeDistributionChart(networkData) {
 
 /**
  * Fallback to demo data if real data fails
+ *
+ * Provides sample data for demonstration purposes when the backend API
+ * is unavailable or returns errors.
  */
 function updateChartsWithDemoData() {
     console.log('📊 Using demo data for charts...');
@@ -1206,6 +1423,12 @@ function updateChartsWithDemoData() {
 
 /**
  * Update real-time metrics display with actual data
+ *
+ * Updates the dashboard metrics cards with current blockchain and network statistics.
+ *
+ * @param {Object} networkData - Network performance metrics
+ * @param {Object} balancesData - Wallet and attack statistics
+ * @param {Object} chainData - Blockchain growth metrics
  */
 function updateRealTimeMetrics(networkData, balancesData, chainData) {
     const blocks = chainData.chain || [];
@@ -1223,6 +1446,7 @@ function updateRealTimeMetrics(networkData, balancesData, chainData) {
     const hashPowerBonus = Math.floor(attackConfig.attackerHashPower / 10);
     const attackerNodes = Math.min(totalNodes * 0.4, baseMaliciousNodes + attackSuccessBonus + hashPowerBonus);
 
+    // Calculate all real-time metrics
     const metrics = {
         latency: (networkData.average_latency || 85) + 'ms',
         nodes: (networkData.node_count || 120) + '+',
@@ -1232,7 +1456,7 @@ function updateRealTimeMetrics(networkData, balancesData, chainData) {
         attack: attackConfig.attackerHashPower + '%'
     };
 
-    // Update metric cards
+    // Update metric cards with visual feedback
     Object.keys(metrics).forEach(metric => {
         const element = document.getElementById(metric);
         if (element) {
@@ -1266,6 +1490,9 @@ function updateRealTimeMetrics(networkData, balancesData, chainData) {
 
 /**
  * Refresh all charts with latest data
+ *
+ * Public function to manually refresh all charts with current blockchain data.
+ * Useful after operations that change blockchain state (mining, attacks, etc.).
  */
 function refreshAllCharts() {
     console.log('🔄 Refreshing all charts with real data...');
@@ -1274,6 +1501,9 @@ function refreshAllCharts() {
 
 /**
  * Export charts as PNG images
+ *
+ * Allows users to download all current charts as PNG images for reports
+ * or documentation purposes.
  */
 function exportCharts() {
     const chartsContainer = document.getElementById('network-charts-dashboard');
@@ -1282,6 +1512,7 @@ function exportCharts() {
     const charts = chartsContainer.querySelectorAll('canvas');
     let exported = 0;
 
+    // Export each chart as individual PNG file
     charts.forEach((chart, index) => {
         const link = document.createElement('a');
         link.download = `blockchain-chart-${index + 1}-${new Date().toISOString().split('T')[0]}.png`;
@@ -1299,20 +1530,29 @@ function exportCharts() {
 
 /**
  * Submit a new transaction
+ *
+ * Sends a transaction to the blockchain network and displays the result
+ * in a user-friendly format with educational explanations.
+ *
+ * Student Note: This demonstrates how transactions are broadcast to the network
+ * and added to the mempool before being included in a block.
  */
 async function submitTransaction() {
     console.log('📝 Submitting transaction...');
 
+    // Get transaction details from form
     const sender = document.getElementById('tx-sender').value.trim();
     const receiver = document.getElementById('tx-receiver').value.trim();
     const amount = parseFloat(document.getElementById('tx-amount').value);
 
+    // Validate input parameters
     if (!sender || !receiver || isNaN(amount) || amount <= 0) {
         showNotification('❌ Please fill all fields with valid values', 'error');
         return;
     }
 
     try {
+        // Send transaction to backend API
         const response = await fetch('/api/tx/new', {
             method: 'POST',
             headers: {
@@ -1327,6 +1567,7 @@ async function submitTransaction() {
 
         const data = await response.json();
 
+        // Display formatted response
         const box = document.getElementById('tx-response');
         if (box) {
             box.style.display = 'block';
@@ -1353,6 +1594,12 @@ async function submitTransaction() {
 
 /**
  * Mine a new block
+ *
+ * Initiates the mining process to create a new block containing pending transactions.
+ * Displays mining results with educational explanations.
+ *
+ * Student Note: Mining is the process of creating new blocks through computational
+ * work (Proof of Work). Miners are rewarded with new coins for their work.
  */
 async function mineBlock() {
     console.log('⛏️ Mining block...');
@@ -1396,6 +1643,9 @@ async function mineBlock() {
 
 /**
  * Refresh wallet balances
+ *
+ * Fetches and displays current wallet balances with attack information.
+ * Provides a comprehensive view of the financial state of the blockchain.
  */
 async function refreshEnhancedBalances() {
     console.log('💰 Refreshing balances...');
@@ -1417,6 +1667,9 @@ async function refreshEnhancedBalances() {
 
 /**
  * Refresh blockchain data
+ *
+ * Fetches and displays the current state of the blockchain.
+ * Shows block information, transaction counts, and network status.
  */
 async function refreshChain() {
     console.log('⛓️ Refreshing chain...');
@@ -1442,6 +1695,11 @@ async function refreshChain() {
 
 /**
  * Update success probability
+ *
+ * Adjusts the base success probability for double spending attacks
+ * and updates the display and related charts.
+ *
+ * @param {string} value - New probability value as percentage (0-100)
  */
 function updateSuccessProbability(value) {
     attackConfig.successProbability = parseFloat(value) / 100;
@@ -1455,6 +1713,10 @@ function updateSuccessProbability(value) {
 
 /**
  * Update hash power
+ *
+ * Adjusts the attacker's hash power percentage and updates displays.
+ *
+ * @param {string} value - New hash power value as percentage (0-100)
  */
 function updateHashPower(value) {
     attackConfig.attackerHashPower = parseFloat(value);
@@ -1468,6 +1730,9 @@ function updateHashPower(value) {
 
 /**
  * Force attack success
+ *
+ * Overrides probability calculations to always make attacks succeed.
+ * Useful for demonstration and testing purposes.
  */
 function forceAttackSuccess() {
     attackConfig.forceSuccess = true;
@@ -1485,6 +1750,9 @@ function forceAttackSuccess() {
 
 /**
  * Force attack failure
+ *
+ * Overrides probability calculations to always make attacks fail.
+ * Useful for demonstration and testing purposes.
  */
 function forceAttackFailure() {
     attackConfig.forceFailure = true;
@@ -1502,6 +1770,9 @@ function forceAttackFailure() {
 
 /**
  * Reset to random mode
+ *
+ * Removes force success/failure overrides and returns to probability-based
+ * attack outcomes.
  */
 function resetAttackControl() {
     attackConfig.forceSuccess = false;
@@ -1519,6 +1790,8 @@ function resetAttackControl() {
 
 /**
  * Update control status display
+ *
+ * Updates the attack control panel to show current mode and settings.
  */
 function updateControlStatus() {
     const element = document.getElementById('current-mode');
@@ -1542,6 +1815,9 @@ function updateControlStatus() {
 
 /**
  * Add a peer to the network
+ *
+ * Connects to another blockchain node to expand the peer-to-peer network.
+ * Demonstrates how blockchain nodes discover and connect to each other.
  */
 async function addPeer() {
     const peerAddress = document.getElementById('peer-address').value.trim();
@@ -1587,6 +1863,9 @@ async function addPeer() {
 
 /**
  * Resolve network conflicts
+ *
+ * Performs consensus resolution to ensure the local blockchain is synchronized
+ * with the network. Demonstrates blockchain's self-healing capability.
  */
 async function resolveConflicts() {
     try {
@@ -1616,6 +1895,9 @@ async function resolveConflicts() {
 
 /**
  * Start SimBlock simulation
+ *
+ * Initializes the SimBlock network simulator to create a realistic
+ * peer-to-peer network environment for testing and demonstration.
  */
 async function startSimBlockSimulation() {
     try {
@@ -1647,6 +1929,9 @@ async function startSimBlockSimulation() {
 
 /**
  * Download all CSV reports
+ *
+ * Generates and downloads a comprehensive set of CSV reports for
+ * blockchain analysis, attack forensics, and network metrics.
  */
 async function downloadCSVReports() {
     const spinner = document.getElementById('csv-spinner');
@@ -1678,6 +1963,10 @@ async function downloadCSVReports() {
 
 /**
  * Download specific CSV report
+ *
+ * Generates and downloads a specific type of CSV report for focused analysis.
+ *
+ * @param {string} reportType - Type of report to download
  */
 async function downloadSpecificCSV(reportType) {
     try {
@@ -1716,6 +2005,12 @@ async function downloadSpecificCSV(reportType) {
 
 /**
  * Initialize the application
+ *
+ * Sets up all components of the blockchain interface including:
+ * - Attack controls and visualization
+ * - Chart system with real data
+ * - Initial data loading
+ * - User interface state
  */
 function initializeApp() {
     console.log('🚀 Initializing blockchain application...');
@@ -1745,7 +2040,16 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
 
-// Global export for HTML onclick handlers
+// ================================
+// GLOBAL EXPORTS FOR HTML ONCLICK HANDLERS
+// ================================
+
+/**
+ * Global function exports for HTML onclick handlers
+ *
+ * These make all the JavaScript functions available to HTML event handlers
+ * while maintaining clean separation of concerns.
+ */
 window.submitTransaction = submitTransaction;
 window.mineBlock = mineBlock;
 window.refreshEnhancedBalances = refreshEnhancedBalances;

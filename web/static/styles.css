@@ -9,12 +9,14 @@
    RESET AND BASE STYLES
    =========================================== */
 
+/* CSS reset to remove default browser margins/padding for consistent styling */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* Main body styling with gradient background for modern appearance */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.5;
@@ -27,6 +29,7 @@ body {
    HEADER AND NAVIGATION STYLES
    =========================================== */
 
+/* Header with gradient and shadow for visual hierarchy */
 .site-header {
     background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
     color: white;
@@ -34,6 +37,7 @@ body {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
+/* Flex container for header layout with max-width constraint */
 .header-container {
     max-width: 1400px;
     margin: 0 auto;
@@ -44,6 +48,7 @@ body {
     gap: 80px;
 }
 
+/* Instructor and author info sections with flexible sizing */
 .instructor-info, .author-info {
     flex: 1;
     min-width: 250px;
@@ -58,6 +63,7 @@ body {
     text-align: left;
 }
 
+/* Circular logo and student picture styling */
 .logo, .student-pic {
     width: 60px;
     height: 60px;
@@ -67,6 +73,7 @@ body {
     object-fit: cover;
 }
 
+/* Central title area with main project information */
 .title-box {
     flex: 2;
     text-align: center;
@@ -90,12 +97,14 @@ body {
    MAIN CONTENT AREA STYLES
    =========================================== */
 
+/* Main container for centering content with padding */
 .container {
     max-width: 1400px;
     margin: 30px auto;
     padding: 0 40px;
 }
 
+/* Introductory text section with card-like appearance */
 .header-text {
     text-align: center;
     margin-bottom: 40px;
@@ -123,6 +132,7 @@ body {
    FEATURE HIGHLIGHTS STYLES
    =========================================== */
 
+/* Flexible container for feature tags */
 .feature-highlights {
     display: flex;
     justify-content: center;
@@ -131,6 +141,7 @@ body {
     margin-top: 25px;
 }
 
+/* Individual feature items with gradient and hover effects */
 .feature-item {
     background: linear-gradient(135deg, #3498db, #2980b9);
     color: white;
@@ -151,6 +162,7 @@ body {
    SECTION COMPONENT STYLES
    =========================================== */
 
+/* Card-like sections for content organization */
 .section-box {
     background: white;
     padding: 35px;
@@ -184,6 +196,7 @@ body {
    FORM AND INPUT STYLES
    =========================================== */
 
+/* Form group styling for consistent spacing */
 .form-group {
     margin-bottom: 25px;
 }
@@ -195,6 +208,7 @@ body {
     color: #2c3e50;
 }
 
+/* Input field styling with focus states */
 .form-group input {
     width: 100%;
     padding: 14px 18px;
@@ -214,6 +228,7 @@ body {
    BUTTON AND INTERACTION STYLES
    =========================================== */
 
+/* Primary button with gradient and hover effects */
 .primary-btn {
     background: linear-gradient(135deg, #3498db, #2980b9);
     color: white;
@@ -238,6 +253,7 @@ body {
     transform: translateY(0);
 }
 
+/* Secondary button for less important actions */
 .secondary-btn {
     background: linear-gradient(135deg, #95a5a6, #7f8c8d);
     color: white;
@@ -261,6 +277,7 @@ body {
    ATTACK SIMULATION CONTROL STYLES
    =========================================== */
 
+/* Control panel for attack simulation parameters */
 .attack-controls {
     background: #f8f9fa;
     padding: 30px;
@@ -280,6 +297,7 @@ body {
     color: #2c3e50;
 }
 
+/* Slider container for range inputs */
 .slider-container {
     background: white;
     padding: 20px;
@@ -313,6 +331,7 @@ body {
     margin-left: 10px;
 }
 
+/* Force buttons for manual control */
 .force-buttons {
     display: flex;
     gap: 15px;
@@ -368,6 +387,7 @@ body {
    RESULT AND OUTPUT DISPLAY STYLES
    =========================================== */
 
+/* Styling for result display areas */
 .result-box {
     background: #f8f9fa;
     border: 1px solid #e9ecef;
@@ -402,6 +422,7 @@ body {
    ENHANCED CHART STYLES - SYNCHRONIZED
    =========================================== */
 
+/* Grid layout for multiple synchronized charts */
 .charts-grid-enhanced {
     display: flex;
     flex-direction: column;
@@ -414,16 +435,17 @@ body {
     gap: 25px;
 }
 
-/* First row: 2 large charts */
+/* First row with 2 large charts */
 .chart-row:first-child {
     grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
 }
 
-/* Second row: 3 medium charts */
+/* Second row with 3 medium charts */
 .chart-row:last-child {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
+/* Large chart container styling */
 .chart-container-large {
     background: white;
     padding: 25px;
@@ -436,6 +458,7 @@ body {
     position: relative;
 }
 
+/* Medium chart container styling */
 .chart-container-medium {
     background: white;
     padding: 20px;
@@ -466,7 +489,7 @@ body {
     font-style: italic;
 }
 
-/* Ensure canvas takes available space */
+/* Canvas element sizing for consistent chart display */
 .chart-container-large canvas,
 .chart-container-medium canvas {
     flex: 1;
@@ -475,7 +498,7 @@ body {
     max-height: 300px;
 }
 
-/* Chart loading states */
+/* Loading state for charts */
 .chart-loading {
     display: flex;
     align-items: center;
@@ -496,7 +519,7 @@ body {
     padding: 20px;
 }
 
-/* Real-time Metrics */
+/* Real-time metrics display area */
 .real-time-metrics {
     background: #f8f9fa;
     padding: 25px;
@@ -546,7 +569,7 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* Chart Actions */
+/* Chart action buttons container */
 .chart-actions {
     display: flex;
     justify-content: center;
@@ -555,7 +578,7 @@ body {
     flex-wrap: wrap;
 }
 
-/* Metric card colors */
+/* Color-coded metric cards for different data types */
 .metric-card.latency { border-left-color: #e74c3c; }
 .metric-card.nodes { border-left-color: #2ecc71; }
 .metric-card.throughput { border-left-color: #3498db; }
@@ -563,7 +586,7 @@ body {
 .metric-card.health { border-left-color: #9b59b6; }
 .metric-card.attack { border-left-color: #e67e22; }
 
-/* Animation for metric updates */
+/* Animation for metric value updates */
 @keyframes pulseUpdate {
     0% { transform: scale(1); }
     50% { transform: scale(1.05); }
@@ -574,7 +597,7 @@ body {
     animation: pulseUpdate 0.5s ease;
 }
 
-/* Chart synchronization indicators */
+/* Sync status indicators for chart synchronization */
 .chart-sync-status {
     position: absolute;
     top: 10px;
@@ -600,6 +623,7 @@ body {
    ATTACK VISUALIZATION STYLES
    =========================================== */
 
+/* Process visualization for attack steps */
 .attack-process {
     display: flex;
     flex-direction: column;
@@ -647,7 +671,7 @@ body {
     font-size: 1.1rem;
 }
 
-/* Transaction Box Styles */
+/* Transaction box styling for blockchain transactions */
 .transaction-box {
     background: white;
     padding: 15px;
@@ -680,7 +704,7 @@ body {
     border-radius: 4px;
 }
 
-/* Mining Box Styles */
+/* Mining visualization components */
 .mining-box {
     background: white;
     padding: 20px;
@@ -737,7 +761,7 @@ body {
     font-weight: bold;
 }
 
-/* Network Race Styles */
+/* Network race visualization for chain comparison */
 .race-box {
     background: white;
     padding: 20px;
@@ -808,7 +832,7 @@ body {
     border: 2px solid #e74c3c;
 }
 
-/* Step States */
+/* Step state indicators for process visualization */
 .process-step.active {
     border-left-color: #27ae60;
     background: #f0f9f0;
@@ -838,6 +862,7 @@ body {
    NOTIFICATION AND FEEDBACK STYLES
    =========================================== */
 
+/* Notification system for user feedback */
 .notification {
     position: fixed;
     top: 20px;
@@ -917,6 +942,7 @@ body {
    RESPONSIVE DESIGN BREAKPOINTS
    =========================================== */
 
+/* Mobile-first responsive design for tablets */
 @media (max-width: 768px) {
     .header-container {
         flex-direction: column;
@@ -1013,6 +1039,7 @@ body {
     }
 }
 
+/* Responsive design for mobile phones */
 @media (max-width: 480px) {
     .container {
         padding: 0 20px;
@@ -1055,6 +1082,7 @@ body {
    SCROLLBAR AND INTERACTION STYLES
    =========================================== */
 
+/* Custom scrollbar for better UX */
 ::-webkit-scrollbar {
     width: 8px;
 }

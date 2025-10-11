@@ -1,14 +1,18 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Basic HTML document structure and meta tags -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Anomaly Detection in Blockchain - Double Spending Attack Simulation</title>
+  <!-- Linking external CSS and JavaScript files -->
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 <body>
+  <!-- Header section with project information and team details -->
   <!-- HEADER SECTION -->
   <header class="site-header">
     <div class="header-container">
@@ -31,26 +35,32 @@
     </div>
   </header>
 
+  <!-- Main content area containing all interactive components -->
   <!-- MAIN CONTENT -->
   <main class="container">
+    <!-- Project introduction section -->
     <!-- Project Introduction -->
     <div class="header-text">
       <h2>Blockchain Anomaly Detection Prototype</h2>
       <p>This interactive prototype demonstrates a complete blockchain network with 120+ nodes, double-spending attack simulation, private network visualization, comprehensive analytics, and SimBlock P2P network integration.</p>
     </div>
 
+    <!-- Enhanced dashboard for network analytics and visualization -->
     <!-- ENHANCED NETWORK VISUALIZATION DASHBOARD -->
     <div class="section-box">
       <h3>📊 Enhanced Network Analytics Dashboard</h3>
       <p>Comprehensive visualization of blockchain network metrics, performance indicators, and attack patterns</p>
 
+      <!-- Chart control buttons for user interaction -->
       <div class="chart-actions">
           <button class="primary-btn" onclick="initializeNetworkCharts()">🔄 Initialize Charts</button>
           <button class="primary-btn" onclick="refreshAllCharts()">📈 Refresh Data</button>
           <button class="primary-btn" onclick="exportCharts()">📸 Export Charts</button>
       </div>
 
+      <!-- Grid layout for multiple synchronized charts -->
       <div id="network-charts-dashboard" class="charts-grid-enhanced">
+          <!-- First row with large charts for main visualizations -->
           <!-- Row 1: Activity and Blockchain Data -->
           <div class="chart-row">
               <div class="chart-container-large">
@@ -66,6 +76,7 @@
               </div>
           </div>
 
+          <!-- Second row with medium charts for detailed analysis -->
           <!-- Row 2: Attack Analysis and Node Distribution -->
           <div class="chart-row">
               <div class="chart-container-medium">
@@ -82,6 +93,7 @@
           </div>
       </div>
 
+      <!-- Real-time metrics display for live network monitoring -->
       <!-- Real-time Metrics Display -->
       <div class="real-time-metrics">
           <h4>📡 Real-time Network Metrics</h4>
@@ -114,9 +126,11 @@
       </div>
     </div>
 
+    <!-- Section header for blockchain operations -->
     <!-- BLOCKCHAIN OPERATIONS -->
     <h3>-: Custom Blockchain Implementation :-</h3>
 
+    <!-- Transaction creation form for user interaction -->
     <!-- Transaction Creation -->
     <div class="section-box">
       <h4>💸 Create New Transaction</h4>
@@ -138,6 +152,7 @@
       <pre id="tx-response" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- Block mining interface for blockchain operations -->
     <!-- Block Mining -->
     <div class="section-box">
       <h4>⛏️ Mine Pending Transactions</h4>
@@ -149,6 +164,7 @@
       <pre id="mine-response" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- Wallet balance display for account management -->
     <!-- Wallet Balances -->
     <div class="section-box">
       <h4>💰 Current Wallet Balances</h4>
@@ -156,6 +172,7 @@
       <pre id="balances-output">Click "Refresh Balances" to load data...</pre>
     </div>
 
+    <!-- Blockchain explorer for viewing the entire chain -->
     <!-- Blockchain Explorer -->
     <div class="section-box">
       <h4>⛓️ Blockchain Explorer</h4>
@@ -163,6 +180,7 @@
       <pre id="chain-output">Click "Refresh Blockchain" to load data...</pre>
     </div>
 
+    <!-- SimBlock network integration section -->
     <!-- SIMBLOCK NETWORK -->
     <hr>
     <div class="section-box">
@@ -178,15 +196,18 @@
       <div id="simblock-network-display"></div>
     </div>
 
+    <!-- Main attack simulation section with controls and visualization -->
     <!-- ATTACK SIMULATION -->
     <hr>
     <div class="section-box">
       <h4>🎯 Double-Spending Attack Simulation</h4>
 
+      <!-- Attack control panel for parameter adjustment -->
       <!-- Attack Control Panel -->
       <div class="attack-controls">
         <h4>🎮 Attack Control Panel</h4>
 
+        <!-- Success probability slider for attack customization -->
         <!-- Success Probability Control -->
         <div class="control-group">
           <label>Success Probability: <span id="probability-value" class="slider-value">50%</span></label>
@@ -196,6 +217,7 @@
           </div>
         </div>
 
+        <!-- Hash power control for attacker strength -->
         <!-- Hash Power Control -->
         <div class="control-group">
           <label>Attacker Hash Power: <span id="hashpower-value" class="slider-value">30%</span></label>
@@ -205,6 +227,7 @@
           </div>
         </div>
 
+        <!-- Force outcome buttons for testing scenarios -->
         <!-- Force Outcome Controls -->
         <div class="control-group">
           <label>Force Attack Outcome:</label>
@@ -216,6 +239,7 @@
           <small>Override probability for testing specific scenarios</small>
         </div>
 
+        <!-- Current mode display for user feedback -->
         <!-- Current Mode Display -->
         <div class="control-status">
           <strong>Current Mode:</strong>
@@ -223,10 +247,12 @@
         </div>
       </div>
 
+      <!-- Step-by-step attack visualization -->
       <!-- ATTACK VISUALIZATION -->
       <div class="section-box">
         <h4>🔍 Double Spending Attack Visualization</h4>
 
+        <!-- Process steps showing attack progression -->
         <!-- Attack Process Steps -->
         <div class="attack-process">
             <div class="process-step" id="step1">
@@ -308,6 +334,7 @@
         </div>
       </div>
 
+      <!-- Attack parameter form for user input -->
       <!-- Attack Parameters Form -->
       <div class="form-group">
         <label for="attack-attacker">Attacker Name:</label>
@@ -320,9 +347,11 @@
         <input type="number" id="attack-amount" value="2" step="any" min="0.01">
       </div>
 
+      <!-- Main attack execution button -->
       <!-- Attack Execution Button -->
       <button class="primary-btn" onclick="runAttack()">🚀 Run Attack Simulation</button>
 
+      <!-- Visualization containers for dynamic content -->
       <!-- Visualization Containers -->
       <div id="private-network-display" class="visualization-container" style="display:none;"></div>
       <div id="double-spend-display" class="visualization-container" style="display:none;"></div>
@@ -330,10 +359,12 @@
       <pre id="attack-output" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- P2P network management section -->
     <!-- P2P NETWORK MANAGEMENT -->
     <hr>
     <h3>-: P2P Network Management :-</h3>
 
+    <!-- Traditional P2P network management interface -->
     <!-- Network Management -->
     <div class="section-box">
       <h4>🌐 Traditional P2P Network</h4>
@@ -351,6 +382,7 @@
       <pre id="peer-response" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- Network consensus resolution interface -->
     <!-- Network Consensus -->
     <div class="section-box">
       <h4>🔄 Network Consensus</h4>
@@ -359,6 +391,7 @@
       <pre id="consensus-response" class="result-box" style="display:none;"></pre>
     </div>
 
+    <!-- Data analysis and reporting section -->
     <!-- REPORTING SECTION -->
     <hr>
     <div class="section-box">
@@ -382,6 +415,7 @@
     </div>
   </main>
 
+  <!-- Footer section with project credits and technology stack -->
   <!-- FOOTER -->
   <footer class="site-footer">
     <div class="footer-container">

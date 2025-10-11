@@ -1,3 +1,21 @@
+"""
+MAIN APPLICATION FILE: Blockchain Anomaly Detection System
+==========================================================
+
+This is the central Flask application that powers the Blockchain Double Spending
+Attack Simulation and Detection System. It integrates blockchain core components
+with SimBlock network simulation and provides a comprehensive web interface.
+
+Key Features:
+- Complete blockchain implementation with Proof of Work
+- Double spending attack simulation and detection
+- Real-time network visualization with charts
+- Comprehensive CSV reporting system
+- SimBlock integration for realistic network simulation
+- RESTful API for all blockchain operations
+
+"""
+
 import os
 import json
 import time
@@ -11,16 +29,16 @@ import matplotlib
 import numpy as np
 from flask import Flask, jsonify, render_template, send_file, request, send_from_directory
 
-# Configure matplotlib for server environment
+# Configure matplotlib for server environment (non-GUI backend)
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-# Blockchain core components
+# Blockchain core components - our custom implementation
 from blockchain.blockchain import Blockchain
 from blockchain.block import Block
 from blockchain.transaction import Transaction
 
-# SimBlock integration for network simulation
+# SimBlock integration for realistic network simulation
 from blockchain.simblock_integration import (
     start_simulation,
     get_network_info,
@@ -32,34 +50,49 @@ from blockchain.simblock_integration import (
 # FLASK APPLICATION CONFIGURATION
 # ================================
 
+"""
+Flask Application Setup
+-----------------------
+We configure Flask to serve our web interface from custom template and static folders.
+This separates our HTML templates and CSS/JS files from the application logic.
+"""
 app = Flask(__name__, template_folder='web/templates', static_folder='web/static')
 
 # ================================
 # APPLICATION STATE MANAGEMENT
 # ================================
 
-# Primary blockchain instance
+"""
+Global State Variables
+---------------------
+These variables maintain the application state across different requests.
+They represent the core data structures that power our blockchain system.
+"""
+
+# Primary blockchain instance - the heart of our system
+# Difficulty 3 means blocks must start with '000' in their hash
+# Reward 2.0 means miners get 2 coins for successfully mining a block
 blockchain_instance = Blockchain(difficulty=3, reward=2.0)
 
-# Network connectivity settings
+# Network connectivity settings - tracks other nodes in our P2P network
 PEERS = set()
 NODE_ADDRESS = os.environ.get("NODE_ADDRESS", "http://127.0.0.1:5000")
 
-# Attack simulation results storage
+# Attack simulation results storage - keeps track of recent attack attempts
 RECENT_ATTACK_RESULTS = {}
 
-# Real-time chart data containers
+# Real-time chart data containers - used for live visualization updates
 NETWORK_ACTIVITY_DATA = {
-    'labels': [],
-    'data': []
+    'labels': [],  # X-axis labels for charts (e.g., "Attack 1", "Attack 2")
+    'data': []  # Y-axis data points for charts
 }
 
-# Network performance metrics
+# Network performance metrics - simulated network health indicators
 SIMBLOCK_METRICS_DATA = {
-    'network_latency': 0,
-    'node_health': 0,
-    'message_delivery': 0,
-    'attack_resistance': 0
+    'network_latency': 0,  # Lower is better (0-100%)
+    'node_health': 0,  # Higher is better (0-100%)
+    'message_delivery': 0,  # Higher is better (0-100%)
+    'attack_resistance': 0  # Higher is better (0-100%)
 }
 
 
@@ -71,44 +104,61 @@ def update_network_chart_data(attack_successful, hash_power, probability):
     """
     Update network metrics based on attack simulation results.
 
-    Modifies network activity data and SimBlock metrics based on the
-    outcome of attack simulations, creating realistic network behavior
-    patterns for visualization.
+    This function simulates how network behavior changes after attack attempts.
+    It creates realistic patterns for visualization by modifying network activity
+    data and SimBlock metrics based on attack outcomes.
+
+    Student Note: This is where we simulate the "ripple effect" of attacks on
+    network performance. Real blockchain networks would show similar patterns.
 
     Args:
-        attack_successful: Boolean indicating whether the attack succeeded
-        hash_power: Attacker's computational power percentage
-        probability: Calculated attack success probability
+        attack_successful (bool): Whether the double spending attack succeeded
+        hash_power (float): Attacker's computational power percentage (0-100)
+        probability (float): Calculated attack success probability (0-100)
+
+    Example:
+        >>> update_network_chart_data(True, 40, 75.5)
+        # Updates charts to show increased activity after successful attack
     """
     try:
+        # Track attack sequence for chart labels
         attack_count = len(NETWORK_ACTIVITY_DATA['labels']) + 1
         NETWORK_ACTIVITY_DATA['labels'].append(f"Attack {attack_count}")
 
+        # Calculate base activity level based on hash power
         base_activity = hash_power * 2
-        if attack_successful:
-            activity_level = min(100, base_activity + 30)
-        else:
-            activity_level = max(10, base_activity - 10)
 
+        # Successful attacks increase network activity (more validation attempts)
+        if attack_successful:
+            activity_level = min(100, base_activity + 30)  # Cap at 100%
+        else:
+            activity_level = max(10, base_activity - 10)  # Minimum 10%
+
+        # Add some randomness to simulate real network variability
         activity_level += np.random.randint(-5, 15)
-        activity_level = max(5, min(100, activity_level))
+        activity_level = max(5, min(100, activity_level))  # Keep within bounds
 
         NETWORK_ACTIVITY_DATA['data'].append(activity_level)
 
+        # Maintain rolling window of last 10 data points for clean charts
         if len(NETWORK_ACTIVITY_DATA['labels']) > 10:
             NETWORK_ACTIVITY_DATA['labels'] = NETWORK_ACTIVITY_DATA['labels'][-10:]
             NETWORK_ACTIVITY_DATA['data'] = NETWORK_ACTIVITY_DATA['data'][-10:]
 
+        # Update network latency based on attack intensity
         SIMBLOCK_METRICS_DATA['network_latency'] = min(100, max(10, hash_power + np.random.randint(5, 25)))
 
+        # Successful attacks degrade node health (simulates node compromise)
         if attack_successful:
             SIMBLOCK_METRICS_DATA['node_health'] = max(10, SIMBLOCK_METRICS_DATA.get('node_health', 100) - 15)
         else:
             SIMBLOCK_METRICS_DATA['node_health'] = min(100, SIMBLOCK_METRICS_DATA.get('node_health', 50) + 10)
 
+        # Message delivery efficiency affected by network conditions
         SIMBLOCK_METRICS_DATA['message_delivery'] = 100 - (hash_power / 2) + np.random.randint(-10, 10)
         SIMBLOCK_METRICS_DATA['message_delivery'] = max(10, min(100, SIMBLOCK_METRICS_DATA['message_delivery']))
 
+        # Attack resistance changes based on attack outcomes
         if attack_successful:
             SIMBLOCK_METRICS_DATA['attack_resistance'] = max(10,
                                                              SIMBLOCK_METRICS_DATA.get('attack_resistance', 100) - 20)
@@ -123,7 +173,15 @@ def update_network_chart_data(attack_successful, hash_power, probability):
 
 
 def reset_chart_data():
-    """Reset all chart data to initial state."""
+    """
+    Reset all chart data to initial state.
+
+    This function clears all accumulated chart data and resets metrics to zero.
+    Useful for starting fresh simulations or clearing historical data.
+
+    Student Note: In a production system, we might want to preserve historical
+    data for analysis. This reset function is mainly for demonstration purposes.
+    """
     global NETWORK_ACTIVITY_DATA, SIMBLOCK_METRICS_DATA
     NETWORK_ACTIVITY_DATA = {'labels': [], 'data': []}
     SIMBLOCK_METRICS_DATA = {
@@ -140,17 +198,38 @@ def reset_chart_data():
 # ================================
 
 def get_balances_with_attackers() -> Tuple[Dict[str, float], Dict[str, Any]]:
+    """
+    Calculate comprehensive wallet balances including attack effects.
+
+    This function processes all blockchain transactions to compute current balances
+    and integrates attack simulation results to show how double spending attacks
+    affect wallet balances in real-time.
+
+    Student Note: This is a crucial function for demonstrating the financial
+    impact of double spending attacks. It shows how attackers can manipulate
+    balances through malicious transactions.
+
+    Returns:
+        Tuple[Dict[str, float], Dict[str, Any]]:
+            - balances: Dictionary mapping wallet addresses to their balances
+            - attack_victims: Detailed information about attack attempts and victims
+
+    Example:
+        >>> balances, attack_info = get_balances_with_attackers()
+        >>> print(balances['RedHawk'])
+        15.0  # Attacker's balance after successful attack
+    """
     balances = {}
     attack_victims = {}
 
-    # Process all blockchain transactions
+    # Process all blockchain transactions to compute base balances
     for block in blockchain_instance.chain:
         for tx in block.transactions:
             sender = tx.sender
             receiver = tx.receiver
             amount = tx.amount
 
-            # Initialize new wallets
+            # Initialize new wallets when first encountered
             if sender not in balances:
                 balances[sender] = 0
             if receiver not in balances:
@@ -162,6 +241,7 @@ def get_balances_with_attackers() -> Tuple[Dict[str, float], Dict[str, Any]]:
             balances[receiver] += amount
 
     # Integrate attack results into balances - ENHANCED SECTION
+    # This is where we simulate the financial impact of double spending attacks
     if 'last_attack' in RECENT_ATTACK_RESULTS:
         attack_data = RECENT_ATTACK_RESULTS['last_attack']
         attacker = attack_data.get('attacker', 'RedHawk')
@@ -169,13 +249,13 @@ def get_balances_with_attackers() -> Tuple[Dict[str, float], Dict[str, Any]]:
         attack_success = attack_data.get('result', {}).get('successful', False)
         transactions = attack_data.get('transactions', {})
 
-        # Ensure attacker wallet exists
+        # Ensure attacker wallet exists in balance calculations
         if attacker not in balances:
             balances[attacker] = 0
 
-        # Apply successful attack transfers
+        # Apply successful attack transfers - this simulates the double spend
         if attack_success:
-            # Add the malicious transaction amount to attacker
+            # Add the malicious transaction amount to attacker (double spend)
             if 'malicious' in transactions:
                 balances[attacker] += amount
 
@@ -184,6 +264,7 @@ def get_balances_with_attackers() -> Tuple[Dict[str, float], Dict[str, Any]]:
             if victim in balances:
                 balances[victim] -= amount
 
+            # Record successful attack details for reporting
             attack_victims[attacker] = {
                 'victim': victim,
                 'amount': amount,
@@ -201,7 +282,7 @@ def get_balances_with_attackers() -> Tuple[Dict[str, float], Dict[str, Any]]:
                 'transactions': transactions  # Include transaction details even for failed attacks
             }
 
-    # Remove system account from display
+    # Remove system account from display (mining rewards aren't user wallets)
     if "SYSTEM" in balances:
         del balances["SYSTEM"]
 
@@ -215,19 +296,40 @@ def get_balances_with_attackers() -> Tuple[Dict[str, float], Dict[str, Any]]:
 def generate_blockchain_csv_report() -> str:
     """
     Generate comprehensive blockchain data CSV report with enhanced formatting.
+
+    This function creates a detailed analysis report covering all aspects of
+    the blockchain: technical specifications, transaction history, wallet balances,
+    security analysis, and network performance.
+
+    Student Note: This report demonstrates how real blockchain analytics systems
+    generate comprehensive reports for security audits and performance monitoring.
+
+    Returns:
+        str: File path to the generated CSV report
+
+    Raises:
+        Exception: If report generation fails for any reason
+
+    Example:
+        >>> report_path = generate_blockchain_csv_report()
+        >>> print(f"Report saved to: {report_path}")
     """
     try:
+        # Setup report directory structure
         script_dir = os.path.dirname(__file__)
         reports_dir = os.path.join(script_dir, "reports")
         os.makedirs(reports_dir, exist_ok=True)
 
+        # Create timestamped filename for report organization
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         csv_path = os.path.join(reports_dir, f"blockchain_analysis_{timestamp}.csv")
 
+        # Gather comprehensive blockchain data
         chain_data = blockchain_instance.to_dict()
         balances, attack_victims = get_balances_with_attackers()
         network_info = get_network_info()
 
+        # Create and format the CSV report
         with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
 
@@ -278,7 +380,7 @@ def generate_blockchain_csv_report() -> str:
                 block_hash = block.get('hash', '')[:16] + '...' if block.get('hash') else 'N/A'
                 prev_hash = block.get('previous_hash', '')[:16] + '...' if block.get('previous_hash') else 'GENESIS'
 
-                # Determine block status
+                # Determine block status based on content analysis
                 if block_index == 0:
                     status = 'GENESIS BLOCK'
                 elif any('RedHawk' in str(tx.get('sender', '')) for tx in block.get('transactions', [])):
@@ -304,6 +406,7 @@ def generate_blockchain_csv_report() -> str:
                     receiver = tx.get('receiver', '')
                     amount = tx.get('amount', 0)
 
+                    # Classify transaction type for analysis
                     if sender == 'SYSTEM':
                         tx_type = 'MINING REWARD'
                         system_transactions += 1
@@ -334,7 +437,7 @@ def generate_blockchain_csv_report() -> str:
             writer.writerow(['WALLET PORTFOLIO ANALYSIS'])
             writer.writerow(['Wallet Address', 'Balance (coins)', 'Status', 'Transaction Count'])
 
-            # Calculate transaction counts per wallet
+            # Calculate transaction counts per wallet for activity analysis
             wallet_tx_counts = {}
             for block in chain_data.get("chain", []):
                 for tx in block.get("transactions", []):
@@ -345,7 +448,7 @@ def generate_blockchain_csv_report() -> str:
                         wallet_tx_counts[sender] = wallet_tx_counts.get(sender, 0) + 1
                     wallet_tx_counts[receiver] = wallet_tx_counts.get(receiver, 0) + 1
 
-            # Sort wallets by balance (highest first)
+            # Sort wallets by balance (highest first) for better readability
             sorted_wallets = sorted(balances.items(), key=lambda x: x[1], reverse=True)
 
             for wallet, balance in sorted_wallets:
@@ -369,7 +472,7 @@ def generate_blockchain_csv_report() -> str:
             successful_attacks = sum(1 for info in attack_victims.values() if info['success'])
             success_rate = (successful_attacks / total_attacks * 100) if total_attacks > 0 else 0
 
-            # Risk assessment
+            # Risk assessment based on attack success rate
             if success_rate == 0:
                 risk_level = 'LOW'
                 recommendation = 'Network security is strong'
@@ -427,6 +530,18 @@ def generate_blockchain_csv_report() -> str:
 def generate_attack_analysis_csv() -> str:
     """
     Generate detailed attack analysis CSV report with enhanced formatting.
+
+    This report focuses specifically on double spending attack simulations,
+    providing forensic analysis, security recommendations, and risk assessment.
+
+    Student Note: This type of report is crucial for security teams to understand
+    attack patterns and strengthen blockchain defenses.
+
+    Returns:
+        str: File path to the generated attack analysis CSV
+
+    Raises:
+        Exception: If report generation fails
     """
     try:
         script_dir = os.path.dirname(__file__)
@@ -573,13 +688,14 @@ def generate_attack_analysis_csv() -> str:
                 metrics_impact = [
                     ('Network Latency', SIMBLOCK_METRICS_DATA['network_latency'], 'Higher indicates congestion'),
                     ('Node Health', SIMBLOCK_METRICS_DATA['node_health'], 'Lower indicates node issues'),
-                    ('Message Delivery', SIMBLOCK_METRICS_DATA['message_delivery'], 'Lower indicates delivery problems'),
+                    ('Message Delivery', SIMBLOCK_METRICS_DATA['message_delivery'],
+                     'Lower indicates delivery problems'),
                     ('Attack Resistance', SIMBLOCK_METRICS_DATA['attack_resistance'], 'Lower indicates vulnerability')
                 ]
 
                 for metric, value, description in metrics_impact:
                     status = 'CONCERN' if (('Latency' in metric and value > 50) or
-                                          (value < 50 and 'Latency' not in metric)) else 'NORMAL'
+                                           (value < 50 and 'Latency' not in metric)) else 'NORMAL'
                     writer.writerow([metric, f"{value}%", 'Current', '', status])
 
                 writer.writerow([])
@@ -645,6 +761,15 @@ def generate_attack_analysis_csv() -> str:
 def generate_network_metrics_csv() -> str:
     """
     Generate network metrics and performance CSV report with enhanced formatting.
+
+    This report focuses on network health, performance metrics, and technical
+    specifications of the simulated blockchain network.
+
+    Student Note: Network monitoring is essential for maintaining blockchain
+    health and detecting unusual patterns that might indicate attacks.
+
+    Returns:
+        str: File path to the generated network metrics CSV
     """
     try:
         script_dir = os.path.dirname(__file__)
@@ -795,8 +920,14 @@ def generate_double_spend_analysis_csv() -> str:
     """
     Generate double spending transaction analysis CSV report.
 
+    This specialized report focuses specifically on double spending detection,
+    providing detailed analysis of transaction patterns and conflict detection.
+
+    Student Note: Double spending detection is a core blockchain security feature.
+    This report shows how we analyze transactions to identify malicious attempts.
+
     Returns:
-        str: File path to the generated CSV report
+        str: File path to the generated double spend analysis CSV
     """
     try:
         from blockchain.transaction import generate_double_spend_report
@@ -924,8 +1055,20 @@ def generate_all_csv_reports() -> Dict[str, str]:
     """
     Generate all CSV reports for comprehensive analysis.
 
+    This function coordinates the generation of all report types and returns
+    their file paths. It's the main entry point for report generation.
+
+    Student Note: Comprehensive reporting is essential for blockchain forensics
+    and security analysis. Each report serves a different purpose in understanding
+    blockchain health and security.
+
     Returns:
         Dict[str, str]: Dictionary mapping report types to file paths
+
+    Example:
+        >>> reports = generate_all_csv_reports()
+        >>> print(reports['blockchain'])
+        '/path/to/blockchain_analysis_20231201_143022.csv'
     """
     try:
         print("🚀 Generating comprehensive CSV reports...")
@@ -1245,7 +1388,7 @@ def api_run_attack():
         force_success = frontend_config.get('force_success', False)
         force_failure = frontend_config.get('force_failure', False)
 
-        # FIXED: Respect force success/failure settings
+        # Respect force success/failure settings
         if force_success:
             attack_successful = True
         elif force_failure:
@@ -1520,20 +1663,32 @@ def calculate_attack_probability():
 # ================================
 
 if __name__ == '__main__':
-    """Main entry point for the Flask application."""
+    """
+    Main entry point for the Flask application.
+
+    This block runs when the script is executed directly (not imported).
+    It initializes the blockchain, creates necessary directories, and starts
+    the Flask web server with comprehensive debugging information.
+
+    Student Note: This is where our entire blockchain system comes to life!
+    The server handles web requests, blockchain operations, and network simulations.
+    """
     port = 5000
     if len(sys.argv) > 1 and sys.argv[1] == '--port':
         port = int(sys.argv[2])
 
+    # Create genesis block if blockchain is empty
     if len(blockchain_instance.chain) == 0:
         blockchain_instance.create_genesis_block()
         print("✅ Genesis block created")
 
+    # Ensure necessary directories exist
     import pathlib
 
     pathlib.Path("reports").mkdir(exist_ok=True)
     pathlib.Path("blockchain/simblock_output").mkdir(parents=True, exist_ok=True)
 
+    # Startup banner with system information
     print("🚀 Starting Anomaly Detection System in Blockchain...")
     print("📊 Prototype: Double Spending Attack Simulation")
     print("🌐 Server running on: http://127.0.0.1:5000")
@@ -1541,4 +1696,5 @@ if __name__ == '__main__':
     print("🛠️ SimBlock Integration: ACTIVE")
     print("📈 CSV Reports: ENABLED")
 
+    # Start the Flask web server
     app.run(host='0.0.0.0', port=port, debug=True)

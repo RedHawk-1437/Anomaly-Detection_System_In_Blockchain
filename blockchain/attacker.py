@@ -1,3 +1,4 @@
+# Import required libraries for attack simulation
 import time
 import requests
 import random
@@ -8,19 +9,39 @@ from .simblock_integration import simblock_network
 
 
 def should_attack_succeed(frontend_config, stage="broadcast"):
+    """
+    Determines if attack should succeed based on probability and network conditions
+
+    This function calculates attack success probability considering:
+    - Frontend configuration (forced success/failure)
+    - Hash power of attacker
+    - Network conditions from SimBlock
+    - Stage of attack (mining, broadcast, etc.)
+
+    Args:
+        frontend_config (dict): User-defined attack parameters
+        stage (str): Current attack stage for probability adjustment
+
+    Returns:
+        bool: True if attack should succeed, False otherwise
+    """
+    # Handle case when no frontend config is provided
     if not frontend_config:
         base_prob = 0.5
         enhanced_prob = simblock_network.calculate_attack_success_probability(base_prob, 0.3)
         return random.random() < enhanced_prob
 
+    # Check for forced outcomes (for testing specific scenarios)
     if frontend_config.get('forceSuccess'):
         return True
     if frontend_config.get('forceFailure'):
         return False
 
+    # Calculate base probability from configuration
     base_probability = frontend_config.get('successProbability', 0.5)
     hash_power = frontend_config.get('attackerHashPower', 30) / 100.0
 
+    # Adjust probability based on attack stage
     if stage == "mining":
         mining_success_rate = simblock_network.calculate_attack_success_probability(
             base_probability, hash_power
@@ -28,6 +49,7 @@ def should_attack_succeed(frontend_config, stage="broadcast"):
         final_probability = mining_success_rate
 
     elif stage == "broadcast":
+        # Consider network latency for broadcast success
         network_conditions = simblock_network.get_current_network_conditions()
         latency_factor = min(network_conditions.get('average_latency', 100) / 250, 0.4)
 
@@ -41,6 +63,7 @@ def should_attack_succeed(frontend_config, stage="broadcast"):
             base_probability, hash_power
         )
 
+    # Ensure probability stays within reasonable bounds
     final_probability = max(0.05, min(0.95, final_probability))
     success = random.random() < final_probability
 
@@ -48,7 +71,24 @@ def should_attack_succeed(frontend_config, stage="broadcast"):
 
 
 def simulate_private_mining(node_url, attacker_addr, blocks_to_mine, amount, frontend_config=None):
+    """
+    Simulates private mining for double spending attack
+
+    Creates a private blockchain where attacker mines blocks containing
+    double spending transactions without broadcasting to main network.
+
+    Args:
+        node_url (str): URL of the main blockchain node
+        attacker_addr (str): Attacker's wallet address
+        blocks_to_mine (int): Number of blocks to mine privately
+        amount (float): Amount to double-spend
+        frontend_config (dict, optional): Attack configuration parameters
+
+    Returns:
+        tuple: (list of mined blocks, success status)
+    """
     try:
+        # Get current state of main blockchain
         chain_state = get_current_chain_state(node_url)
         difficulty = chain_state["difficulty"]
         current_index = chain_state["last_block_index"]
@@ -56,6 +96,7 @@ def simulate_private_mining(node_url, attacker_addr, blocks_to_mine, amount, fro
 
         print(f"Current chain state: index={current_index}, hash={current_hash[:10]}...")
 
+        # Check if mining should succeed based on probability
         mining_success = should_attack_succeed(frontend_config, "mining")
 
         if not mining_success:
@@ -64,18 +105,22 @@ def simulate_private_mining(node_url, attacker_addr, blocks_to_mine, amount, fro
             print(f"   Network conditions: {network_info.get('network_health', 'unknown')}")
             return [], False
 
+        # Create private blockchain for attack
         private_bc = Blockchain(difficulty=difficulty)
         private_bc.chain = []
 
+        # Create genesis block for private chain
         genesis = Block(index=0, transactions=[], previous_hash="0",
                         timestamp=int(time.time()), nonce=0)
         genesis = private_bc._mine_block_genesis(genesis)
         private_bc.chain.append(genesis)
 
         if current_index > 0:
+            # Continue from current main chain position
             new_index = current_index + 1
             print(f"Creating new block #{new_index} continuing from main chain block #{current_index}")
 
+            # Create double spending transaction
             attacker_control = f"{attacker_addr}_control"
             tx = Transaction(sender=attacker_addr, receiver=attacker_control, amount=amount)
 
@@ -87,6 +132,7 @@ def simulate_private_mining(node_url, attacker_addr, blocks_to_mine, amount, fro
                 nonce=0
             )
 
+            # Mine the private block
             mined_block = private_bc._proof_of_work(new_block)
             private_bc.chain.append(mined_block)
 
@@ -98,6 +144,7 @@ def simulate_private_mining(node_url, attacker_addr, blocks_to_mine, amount, fro
 
             return [mined_block.to_dict()], True
         else:
+            # Handle case when starting from genesis
             attacker_control = f"{attacker_addr}_control"
             tx = Transaction(sender=attacker_addr, receiver=attacker_control, amount=amount)
             private_bc.mempool.append(tx)
@@ -154,7 +201,7 @@ def create_private_network(attacker_addr, blocks_to_mine, amount, frontend_confi
     for node in private_nodes:
         print(f"   {node['id']} - {node['type']} - Mining Power: {node['mining_power'] * 100}%")
 
-    # Simulate private mining across the private network
+    # Calculate total hash power in private network
     hash_power = frontend_config.get('attackerHashPower', 25) if frontend_config else 25
     total_hash_power = hash_power + (len(private_nodes) * 15)  # Additional power from private nodes
 
@@ -195,12 +242,27 @@ def create_private_network(attacker_addr, blocks_to_mine, amount, frontend_confi
 
 
 def broadcast_private_chain(peers, mined_blocks, frontend_config=None):
+    """
+    Broadcasts privately mined blocks to network peers
+
+    Simulates the broadcast phase of double spending attack where
+    attacker tries to replace main chain with private chain.
+
+    Args:
+        peers (list): List of peer node URLs
+        mined_blocks (list): Privately mined blocks to broadcast
+        frontend_config (dict, optional): Attack configuration
+
+    Returns:
+        list: Results of broadcast attempts to each peer
+    """
     results = []
 
     if not mined_blocks:
         print("No blocks to broadcast")
         return results
 
+    # Simulate network propagation using SimBlock
     block_size = len(str(mined_blocks)) * 8
     propagation_simulation = simblock_network.simulate_message_propagation(block_size, peers)
 
@@ -209,6 +271,7 @@ def broadcast_private_chain(peers, mined_blocks, frontend_config=None):
     print(f"   Network health: {propagation_simulation['network_health']}")
     print(f"   Expected successful deliveries: {propagation_simulation['successful_deliveries']}")
 
+    # Check if broadcast should succeed
     broadcast_success = should_attack_succeed(frontend_config, "broadcast")
 
     if not broadcast_success:
@@ -225,11 +288,13 @@ def broadcast_private_chain(peers, mined_blocks, frontend_config=None):
 
     print(f"Broadcasting {len(mined_blocks)} blocks to {len(peers)} peers")
 
+    # Attempt to broadcast to each peer
     for peer in peers:
         for i, block in enumerate(mined_blocks):
             try:
                 print(f"   Broadcasting block {i + 1} to {peer}")
 
+                # Simulate network propagation time
                 time.sleep(propagation_simulation['propagation_time'] / len(peers))
 
                 r = requests.post(f"{peer}/blocks/receive", json=block, timeout=10)
@@ -266,6 +331,20 @@ def broadcast_private_chain(peers, mined_blocks, frontend_config=None):
 
 
 def run_double_spending_attack(attacker_name, private_blocks, amount, hash_power=25.0):
+    """
+    Executes complete double spending attack simulation
+
+    Coordinates the entire attack process from private mining to chain replacement.
+
+    Args:
+        attacker_name (str): Name identifier for attacker
+        private_blocks (int): Number of private blocks to mine
+        amount (float): Amount to double-spend
+        hash_power (float): Attacker's computational power percentage
+
+    Returns:
+        dict: Attack results and statistics
+    """
     print("=" * 50)
     print("STARTING DOUBLE SPENDING ATTACK SIMULATION")
     print("=" * 50)
@@ -276,6 +355,7 @@ def run_double_spending_attack(attacker_name, private_blocks, amount, hash_power
     print(f"   Amount: {amount} coins")
     print(f"   Hash Power: {hash_power}%")
 
+    # Calculate attack success probability
     attack_probability = simblock_network.calculate_attack_probability(70.0, hash_power, 100)
 
     mining_success = random.random() < (attack_probability / 100.0)
@@ -304,16 +384,32 @@ def run_double_spending_attack(attacker_name, private_blocks, amount, hash_power
 
 
 def calculate_enhanced_probability(base_prob, hash_power, latency):
+    """
+    Enhanced probability calculation with multiple factors
+
+    Considers hash power, network latency, and base probability
+    to provide more realistic attack success prediction.
+
+    Args:
+        base_prob (float): Base success probability
+        hash_power (float): Attacker's hash power percentage
+        latency (float): Network latency in milliseconds
+
+    Returns:
+        float: Enhanced success probability
+    """
     try:
         base_prob = float(base_prob)
         hash_power = float(hash_power)
         latency = float(latency)
 
+        # Calculate probability factors
         hash_factor = (hash_power / 100.0) ** 0.8
         latency_factor = max(0.5, 1.0 - (latency / 1000.0))
         base_factor = base_prob / 100.0
         gradle_boost = 1.05
 
+        # Combine factors for final probability
         final_probability = base_factor * hash_factor * latency_factor * gradle_boost * 100
         final_probability = max(5.0, min(95.0, final_probability))
 
@@ -325,6 +421,26 @@ def calculate_enhanced_probability(base_prob, hash_power, latency):
 
 
 def run_attack(node_url, peers, attacker_addr, blocks=1, amount=10.0, frontend_config=None):
+    """
+    Main attack coordination function
+
+    Orchestrates the complete double spending attack process including:
+    - Private mining
+    - Network broadcast
+    - Success probability calculation
+    - Force mode handling
+
+    Args:
+        node_url (str): Main blockchain node URL
+        peers (list): Network peer URLs
+        attacker_addr (str): Attacker's address
+        blocks (int): Blocks to mine
+        amount (float): Attack amount
+        frontend_config (dict): Attack configuration
+
+    Returns:
+        dict: Comprehensive attack results
+    """
     try:
         print("\n" + "=" * 50)
         print("STARTING ATTACK SIMULATION")
@@ -333,6 +449,7 @@ def run_attack(node_url, peers, attacker_addr, blocks=1, amount=10.0, frontend_c
         if frontend_config is None:
             frontend_config = {}
 
+        # Extract attack parameters
         hash_power = frontend_config.get('hash_power', 30)
         force_success = frontend_config.get('force_success', False)
         force_failure = frontend_config.get('force_failure', False)
@@ -345,6 +462,7 @@ def run_attack(node_url, peers, attacker_addr, blocks=1, amount=10.0, frontend_c
         print(f"   Force Success: {force_success}")
         print(f"   Force Failure: {force_failure}")
 
+        # Handle forced success mode (for testing)
         if force_success:
             print("FORCE SUCCESS MODE - Attack will succeed")
             return {
@@ -362,6 +480,7 @@ def run_attack(node_url, peers, attacker_addr, blocks=1, amount=10.0, frontend_c
                 "success_probability": 100.0
             }
 
+        # Handle forced failure mode (for testing)
         if force_failure:
             print("FORCE FAILURE MODE - Attack will fail")
             return {
@@ -377,6 +496,7 @@ def run_attack(node_url, peers, attacker_addr, blocks=1, amount=10.0, frontend_c
                 "success_probability": 0.0
             }
 
+        # Normal random mode with probability calculation
         print("RANDOM MODE - Using Improved Probability Formula")
         print("=" * 50)
 
@@ -435,6 +555,15 @@ def run_attack(node_url, peers, attacker_addr, blocks=1, amount=10.0, frontend_c
 
 
 def get_current_chain_state(node_url):
+    """
+    Fetches current blockchain state from node
+
+    Args:
+        node_url (str): Node URL to query
+
+    Returns:
+        dict: Blockchain state information
+    """
     try:
         r = requests.get(f"{node_url}/api/chain", timeout=10)
         r.raise_for_status()
@@ -455,6 +584,18 @@ def get_current_chain_state(node_url):
 
 
 def prepare_honest_tx(node_url, sender, receiver, amount):
+    """
+    Creates legitimate transaction before attack
+
+    Args:
+        node_url (str): Node URL
+        sender (str): Sender address
+        receiver (str): Receiver address
+        amount (float): Transaction amount
+
+    Returns:
+        dict: Transaction creation result
+    """
     try:
         r = requests.post(
             f"{node_url}/api/tx/new",
@@ -469,6 +610,19 @@ def prepare_honest_tx(node_url, sender, receiver, amount):
 
 
 def simulate_network_partition(peers, partition_ratio=0.5, frontend_config=None):
+    """
+    Simulates network partition attack
+
+    Isolates portion of network to increase attack success chances.
+
+    Args:
+        peers (list): Network peers
+        partition_ratio (float): Ratio of peers to isolate
+        frontend_config (dict): Attack configuration
+
+    Returns:
+        dict: Partition results
+    """
     print(f"Simulating network partition attack (ratio: {partition_ratio})")
 
     partition_success = should_attack_succeed(frontend_config, "partition")
@@ -482,6 +636,7 @@ def simulate_network_partition(peers, partition_ratio=0.5, frontend_config=None)
             "message": "Partition attack failed"
         }
 
+    # Randomly select peers to isolate
     num_isolated = max(1, int(len(peers) * partition_ratio))
     partitioned_peers = random.sample(peers, num_isolated)
     remaining_peers = [peer for peer in peers if peer not in partitioned_peers]
@@ -500,15 +655,28 @@ def simulate_network_partition(peers, partition_ratio=0.5, frontend_config=None)
 
 
 def analyze_attack_patterns(attack_logs):
+    """
+    Analyzes historical attack data for patterns
+
+    Provides insights and recommendations for future attacks.
+
+    Args:
+        attack_logs (list): Historical attack data
+
+    Returns:
+        dict: Analysis results and recommendations
+    """
     if not attack_logs:
         return {"message": "No attack logs to analyze"}
 
+    # Categorize attacks by success
     successful_attacks = [log for log in attack_logs if log.get('successful')]
     failed_attacks = [log for log in attack_logs if not log.get('successful')]
 
     total_attacks = len(attack_logs)
     success_rate = len(successful_attacks) / total_attacks if total_attacks > 0 else 0
 
+    # Calculate average metrics
     avg_hash_power = 0
     avg_success_prob = 0
     avg_network_latency = 0
@@ -525,6 +693,7 @@ def analyze_attack_patterns(attack_logs):
     avg_success_prob /= total_attacks
     avg_network_latency /= total_attacks
 
+    # Generate recommendations based on success rate
     recommendations = []
     if success_rate < 0.3:
         recommendations.append("Consider increasing hash power above 40%")

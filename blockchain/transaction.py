@@ -1,3 +1,4 @@
+# Import required libraries for transaction functionality
 import time
 import hashlib
 import json
@@ -6,7 +7,31 @@ from typing import Dict, Any
 
 
 class Transaction:
+    """
+    Transaction Class for Blockchain Transactions
+
+    Represents a single transaction in the blockchain with cryptographic
+    integrity verification through hash computation.
+
+    Attributes:
+        sender: Sender's wallet address
+        receiver: Receiver's wallet address
+        amount: Transaction amount
+        timestamp: Transaction creation time
+        id: Unique transaction identifier (hash)
+    """
+
     def __init__(self, sender: str, receiver: str, amount: float, timestamp: int = None, txid: str = None):
+        """
+        Initialize a new transaction
+
+        Args:
+            sender: Sender's wallet address
+            receiver: Receiver's wallet address
+            amount: Transaction amount
+            timestamp: Optional custom timestamp (defaults to current time)
+            txid: Optional custom transaction ID (defaults to computed hash)
+        """
         self.sender = sender
         self.receiver = receiver
         self.amount = float(amount)
@@ -14,17 +39,40 @@ class Transaction:
         self.id = txid if txid else self._compute_hash()
 
     def _compute_hash(self) -> str:
+        """
+        Compute SHA-256 hash of transaction data
+
+        Creates a unique identifier for the transaction based on its contents.
+        This ensures transaction integrity and prevents tampering.
+
+        Returns:
+            str: 64-character hexadecimal hash
+        """
+        # Create payload dictionary for hashing
         payload = {
             "sender": self.sender,
             "receiver": self.receiver,
             "amount": self.amount,
             "timestamp": self.timestamp
         }
+        # Convert to JSON string and compute hash
         tx_string = json.dumps(payload, sort_keys=True).encode()
         return hashlib.sha256(tx_string).hexdigest()
 
     @staticmethod
     def from_dict(tx_data: Dict[str, Any]) -> 'Transaction':
+        """
+        Create Transaction object from dictionary data
+
+        Used for deserializing transaction data received from network
+        or loaded from storage.
+
+        Args:
+            tx_data: Dictionary containing transaction data
+
+        Returns:
+            Transaction: Reconstructed Transaction object
+        """
         return Transaction(
             sender=tx_data['sender'],
             receiver=tx_data['receiver'],
@@ -34,6 +82,15 @@ class Transaction:
         )
 
     def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert transaction to dictionary for serialization
+
+        Prepares transaction data for network transmission or storage
+        by converting all attributes to serializable format.
+
+        Returns:
+            Dict: Transaction data as dictionary
+        """
         return {
             "id": self.id,
             "sender": self.sender,
@@ -43,6 +100,7 @@ class Transaction:
         }
 
     def __repr__(self):
+        """Human-readable string representation for debugging"""
         return f"Tx({self.sender[:6]}→{self.receiver[:6]} ${self.amount} id={self.id[:8]}...)"
 
 
@@ -51,9 +109,18 @@ class DoubleSpendTransaction:
     Special transaction class for double spending attack demonstration.
 
     Creates two transactions with same timestamp - one to victim and one to attacker's shadow wallet.
+    This demonstrates the core mechanism of double spending attacks in blockchain.
     """
 
     def __init__(self, attacker_addr: str, victim_addr: str, amount: float):
+        """
+        Initialize double spending transaction pair
+
+        Args:
+            attacker_addr: Attacker's wallet address
+            victim_addr: Victim's wallet address
+            amount: Amount to double spend
+        """
         self.attacker_addr = attacker_addr
         self.victim_addr = victim_addr
         self.amount = float(amount)
@@ -64,7 +131,7 @@ class DoubleSpendTransaction:
         self.malicious_tx = self._create_malicious_transaction()
 
     def _create_honest_transaction(self) -> Transaction:
-        """Create transaction to victim (honest transaction)."""
+        """Create transaction to victim (honest transaction)"""
         return Transaction(
             sender=self.attacker_addr,
             receiver=self.victim_addr,
@@ -74,7 +141,7 @@ class DoubleSpendTransaction:
         )
 
     def _create_malicious_transaction(self) -> Transaction:
-        """Create transaction to attacker's shadow wallet (malicious transaction)."""
+        """Create transaction to attacker's shadow wallet (malicious transaction)"""
         shadow_wallet = f"{self.attacker_addr}_shadow"
         return Transaction(
             sender=self.attacker_addr,
@@ -85,14 +152,14 @@ class DoubleSpendTransaction:
         )
 
     def get_both_transactions(self) -> Dict[str, Transaction]:
-        """Get both transactions for double spending attack."""
+        """Get both transactions for double spending attack"""
         return {
             "honest_to_victim": self.honest_tx,
             "malicious_to_shadow": self.malicious_tx
         }
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert both transactions to dictionary for analysis."""
+        """Convert both transactions to dictionary for analysis"""
         return {
             "double_spend_attack": {
                 "attacker": self.attacker_addr,
@@ -107,6 +174,7 @@ class DoubleSpendTransaction:
         }
 
     def __repr__(self):
+        """Human-readable representation of double spend transaction"""
         return (f"DoubleSpend(attacker={self.attacker_addr[:6]}, "
                 f"victim={self.victim_addr[:6]}, amount={self.amount}, "
                 f"timestamp={self.timestamp})")
@@ -115,6 +183,9 @@ class DoubleSpendTransaction:
 def create_double_spend_demonstration(attacker_addr: str, victim_addr: str, amount: float) -> Dict[str, Any]:
     """
     Create a complete double spending demonstration with both transactions.
+
+    This function demonstrates the double spending attack scenario by creating
+    two conflicting transactions and providing detailed analysis.
 
     Args:
         attacker_addr: Attacker's wallet address
@@ -132,7 +203,7 @@ def create_double_spend_demonstration(attacker_addr: str, victim_addr: str, amou
     double_spend = DoubleSpendTransaction(attacker_addr, victim_addr, amount)
     transactions = double_spend.get_both_transactions()
 
-    # Display transaction details
+    # Display transaction details for educational purposes
     print("📋 Transaction Details:")
     print(f"   Attacker: {attacker_addr}")
     print(f"   Victim: {victim_addr}")
@@ -164,7 +235,7 @@ def create_double_spend_demonstration(attacker_addr: str, victim_addr: str, amou
     print(f"   Different Receivers: {honest_tx.receiver != malicious_tx.receiver}")
     print()
 
-    # Create demonstration result
+    # Create comprehensive demonstration data structure
     demonstration_data = {
         "demonstration_type": "double_spending",
         "attack_scenario": "Attacker attempts to spend same coins twice",
@@ -209,6 +280,9 @@ def validate_double_spend_transactions(tx1: Transaction, tx2: Transaction) -> Di
     """
     Validate if two transactions constitute a double spending attempt.
 
+    This function analyzes two transactions to detect double spending patterns
+    by comparing sender, amount, timestamp, and receiver addresses.
+
     Args:
         tx1: First transaction
         tx2: Second transaction
@@ -235,12 +309,12 @@ def validate_double_spend_transactions(tx1: Transaction, tx2: Transaction) -> Di
                     analysis["is_double_spend"] = True
                     analysis["reasons"].append("Same sender spending same amount to different receivers at same time")
 
-    # Additional checks
+    # Additional checks for transaction identity
     if tx1.id == tx2.id:
         analysis["is_double_spend"] = True
         analysis["reasons"].append("Same transaction ID")
 
-    # Record differences
+    # Record differences for analysis
     analysis["differences"]["receivers"] = f"{tx1.receiver} vs {tx2.receiver}"
     analysis["differences"]["transaction_ids"] = f"{tx1.id[:8]}... vs {tx2.id[:8]}..."
 
@@ -251,6 +325,9 @@ def generate_double_spend_report(attacker_addr: str, victim_addr: str, amount: f
     """
     Generate a comprehensive double spending report for analysis.
 
+    Creates a complete report including demonstration, validation results,
+    risk assessment, and recommendations for double spending prevention.
+
     Args:
         attacker_addr: Attacker's wallet address
         victim_addr: Victim's wallet address
@@ -259,6 +336,7 @@ def generate_double_spend_report(attacker_addr: str, victim_addr: str, amount: f
     Returns:
         Comprehensive double spending report
     """
+    # Generate demonstration and validation data
     demonstration = create_double_spend_demonstration(attacker_addr, victim_addr, amount)
     double_spend = DoubleSpendTransaction(attacker_addr, victim_addr, amount)
     transactions = double_spend.get_both_transactions()
@@ -268,6 +346,7 @@ def generate_double_spend_report(attacker_addr: str, victim_addr: str, amount: f
         transactions["malicious_to_shadow"]
     )
 
+    # Create comprehensive report structure
     report = {
         "report_type": "double_spending_analysis",
         "generated_at": int(time.time()),
