@@ -1,775 +1,694 @@
-# test_suite.py
-# Complete Blockchain Test Suite for VIVA Demonstration
-# UPDATED VERSION - Compatible with Current Project Structure
-# This file contains comprehensive tests for all blockchain functionalities
-# including core operations, attack simulations, and system integrations.
-
 """
-Comprehensive Blockchain Test Suite for System Validation and Demonstration.
-
-This module provides a complete testing framework for the Blockchain Anomaly
-Detection System, featuring multiple demonstration modes suitable for VIVA
-presentations. It validates core blockchain operations, security mechanisms,
-network integrations, and visualization capabilities through automated testing.
-
-Key Features:
-- Comprehensive blockchain functionality testing
-- Double-spending attack simulation with configurable parameters
-- SimBlock network integration validation
-- Multiple demonstration modes for different presentation scenarios
-- Performance testing and analytics
-- Detailed reporting with visual status indicators
+test_suite.py - Comprehensive Test Suite for Blockchain Anomaly Detection System
+FIXED VERSION - Updated error handling test
 """
 
-import requests
-import time
+import unittest
 import json
-import random
-from datetime import datetime
+import time
+import tempfile
+import os
+import sys
+from unittest.mock import patch, MagicMock
+
+# Add the project directory to Python path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Import project modules
+from blockchain.blockchain import Blockchain
+from blockchain.block import Block
+from blockchain.transaction import Transaction, DoubleSpendTransaction
+from blockchain.attacker import (
+    run_attack,
+    simulate_private_mining,
+    create_private_network,
+    run_double_spending_attack
+)
+from blockchain.simblock_integration import SimBlockIntegration
 
 
-class BlockchainTestSuite:
-    """
-    Main test suite class for comprehensive blockchain system validation.
+class TestBlock(unittest.TestCase):
+    """Test Block class functionality"""
 
-    Provides structured testing methodologies for all system components
-    including transactions, mining, consensus, security, and integrations.
-    Supports multiple demonstration modes for different presentation needs.
-
-    Attributes:
-        base_url (str): Base URL of the blockchain server being tested
-        test_results (list): Collection of all test results with metadata
-        start_time (float): Timestamp when test suite execution began
-    """
-
-    def __init__(self, base_url="http://127.0.0.1:5000"):
-        """
-        Initialize test suite with target server configuration.
-
-        Args:
-            base_url (str): Base URL of the blockchain server to test against.
-                          Defaults to local development server.
-        """
-        self.base_url = base_url
-        self.test_results = []  # Store all test results
-        self.start_time = None  # Track test suite start time
-
-    def log_test(self, test_name, status, message=""):
-        """
-        Log test results with comprehensive metadata and visual indicators.
-
-        Records test outcomes with timestamps and displays results with
-        appropriate emoji indicators for quick visual assessment.
-
-        Args:
-            test_name (str): Descriptive name of the test being executed
-            status (str): Test outcome status ('PASS', 'FAIL', 'WARNING')
-            message (str): Additional contextual information about test result
-
-        Returns:
-            None: Results are stored internally and displayed to console
-        """
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        result = {
-            "test": test_name,
-            "status": status,
-            "message": message,
-            "timestamp": timestamp
+    def setUp(self):
+        """Set up test fixtures"""
+        self.transactions = [
+            Transaction("Alice", "Bob", 10.0),
+            Transaction("Bob", "Charlie", 5.0)
+        ]
+        self.block_data = {
+            "index": 1,
+            "transactions": self.transactions,
+            "previous_hash": "0" * 64,
+            "timestamp": int(time.time()),
+            "nonce": 12345
         }
-        self.test_results.append(result)
 
-        # Display test result with appropriate emoji
-        status_icon = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
-        print(f"{status_icon} [{timestamp}] {test_name}: {status} - {message}")
+    def test_block_creation(self):
+        """Test block creation with valid data"""
+        block = Block(**self.block_data)
 
-    def start_suite(self):
-        """
-        Initialize test suite execution with header display.
+        self.assertEqual(block.index, 1)
+        self.assertEqual(len(block.transactions), 2)
+        self.assertEqual(block.previous_hash, "0" * 64)
+        self.assertEqual(block.nonce, 12345)
+        self.assertIsNotNone(block.hash)
 
-        Sets start time and displays comprehensive header information
-        to mark the beginning of test execution.
-        """
-        self.start_time = time.time()
-        print("\n" + "=" * 70)
-        print("🚀 BLOCKCHAIN TEST SUITE - VIVA DEMONSTRATION")
-        print("=" * 70)
-        print("📋 Testing All Blockchain Functionalities...")
-        print("=" * 70)
+    def test_block_hash_computation(self):
+        """Test block hash computation"""
+        block = Block(**self.block_data)
+        computed_hash = block.compute_hash()
 
-    def end_suite(self):
-        """
-        Finalize test suite execution and generate comprehensive summary.
+        self.assertEqual(block.hash, computed_hash)
+        self.assertEqual(len(computed_hash), 64)  # SHA-256 hash length
 
-        Calculates execution duration, compiles statistics, and displays
-        detailed results breakdown with success rates.
+    def test_block_to_dict(self):
+        """Test block serialization to dictionary"""
+        block = Block(**self.block_data)
+        block_dict = block.to_dict()
 
-        Returns:
-            tuple: Three-element tuple containing (passed_count, failed_count, warning_count)
-        """
-        end_time = time.time()
-        duration = end_time - self.start_time
+        self.assertEqual(block_dict["index"], 1)
+        self.assertEqual(len(block_dict["transactions"]), 2)
+        self.assertEqual(block_dict["previous_hash"], "0" * 64)
+        self.assertEqual(block_dict["nonce"], 12345)
+        self.assertEqual(block_dict["hash"], block.hash)
 
-        print("\n" + "=" * 70)
-        print("📊 TEST SUITE SUMMARY")
-        print("=" * 70)
+    def test_block_from_dict(self):
+        """Test block deserialization from dictionary"""
+        block = Block(**self.block_data)
+        block_dict = block.to_dict()
 
-        # Count test results by status
-        passed = len([r for r in self.test_results if r["status"] == "PASS"])
-        failed = len([r for r in self.test_results if r["status"] == "FAIL"])
-        warning = len([r for r in self.test_results if r["status"] == "WARNING"])
+        reconstructed_block = Block.from_dict(block_dict)
 
-        print(f"✅ Passed: {passed} | ❌ Failed: {failed} | ⚠️ Warning: {warning}")
-        print(f"⏱️ Duration: {duration:.2f} seconds")
-        print("=" * 70)
+        self.assertEqual(block.index, reconstructed_block.index)
+        self.assertEqual(block.hash, reconstructed_block.hash)
+        self.assertEqual(block.previous_hash, reconstructed_block.previous_hash)
 
-        # Display detailed test results
-        for result in self.test_results:
-            icon = "✅" if result["status"] == "PASS" else "❌" if result["status"] == "FAIL" else "⚠️"
-            print(f"{icon} {result['test']}")
 
-        return passed, failed, warning
-
-    # ==================== CORE BLOCKCHAIN TESTS ====================
-
-    def test_blockchain_initialization(self):
-        """
-        Validate blockchain initialization and genesis block creation.
-
-        Verifies that the blockchain system is properly initialized with
-        a valid genesis block containing correct structural properties
-        and serves as the foundation for the blockchain.
-        """
-        try:
-            response = requests.get(f"{self.base_url}/api/chain")
-            if response.status_code == 200:
-                data = response.json()
-                if data.get("chain") and len(data["chain"]) > 0:
-                    genesis_block = data["chain"][0]
-                    # Validate genesis block structure
-                    if genesis_block["index"] == 0 and genesis_block["previous_hash"] == "0":
-                        self.log_test("Blockchain Initialization", "PASS",
-                                      f"Genesis block created with {len(data['chain'])} blocks")
-                    else:
-                        self.log_test("Blockchain Initialization", "FAIL", "Invalid genesis block")
-                else:
-                    self.log_test("Blockchain Initialization", "FAIL", "No chain data")
-            else:
-                self.log_test("Blockchain Initialization", "FAIL", f"HTTP {response.status_code}")
-        except Exception as e:
-            self.log_test("Blockchain Initialization", "FAIL", str(e))
+class TestTransaction(unittest.TestCase):
+    """Test Transaction class functionality"""
 
     def test_transaction_creation(self):
-        """
-        Test transaction creation, validation, and system acceptance.
+        """Test transaction creation with valid data"""
+        tx = Transaction("Alice", "Bob", 10.0)
 
-        Creates a sample transaction between test users and verifies
-        the transaction is properly processed and accepted by the
-        blockchain system with valid transaction ID generation.
-        """
-        try:
-            # Test transaction data
-            tx_data = {
-                "sender": "TestUser1",
-                "receiver": "TestUser2",
-                "amount": 10.5
-            }
+        self.assertEqual(tx.sender, "Alice")
+        self.assertEqual(tx.receiver, "Bob")
+        self.assertEqual(tx.amount, 10.0)
+        self.assertIsNotNone(tx.id)
+        self.assertIsNotNone(tx.timestamp)
 
-            response = requests.post(f"{self.base_url}/api/tx/new", json=tx_data)
-            if response.status_code == 200:
-                data = response.json()
-                if data.get("status") == "ok" and data.get("txid"):
-                    self.log_test("Transaction Creation", "PASS",
-                                  f"Transaction created with ID: {data['txid'][:8]}...")
-                else:
-                    self.log_test("Transaction Creation", "FAIL", "Invalid response")
-            else:
-                self.log_test("Transaction Creation", "FAIL", f"HTTP {response.status_code}")
-        except Exception as e:
-            self.log_test("Transaction Creation", "FAIL", str(e))
+    def test_transaction_hash_computation(self):
+        """Test transaction hash computation"""
+        tx1 = Transaction("Alice", "Bob", 10.0)
+        tx2 = Transaction("Alice", "Bob", 10.0)
 
-    def test_block_mining(self):
-        """
-        Test block mining functionality with transaction processing.
+        # Same data should produce same hash if timestamps are same
+        tx2.timestamp = tx1.timestamp
+        self.assertEqual(tx1.id, tx2.id)
 
-        Initiates mining operation to create new blocks containing
-        pending transactions and validates successful block creation
-        with proper indexing and transaction inclusion.
-        """
-        try:
-            mine_data = {
-                "miner": "TestMiner"
-            }
+    def test_transaction_to_dict(self):
+        """Test transaction serialization to dictionary"""
+        tx = Transaction("Alice", "Bob", 10.0)
+        tx_dict = tx.to_dict()
 
-            response = requests.post(f"{self.base_url}/api/mine", json=mine_data)
-            if response.status_code == 200:
-                data = response.json()
-                if data.get("status") == "ok" and data.get("block"):
-                    block = data["block"]
-                    self.log_test("Block Mining", "PASS",
-                                  f"Block #{block['index']} mined with {len(block['transactions'])} transactions")
-                else:
-                    self.log_test("Block Mining", "FAIL", "Invalid response")
-            else:
-                self.log_test("Block Mining", "FAIL", f"HTTP {response.status_code}")
-        except Exception as e:
-            self.log_test("Block Mining", "FAIL", str(e))
+        self.assertEqual(tx_dict["sender"], "Alice")
+        self.assertEqual(tx_dict["receiver"], "Bob")
+        self.assertEqual(tx_dict["amount"], 10.0)
+        self.assertEqual(tx_dict["id"], tx.id)
 
-    def test_balance_calculation(self):
-        """
-        Test wallet balance calculation accuracy and consistency.
+    def test_transaction_from_dict(self):
+        """Test transaction deserialization from dictionary"""
+        tx = Transaction("Alice", "Bob", 10.0)
+        tx_dict = tx.to_dict()
 
-        Validates that the system correctly calculates and maintains
-        wallet balances across all users, ensuring financial integrity
-        and proper transaction accounting.
-        """
-        try:
-            response = requests.get(f"{self.base_url}/api/balances")
-            if response.status_code == 200:
-                balances = response.json()
-                total_balance = sum(balances.values())
-                self.log_test("Balance Calculation", "PASS",
-                              f"Calculated balances for {len(balances)} users, Total: {total_balance:.2f}")
-            else:
-                self.log_test("Balance Calculation", "FAIL", f"HTTP {response.status_code}")
-        except Exception as e:
-            self.log_test("Balance Calculation", "FAIL", str(e))
+        reconstructed_tx = Transaction.from_dict(tx_dict)
+
+        self.assertEqual(tx.sender, reconstructed_tx.sender)
+        self.assertEqual(tx.receiver, reconstructed_tx.receiver)
+        self.assertEqual(tx.amount, reconstructed_tx.amount)
+        self.assertEqual(tx.id, reconstructed_tx.id)
+
+
+class TestDoubleSpendTransaction(unittest.TestCase):
+    """Test DoubleSpendTransaction class functionality"""
+
+    def test_double_spend_creation(self):
+        """Test double spend transaction creation"""
+        double_spend = DoubleSpendTransaction("Attacker", "Victim", 15.0)
+
+        self.assertEqual(double_spend.attacker_addr, "Attacker")
+        self.assertEqual(double_spend.victim_addr, "Victim")
+        self.assertEqual(double_spend.amount, 15.0)
+        self.assertIsNotNone(double_spend.timestamp)
+
+    def test_double_spend_transactions(self):
+        """Test both transactions in double spend"""
+        double_spend = DoubleSpendTransaction("Attacker", "Victim", 15.0)
+        transactions = double_spend.get_both_transactions()
+
+        self.assertIn("honest_to_victim", transactions)
+        self.assertIn("malicious_to_shadow", transactions)
+
+        honest_tx = transactions["honest_to_victim"]
+        malicious_tx = transactions["malicious_to_shadow"]
+
+        self.assertEqual(honest_tx.sender, "Attacker")
+        self.assertEqual(honest_tx.receiver, "Victim")
+        self.assertEqual(malicious_tx.sender, "Attacker")
+        self.assertEqual(malicious_tx.receiver, "Attacker_shadow")
+        self.assertEqual(honest_tx.amount, 15.0)
+        self.assertEqual(malicious_tx.amount, 15.0)
+        self.assertEqual(honest_tx.timestamp, malicious_tx.timestamp)
+
+
+class TestBlockchain(unittest.TestCase):
+    """Test Blockchain class functionality"""
+
+    def setUp(self):
+        """Set up test fixtures"""
+        self.blockchain = Blockchain(difficulty=2, reward=1.0)
+
+    def test_blockchain_initialization(self):
+        """Test blockchain initialization"""
+        self.assertEqual(len(self.blockchain.chain), 1)  # Genesis block
+        self.assertEqual(len(self.blockchain.mempool), 0)
+        self.assertEqual(self.blockchain.difficulty, 2)
+        self.assertEqual(self.blockchain.miner_reward, 1.0)
+
+    def test_genesis_block(self):
+        """Test genesis block creation"""
+        genesis_block = self.blockchain.chain[0]
+
+        self.assertEqual(genesis_block.index, 0)
+        self.assertEqual(len(genesis_block.transactions), 0)
+        self.assertEqual(genesis_block.previous_hash, "0")
+        self.assertTrue(genesis_block.hash.startswith('0' * 2))  # Proof of work
+
+    def test_new_transaction(self):
+        """Test adding new transaction"""
+        tx_id = self.blockchain.new_transaction("Alice", "Bob", 10.0)
+
+        self.assertIsNotNone(tx_id)
+        self.assertEqual(len(self.blockchain.mempool), 1)
+        self.assertEqual(self.blockchain.mempool[0].sender, "Alice")
+        self.assertEqual(self.blockchain.mempool[0].receiver, "Bob")
+        self.assertEqual(self.blockchain.mempool[0].amount, 10.0)
+
+    def test_mine_pending_transactions(self):
+        """Test mining pending transactions"""
+        # Add some transactions
+        self.blockchain.new_transaction("Alice", "Bob", 10.0)
+        self.blockchain.new_transaction("Bob", "Charlie", 5.0)
+
+        # Mine block
+        block = self.blockchain.mine_pending_transactions("Miner1")
+
+        self.assertEqual(block.index, 1)
+        self.assertEqual(len(block.transactions), 3)  # 2 transactions + reward
+        self.assertTrue(block.hash.startswith('0' * 2))  # Proof of work
+        self.assertEqual(len(self.blockchain.mempool), 0)  # Mempool cleared
 
     def test_chain_validation(self):
-        """
-        Test blockchain validation and structural integrity checks.
+        """Test blockchain validation"""
+        # Add some blocks
+        self.blockchain.new_transaction("Alice", "Bob", 10.0)
+        self.blockchain.mine_pending_transactions("Miner1")
 
-        Performs comprehensive validation of the entire blockchain
-        structure, verifying proper block linking through hash references
-        and ensuring chain integrity is maintained.
-        """
-        try:
-            response = requests.get(f"{self.base_url}/api/chain")
-            if response.status_code == 200:
-                data = response.json()
-                chain_length = len(data["chain"])
+        self.assertTrue(self.blockchain.is_chain_valid())
 
-                # Basic validation checks - verify block linking
-                is_valid = True
-                for i in range(1, chain_length):
-                    current_block = data["chain"][i]
-                    previous_block = data["chain"][i - 1]
+    def test_add_new_block(self):
+        """Test adding new block to chain"""
+        # Create a valid block
+        transactions = [Transaction("Alice", "Bob", 10.0)]
+        new_block = Block(
+            index=1,
+            transactions=transactions,
+            previous_hash=self.blockchain.last_block().hash,
+            timestamp=int(time.time()),
+            nonce=0
+        )
 
-                    if current_block["previous_hash"] != previous_block["hash"]:
-                        is_valid = False
-                        break
+        # Mine the block
+        mined_block = self.blockchain._proof_of_work(new_block)
 
-                if is_valid:
-                    self.log_test("Chain Validation", "PASS", f"Chain with {chain_length} blocks is valid")
-                else:
-                    self.log_test("Chain Validation", "FAIL", "Chain integrity broken")
-            else:
-                self.log_test("Chain Validation", "FAIL", f"HTTP {response.status_code}")
-        except Exception as e:
-            self.log_test("Chain Validation", "FAIL", str(e))
+        # Add to chain
+        success = self.blockchain.add_new_block(mined_block)
 
-    # ==================== P2P NETWORK TESTS ====================
+        self.assertTrue(success)
+        self.assertEqual(len(self.blockchain.chain), 2)
 
-    def test_peer_management(self):
-        """
-        Test peer network management and node connectivity.
-
-        Validates peer addition functionality and network management
-        capabilities, ensuring proper handling of node connections
-        in the distributed network environment.
-        """
-        try:
-            peer_data = {
-                "address": "http://127.0.0.1:5001"  # Test peer address
-            }
-
-            response = requests.post(f"{self.base_url}/peers", json=peer_data)
-            if response.status_code == 200:
-                data = response.json()
-                if "message" in data and "successfully" in data["message"].lower():
-                    self.log_test("Peer Management", "PASS",
-                                  f"Peer added successfully. Total peers: {len(data.get('peers', []))}")
-                else:
-                    self.log_test("Peer Management", "WARNING", "Peer added but different response")
-            else:
-                self.log_test("Peer Management", "WARNING", "Peer addition failed (expected for demo)")
-        except Exception as e:
-            self.log_test("Peer Management", "WARNING", f"Peer test skipped: {str(e)}")
-
-    def test_consensus_mechanism(self):
-        """
-        Test blockchain consensus algorithm and conflict resolution.
-
-        Validates the consensus mechanism's ability to resolve chain
-        conflicts and maintain network agreement across distributed
-        nodes in the blockchain network.
-        """
-        try:
-            response = requests.get(f"{self.base_url}/consensus")
-            if response.status_code == 200:
-                data = response.json()
-                self.log_test("Consensus Mechanism", "PASS",
-                              f"Consensus check completed: {data.get('message', 'Unknown')}")
-            else:
-                self.log_test("Consensus Mechanism", "FAIL", f"HTTP {response.status_code}")
-        except Exception as e:
-            self.log_test("Consensus Mechanism", "FAIL", str(e))
-
-    # ==================== ATTACK SIMULATION TESTS ====================
-
-    def test_double_spending_attack(self, probability=50, hash_power=50, force_success=False, force_failure=False):
-        """
-        Execute double-spending attack simulation with configurable parameters.
-
-        Tests the system's ability to simulate and detect double-spending
-        attacks under various conditions, validating both attack mechanics
-        and detection capabilities.
-
-        Args:
-            probability (int): Base success probability percentage (1-100)
-            hash_power (int): Attacker's computational power percentage (1-100)
-            force_success (bool): Override to guarantee attack success for testing
-            force_failure (bool): Override to guarantee attack failure for testing
-        """
-        try:
-            # UPDATED: Use current project's attack configuration structure
-            attack_config = {
-                "attacker": "TestAttacker",
-                "blocks": 1,
-                "amount": 5.0,
-                "hash_power": hash_power,  # Direct parameter
-                "frontend_config": {
-                    "successProbability": probability / 100.0,
-                    "attackerHashPower": hash_power,
-                    "forceSuccess": force_success,
-                    "forceFailure": force_failure
-                }
-            }
-
-            response = requests.post(f"{self.base_url}/api/attack/run", json=attack_config)
-            if response.status_code == 200:
-                data = response.json()
-
-                # UPDATED: Handle different response formats
-                attack_successful = data.get("successful") or data.get("success", False)
-                success_rate = data.get("success_rate", 0) * 100
-                message = data.get("message", "")
-
-                # Validate forced outcomes
-                if force_success and attack_successful:
-                    status = "PASS"
-                    outcome_msg = "Force Success: Attack succeeded as expected"
-                elif force_failure and not attack_successful:
-                    status = "PASS"
-                    outcome_msg = "Force Failure: Attack failed as expected"
-                elif not force_success and not force_failure:
-                    status = "PASS"  # Random mode - any outcome is valid
-                    outcome_msg = f"Random: Success={attack_successful}, Rate={success_rate:.1f}%"
-                else:
-                    status = "FAIL"
-                    outcome_msg = f"Expected {'success' if force_success else 'failure'} but got {attack_successful}"
-
-                self.log_test("Double Spending Attack", status, outcome_msg)
-
-            else:
-                self.log_test("Double Spending Attack", "FAIL", f"HTTP {response.status_code}")
-        except Exception as e:
-            self.log_test("Double Spending Attack", "FAIL", str(e))
-
-    def test_attack_scenarios(self):
-        """
-        Execute multiple attack scenarios with varying configurations.
-
-        Runs a comprehensive series of double-spending attack simulations
-        with different probability and hash power settings to demonstrate
-        the range of attack scenarios and their outcomes.
-        """
-        print("\n🔓 TESTING ATTACK SCENARIOS")
-        print("-" * 40)
-
-        # Test 1: Force Success - should always succeed
-        self.test_double_spending_attack(probability=10, hash_power=10, force_success=True)
-
-        # Test 2: Force Failure - should always fail
-        self.test_double_spending_attack(probability=90, hash_power=90, force_failure=True)
-
-        # Test 3: Low Probability - unlikely to succeed
-        self.test_double_spending_attack(probability=20, hash_power=30)
-
-        # Test 4: High Probability - more likely to succeed
-        self.test_double_spending_attack(probability=80, hash_power=70)
-
-        # Test 5: Balanced - moderate chance of success
-        self.test_double_spending_attack(probability=50, hash_power=50)
-
-    # ==================== SIMBLOCK INTEGRATION TESTS ====================
-
-    def test_simblock_network_status(self):
-        """
-        Test SimBlock network status monitoring and conditions.
-
-        Validates integration with SimBlock network simulation by checking
-        network status, latency metrics, and overall network health
-        indicators provided by the simulation environment.
-        """
-        try:
-            response = requests.get(f"{self.base_url}/api/simblock/network")
-            if response.status_code == 200:
-                data = response.json()
-                network_status = data.get('status', 'unknown')
-                latency = data.get('latency', 'unknown')
-                self.log_test("SimBlock Network Status", "PASS",
-                              f"Network: {network_status}, Latency: {latency}")
-            else:
-                self.log_test("SimBlock Network Status", "WARNING", "Network status unavailable")
-        except Exception as e:
-            self.log_test("SimBlock Network Status", "WARNING", f"SimBlock not available: {str(e)}")
-
-    def test_simblock_simulation_start(self):
-        """
-        Test SimBlock simulation initialization and startup.
-
-        Validates the ability to start SimBlock network simulations
-        and ensures proper initialization of the simulation environment
-        for subsequent network analysis and testing.
-        """
-        try:
-            response = requests.post(f"{self.base_url}/api/simblock/start")
-            if response.status_code == 200:
-                data = response.json()
-                if data.get('success'):
-                    self.log_test("SimBlock Simulation Start", "PASS", "Simulation started successfully")
-                else:
-                    self.log_test("SimBlock Simulation Start", "WARNING", "Simulation in simulated mode")
-            else:
-                self.log_test("SimBlock Simulation Start", "WARNING", "Simulation start failed")
-        except Exception as e:
-            self.log_test("SimBlock Simulation Start", "WARNING", f"SimBlock start test skipped: {str(e)}")
-
-    # ==================== CHART & ANALYTICS TESTS ====================
-
-    def test_chart_data_endpoints(self):
-        """
-        Test chart data API endpoints for visualization capabilities.
-
-        Validates all chart data generation endpoints to ensure proper
-        data structure and formatting for frontend visualization
-        components and analytics dashboards.
-        """
-        chart_endpoints = [
-            "/api/charts/blockchain-growth",
-            "/api/charts/balance-distribution",
-            "/api/charts/mining-analysis",
-            "/api/charts/network-activity"
+    def test_double_spend_detection(self):
+        """Test double spending detection"""
+        # Create a block with double spend attempt
+        transactions = [
+            Transaction("Alice", "Bob", 10.0),
+            Transaction("Alice", "Charlie", 10.0)  # Same sender, same amount
         ]
 
-        for endpoint in chart_endpoints:
-            try:
-                response = requests.get(f"{self.base_url}{endpoint}")
-                if response.status_code == 200:
-                    self.log_test(f"Chart API: {endpoint.split('/')[-1]}", "PASS", "Data retrieved successfully")
-                else:
-                    self.log_test(f"Chart API: {endpoint.split('/')[-1]}", "WARNING", f"HTTP {response.status_code}")
-            except Exception as e:
-                self.log_test(f"Chart API: {endpoint.split('/')[-1]}", "WARNING", str(e))
+        new_block = Block(
+            index=1,
+            transactions=transactions,
+            previous_hash=self.blockchain.last_block().hash,
+            timestamp=int(time.time()),
+            nonce=0
+        )
 
-    def test_pdf_report_generation(self):
-        """
-        Test PDF report generation and document creation.
+        mined_block = self.blockchain._proof_of_work(new_block)
 
-        Validates the system's ability to generate comprehensive PDF
-        reports containing blockchain analytics, attack simulations,
-        and system status information in printable format.
-        """
-        try:
-            response = requests.get(f"{self.base_url}/api/report/pdf")
-            if response.status_code == 200:
-                # Check if response is PDF
-                content_type = response.headers.get('content-type', '')
-                if 'pdf' in content_type.lower() or 'application' in content_type.lower():
-                    self.log_test("PDF Report Generation", "PASS", "PDF report generated successfully")
-                else:
-                    self.log_test("PDF Report Generation", "WARNING", "Unexpected content type")
-            else:
-                self.log_test("PDF Report Generation", "WARNING", f"HTTP {response.status_code}")
-        except Exception as e:
-            self.log_test("PDF Report Generation", "WARNING", str(e))
+        # Should detect double spend
+        has_double_spend = self.blockchain._has_double_spend(transactions)
+        self.assertTrue(has_double_spend)
 
-    # ==================== COMPREHENSIVE TEST SUITE ====================
 
-    def run_comprehensive_test(self):
-        """
-        Execute complete test suite covering all system components.
+class TestAttackSimulation(unittest.TestCase):
+    """Test attack simulation functionality"""
 
-        Runs all available tests in logical groupings to provide
-        comprehensive system validation across all functional areas
-        including core operations, security, networking, and analytics.
+    def setUp(self):
+        """Set up test fixtures"""
+        self.node_url = "http://127.0.0.1:5000"
+        self.attacker_addr = "TestAttacker"
+        self.frontend_config = {
+            "hash_power": 30,
+            "success_probability": 50.0,
+            "force_success": False,
+            "force_failure": False
+        }
 
-        Returns:
-            tuple: Three-element tuple containing (passed_count, failed_count, warning_count)
-        """
-        self.start_suite()
+    @patch('blockchain.attacker.requests')
+    def test_run_attack_success(self, mock_requests):
+        """Test successful attack simulation"""
+        # Mock the chain state response
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "chain": [{"index": 0, "hash": "0" * 64}],
+            "difficulty": 3
+        }
+        mock_requests.get.return_value = mock_response
 
-        print("\n🔗 CORE BLOCKCHAIN FUNCTIONALITY")
-        print("-" * 40)
-        self.test_blockchain_initialization()
-        self.test_transaction_creation()
-        self.test_block_mining()
-        self.test_balance_calculation()
-        self.test_chain_validation()
+        # Test with force success
+        config = self.frontend_config.copy()
+        config["force_success"] = True
 
-        print("\n🌐 P2P NETWORK FUNCTIONALITY")
-        print("-" * 40)
-        self.test_peer_management()
-        self.test_consensus_mechanism()
+        result = run_attack(
+            node_url=self.node_url,
+            peers=[],
+            attacker_addr=self.attacker_addr,
+            blocks=1,
+            amount=10.0,
+            frontend_config=config
+        )
 
-        print("\n🛡️ SECURITY & ATTACK SIMULATION")
-        print("-" * 40)
-        self.test_attack_scenarios()
+        self.assertTrue(result["successful"])
+        self.assertTrue(result["success"])
+        self.assertEqual(result["success_rate"], 1.0)
 
-        print("\n📊 ANALYTICS & VISUALIZATION")
-        print("-" * 40)
-        self.test_chart_data_endpoints()
-        self.test_pdf_report_generation()
+    @patch('blockchain.attacker.requests')
+    def test_run_attack_failure(self, mock_requests):
+        """Test failed attack simulation"""
+        # Mock the chain state response
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "chain": [{"index": 0, "hash": "0" * 64}],
+            "difficulty": 3
+        }
+        mock_requests.get.return_value = mock_response
 
-        print("\n🔬 SIMBLOCK INTEGRATION")
-        print("-" * 40)
-        self.test_simblock_network_status()
-        self.test_simblock_simulation_start()
+        # Test with force failure
+        config = self.frontend_config.copy()
+        config["force_failure"] = True
 
-        return self.end_suite()
+        result = run_attack(
+            node_url=self.node_url,
+            peers=[],
+            attacker_addr=self.attacker_addr,
+            blocks=1,
+            amount=10.0,
+            frontend_config=config
+        )
 
-    # ==================== PERFORMANCE TESTING ====================
+        self.assertFalse(result["successful"])
+        self.assertFalse(result["success"])
+        self.assertEqual(result["success_rate"], 0.0)
 
-    def performance_test(self, num_transactions=5):
-        """
-        Execute performance testing with transaction throughput measurement.
+    def test_create_private_network(self):
+        """Test private network creation"""
+        network_data = create_private_network(
+            attacker_addr=self.attacker_addr,
+            blocks_to_mine=2,
+            amount=15.0,
+            frontend_config=self.frontend_config
+        )
 
-        Tests system performance under load by creating multiple transactions
-        and measuring processing times, throughput rates, and system
-        responsiveness under simulated usage conditions.
+        self.assertIn("private_network", network_data)
+        self.assertIn("mined_blocks", network_data)
+        self.assertIn("network_size", network_data)
+        self.assertGreaterEqual(network_data["network_size"], 6)
+        self.assertIn("total_hash_power", network_data)
 
-        Args:
-            num_transactions (int): Number of transactions to create for performance measurement
-        """
-        print(f"\n⚡ PERFORMANCE TEST: {num_transactions} Transactions")
-        print("-" * 50)
+    def test_run_double_spending_attack(self):
+        """Test double spending attack execution"""
+        result = run_double_spending_attack(
+            attacker_name="TestAttacker",
+            private_blocks=2,
+            amount=20.0,
+            hash_power=25.0
+        )
 
+        self.assertIn("success", result)
+        self.assertIn("successful", result)
+        self.assertIn("probability", result)
+        self.assertIn("blocks_mined", result)
+        self.assertIn("message", result)
+
+
+class TestSimBlockIntegration(unittest.TestCase):
+    """Test SimBlock integration functionality"""
+
+    def setUp(self):
+        """Set up test fixtures"""
+        self.simblock = SimBlockIntegration()
+
+    def test_simblock_initialization(self):
+        """Test SimBlock integration initialization"""
+        self.assertIsNotNone(self.simblock.base_path)
+        self.assertIsInstance(self.simblock.network_status, dict)
+        self.assertIn("status", self.simblock.network_status)
+        self.assertIn("nodes", self.simblock.network_status)
+
+    def test_calculate_attack_probability(self):
+        """Test attack probability calculation"""
+        probability = self.simblock.calculate_attack_probability(
+            base_probability=70.0,
+            hash_power=25.0,
+            network_latency=100
+        )
+
+        self.assertIsInstance(probability, float)
+        self.assertGreaterEqual(probability, 5.0)
+        self.assertLessEqual(probability, 95.0)
+
+    def test_get_network_conditions(self):
+        """Test network conditions retrieval"""
+        conditions = self.simblock.get_current_network_conditions()
+
+        self.assertIsInstance(conditions, dict)
+        self.assertIn("average_latency", conditions)
+        self.assertIn("node_count", conditions)
+        self.assertIn("network_health", conditions)
+
+    def test_simulate_message_propagation(self):
+        """Test message propagation simulation"""
+        propagation_data = self.simblock.simulate_message_propagation(
+            message_size=1000,
+            peers=["peer1", "peer2", "peer3"]
+        )
+
+        self.assertIsInstance(propagation_data, dict)
+        self.assertIn("average_latency", propagation_data)
+        self.assertIn("network_health", propagation_data)
+        self.assertIn("successful_deliveries", propagation_data)
+        self.assertIn("propagation_time", propagation_data)
+
+
+class TestCSVReportGeneration(unittest.TestCase):
+    """Test CSV report generation functionality"""
+
+    def setUp(self):
+        """Set up test fixtures"""
+        self.blockchain = Blockchain(difficulty=2, reward=1.0)
+
+        # Add some test data
+        self.blockchain.new_transaction("Alice", "Bob", 10.0)
+        self.blockchain.new_transaction("Bob", "Charlie", 5.0)
+        self.blockchain.mine_pending_transactions("Miner1")
+
+    def test_blockchain_data_export(self):
+        """Test blockchain data export functionality"""
+        chain_data = self.blockchain.to_dict()
+
+        self.assertIsInstance(chain_data, dict)
+        self.assertIn("chain", chain_data)
+        self.assertIn("mempool", chain_data)
+        self.assertIn("difficulty", chain_data)
+        self.assertIn("peers", chain_data)
+
+    def test_balance_calculation(self):
+        """Test balance calculation"""
+        balances = self.blockchain.get_balances()
+
+        self.assertIsInstance(balances, dict)
+        # SYSTEM account should be removed from balances
+        self.assertNotIn("SYSTEM", balances)
+
+
+class TestIntegration(unittest.TestCase):
+    """Integration tests for the complete system"""
+
+    def test_end_to_end_blockchain_operations(self):
+        """Test complete blockchain operations flow"""
+        # Initialize blockchain
+        blockchain = Blockchain(difficulty=2, reward=1.0)
+
+        # Create transactions
+        tx1_id = blockchain.new_transaction("Alice", "Bob", 10.0)
+        tx2_id = blockchain.new_transaction("Bob", "Charlie", 5.0)
+
+        self.assertEqual(len(blockchain.mempool), 2)
+
+        # Mine block
+        block = blockchain.mine_pending_transactions("Miner1")
+
+        self.assertEqual(block.index, 1)
+        self.assertEqual(len(block.transactions), 3)  # 2 transactions + reward
+        self.assertEqual(len(blockchain.mempool), 0)
+
+        # Verify chain validity
+        self.assertTrue(blockchain.is_chain_valid())
+
+        # Check balances
+        balances = blockchain.get_balances()
+        self.assertIn("Bob", balances)
+        self.assertIn("Charlie", balances)
+
+    @patch('blockchain.attacker.requests')
+    def test_attack_simulation_integration(self, mock_requests):
+        """Test integrated attack simulation"""
+        # Mock network responses
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "chain": [{"index": 0, "hash": "0" * 64}],
+            "difficulty": 3
+        }
+        mock_requests.get.return_value = mock_response
+        mock_requests.post.return_value = mock_response
+
+        # Run attack simulation
+        result = run_attack(
+            node_url="http://127.0.0.1:5000",
+            peers=[],
+            attacker_addr="IntegrationTestAttacker",
+            blocks=1,
+            amount=15.0,
+            frontend_config={"force_success": True}
+        )
+
+        self.assertTrue(result["successful"])
+        self.assertIn("steps", result)
+        self.assertIn("success_probability", result)
+
+
+class TestErrorHandling(unittest.TestCase):
+    """Test error handling in various components"""
+
+    def test_invalid_transaction(self):
+        """Test handling of invalid transactions"""
+        blockchain = Blockchain()
+
+        # Test invalid amount
+        with self.assertRaises(ValueError):
+            blockchain.new_transaction("Alice", "Bob", -10.0)
+
+    def test_invalid_block_addition(self):
+        """Test handling of invalid block addition"""
+        blockchain = Blockchain()
+
+        # Create invalid block (wrong previous hash)
+        invalid_block = Block(
+            index=1,
+            transactions=[],
+            previous_hash="invalid_hash",
+            timestamp=int(time.time()),
+            nonce=0
+        )
+
+        success = blockchain.add_new_block(invalid_block)
+        self.assertFalse(success)
+
+    @patch('blockchain.attacker.requests')
+    def test_network_failure_handling(self, mock_requests):
+        """Test handling of network failures - FIXED VERSION"""
+        # Mock network failure for get_current_chain_state
+        mock_requests.get.side_effect = Exception("Network error")
+
+        result = run_attack(
+            node_url="http://127.0.0.1:5000",
+            peers=[],
+            attacker_addr="TestAttacker",
+            blocks=1,
+            amount=10.0,
+            frontend_config={}
+        )
+
+        # The attack should handle the network error gracefully
+        self.assertFalse(result["successful"])
+        self.assertIn("message", result)
+        # Check that we get a proper error response structure
+        self.assertIn("success", result)
+        self.assertIn("success_rate", result)
+
+
+class TestPerformance(unittest.TestCase):
+    """Performance tests for critical operations"""
+
+    def test_block_mining_performance(self):
+        """Test block mining performance"""
+        blockchain = Blockchain(difficulty=2)  # Lower difficulty for faster tests
+
+        # Add transactions
+        for i in range(5):
+            blockchain.new_transaction(f"Sender{i}", f"Receiver{i}", 1.0)
+
+        # Time the mining operation
         start_time = time.time()
-        successful_txs = 0
-
-        # Create multiple transactions to test performance
-        for i in range(num_transactions):
-            try:
-                tx_data = {
-                    "sender": f"PerfUser{i}",
-                    "receiver": f"PerfReceiver{i}",
-                    "amount": random.uniform(1, 100)
-                }
-
-                response = requests.post(f"{self.base_url}/api/tx/new", json=tx_data)
-                if response.status_code == 200:
-                    successful_txs += 1
-
-                # Small delay to avoid overwhelming the server
-                time.sleep(0.1)
-
-            except Exception as e:
-                print(f"❌ Transaction {i + 1} failed: {e}")
-
+        block = blockchain.mine_pending_transactions("PerformanceTestMiner")
         end_time = time.time()
-        duration = end_time - start_time
 
-        self.log_test("Performance Test", "PASS",
-                      f"{successful_txs}/{num_transactions} transactions in {duration:.2f}s "
-                      f"({duration / num_transactions:.3f}s per tx)")
+        mining_time = end_time - start_time
 
-    # ==================== VIVA SPECIFIC DEMOS ====================
+        # Mining should complete in reasonable time (adjust threshold as needed)
+        self.assertLess(mining_time, 10.0)  # 10 seconds maximum
+        self.assertEqual(block.index, 1)
+        self.assertEqual(len(block.transactions), 6)  # 5 transactions + reward
 
-    def viva_demonstration_mode(self):
-        """
-        Execute specialized demonstration mode for VIVA presentations.
+    def test_chain_validation_performance(self):
+        """Test chain validation performance"""
+        blockchain = Blockchain(difficulty=2)
 
-        Provides a curated sequence of essential tests designed specifically
-        for academic presentations, focusing on key blockchain concepts
-        and attack demonstrations with live interactive elements.
-        """
-        print("\n🎓 VIVA DEMONSTRATION MODE")
-        print("=" * 50)
+        # Add multiple blocks
+        for i in range(3):
+            for j in range(3):
+                blockchain.new_transaction(f"Sender{i}_{j}", f"Receiver{i}_{j}", 1.0)
+            blockchain.mine_pending_transactions(f"Miner{i}")
 
-        # Clear previous results for clean demo
-        self.test_results = []
+        # Time the validation operation
+        start_time = time.time()
+        is_valid = blockchain.is_chain_valid()
+        end_time = time.time()
 
-        print("1. Demonstrating Blockchain Basics...")
-        self.test_blockchain_initialization()
-        time.sleep(1)
+        validation_time = end_time - start_time
 
-        print("\n2. Creating Sample Transactions...")
-        self.test_transaction_creation()
-        time.sleep(1)
-
-        print("\n3. Mining New Block...")
-        self.test_block_mining()
-        time.sleep(1)
-
-        print("\n4. Checking Balances...")
-        self.test_balance_calculation()
-        time.sleep(1)
-
-        print("\n5. Double-Spending Attack Simulation...")
-        self.test_double_spending_attack(probability=70, hash_power=60)
-        time.sleep(1)
-
-        print("\n6. SimBlock Network Integration...")
-        self.test_simblock_network_status()
-
-        print("\n" + "=" * 50)
-        print("🎯 VIVA DEMONSTRATION COMPLETED!")
-        print("=" * 50)
+        self.assertTrue(is_valid)
+        self.assertLess(validation_time, 1.0)  # 1 second maximum
 
 
-# ==================== DEMONSTRATION MODES ====================
+class TestEdgeCases(unittest.TestCase):
+    """Test edge cases and boundary conditions"""
 
-def run_quick_demo():
-    """
-    Execute quick demonstration mode for VIVA presentations.
+    def test_empty_blockchain(self):
+        """Test operations on empty blockchain"""
+        blockchain = Blockchain()
 
-    Runs essential tests only, optimized for time-constrained
-    academic presentations and demonstrations of core blockchain
-    functionality and security features.
-    """
-    print("🎯 QUICK VIVA DEMONSTRATION MODE")
-    print("=" * 50)
+        # Should have genesis block
+        self.assertEqual(len(blockchain.chain), 1)
+        self.assertTrue(blockchain.is_chain_valid())
 
-    tester = BlockchainTestSuite()
-    tester.viva_demonstration_mode()
+    def test_large_transaction_amount(self):
+        """Test handling of large transaction amounts"""
+        blockchain = Blockchain()
+
+        # Large amount should be handled
+        tx_id = blockchain.new_transaction("RichUser", "Recipient", 1000000.0)
+        self.assertIsNotNone(tx_id)
+
+    def test_same_sender_receiver(self):
+        """Test transaction with same sender and receiver"""
+        blockchain = Blockchain()
+
+        # This should be invalid based on your validation
+        with self.assertRaises(ValueError):
+            blockchain.new_transaction("Alice", "Alice", 10.0)
+
+    def test_zero_amount_transaction(self):
+        """Test transaction with zero amount"""
+        blockchain = Blockchain()
+
+        # Zero amount should be invalid
+        with self.assertRaises(ValueError):
+            blockchain.new_transaction("Alice", "Bob", 0.0)
 
 
-def run_full_demo():
-    """
-    Execute comprehensive testing mode with all system validations.
+def run_all_tests():
+    """Run all test suites and return results"""
+    # Create test loader and suite
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite()
 
-    Runs the complete test suite including performance testing
-    to provide thorough system validation across all functional
-    areas and integration points.
-    """
-    print("🔬 COMPREHENSIVE TESTING MODE")
-    print("=" * 50)
-
-    tester = BlockchainTestSuite()
-    tester.run_comprehensive_test()
-
-    # Additional performance test
-    tester.performance_test(3)
-
-
-def run_attack_demo():
-    """
-    Execute attack simulation focused demonstration.
-
-    Specialized demonstration mode focusing exclusively on
-    double-spending attack simulations with various configurations
-    to showcase security mechanisms and attack detection capabilities.
-    """
-    print("🛡️ ATTACK SIMULATION DEMONSTRATION")
-    print("=" * 50)
-
-    tester = BlockchainTestSuite()
-    tester.start_suite()
-
-    print("\n🔓 ATTACK SCENARIOS DEMONSTRATION")
-    print("-" * 40)
-
-    # Various attack scenarios for comprehensive demonstration
-    scenarios = [
-        ("Force Success", 10, 10, True, False),
-        ("Force Failure", 90, 90, False, True),
-        ("Low Probability", 20, 30, False, False),
-        ("High Probability", 80, 70, False, False),
-        ("Balanced", 50, 50, False, False)
+    # Add test classes
+    test_classes = [
+        TestBlock,
+        TestTransaction,
+        TestDoubleSpendTransaction,
+        TestBlockchain,
+        TestAttackSimulation,
+        TestSimBlockIntegration,
+        TestCSVReportGeneration,
+        TestIntegration,
+        TestErrorHandling,
+        TestPerformance,
+        TestEdgeCases
     ]
 
-    for name, prob, hash_power, force_s, force_f in scenarios:
-        print(f"\n🎯 Testing: {name}")
-        tester.test_double_spending_attack(prob, hash_power, force_s, force_f)
+    for test_class in test_classes:
+        tests = loader.loadTestsFromTestCase(test_class)
+        suite.addTests(tests)
 
-    tester.end_suite()
+    # Run tests
+    print("🚀 Starting Comprehensive Blockchain Test Suite...")
+    print("=" * 70)
 
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(suite)
 
-def run_simblock_demo():
-    """
-    Execute SimBlock integration focused demonstration.
+    # Print summary
+    print("=" * 70)
+    print(f"📊 TEST SUMMARY:")
+    print(f"   Tests Run: {result.testsRun}")
+    print(f"   Failures: {len(result.failures)}")
+    print(f"   Errors: {len(result.errors)}")
+    print(f"   Skipped: {len(result.skipped)}")
 
-    Specialized demonstration mode focusing on network simulation
-    integration, showcasing SimBlock capabilities and enhanced
-    probability calculations for attack simulations.
-    """
-    print("🌐 SIMBLOCK INTEGRATION DEMONSTRATION")
-    print("=" * 50)
-
-    tester = BlockchainTestSuite()
-    tester.start_suite()
-
-    print("\n🔬 SIMBLOCK FUNCTIONALITY")
-    print("-" * 40)
-
-    tester.test_simblock_network_status()
-    tester.test_simblock_simulation_start()
-
-    # Test enhanced probability calculation
-    try:
-        prob_data = {
-            "base_probability": 0.7,
-            "hash_power": 0.6,
-            "latency": 100
-        }
-        response = requests.post("http://127.0.0.1:5000/api/simblock/attack-probability", json=prob_data)
-        if response.status_code == 200:
-            data = response.json()
-            enhanced_prob = data.get('enhanced_probability', 0) * 100
-            tester.log_test("SimBlock Probability Enhancement", "PASS",
-                            f"Enhanced probability: {enhanced_prob:.1f}%")
-    except Exception as e:
-        tester.log_test("SimBlock Probability Enhancement", "WARNING", str(e))
-
-    tester.end_suite()
+    if result.wasSuccessful():
+        print("✅ ALL TESTS PASSED!")
+        return True
+    else:
+        print("❌ SOME TESTS FAILED!")
+        # Print failure details
+        for failure in result.failures:
+            print(f"\n❌ FAILED: {failure[0]}")
+            print(f"   Error: {failure[1]}")
+        for error in result.errors:
+            print(f"\n💥 ERROR: {error[0]}")
+            print(f"   Error: {error[1]}")
+        return False
 
 
 if __name__ == "__main__":
-    """
-    Main entry point with interactive demonstration mode selection.
+    # Run all tests
+    success = run_all_tests()
 
-    Provides user-friendly interface for selecting different testing
-    and demonstration modes based on specific presentation needs
-    and time constraints.
-    """
-    print("🚀 Blockchain Anomaly Detection System - Test Suite")
-    print("=" * 60)
-    print("Choose Demonstration Mode:")
-    print("1. Quick VIVA Demo (Recommended for Presentation)")
-    print("2. Full Comprehensive Test")
-    print("3. Attack Simulation Demo")
-    print("4. SimBlock Integration Demo")
-    print("5. Run All Demonstration Modes")
-
-    choice = input("\nEnter choice (1-5): ").strip()
-
-    if choice == "1":
-        run_quick_demo()
-    elif choice == "2":
-        run_full_demo()
-    elif choice == "3":
-        run_attack_demo()
-    elif choice == "4":
-        run_simblock_demo()
-    elif choice == "5":
-        print("\n" + "=" * 70)
-        run_quick_demo()
-        print("\n" + "=" * 70)
-        run_full_demo()
-        print("\n" + "=" * 70)
-        run_attack_demo()
-        print("\n" + "=" * 70)
-        run_simblock_demo()
-    else:
-        print("Invalid choice. Running Quick VIVA Demo...")
-        run_quick_demo()
+    # Exit with appropriate code
+    sys.exit(0 if success else 1)

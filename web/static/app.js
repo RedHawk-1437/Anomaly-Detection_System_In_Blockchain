@@ -1,55 +1,611 @@
-// app.js - COMPLETELY UPDATED VERSION WITH ALL FIXES
-// Enhanced JavaScript with auto-refresh charts, attacker tracking, and real data
-
-console.log('🔧 app.js loading with enhanced features and auto-refresh...');
+// app.js - USER-FRIENDLY OUTPUT VERSION WITH ATTACK VISUALIZATION
+console.log('🔧 app.js loading with user-friendly outputs and attack visualization...');
 
 // ================================
-// GLOBAL VARIABLES & CONFIGURATION
+// GLOBAL VARIABLES
 // ================================
-
-/**
- * Manages all Chart.js instances for blockchain visualization
- * @type {Object}
- */
-let blockchainCharts = {
-    growthChart: null,        // Blockchain growth visualization
-    balanceChart: null,       // Wallet balance distribution
-    miningChart: null,        // Mining performance analysis
-    networkChart: null,       // Network activity over time
-    simblockChart: null       // SimBlock network analysis
-};
-
-/**
- * Configuration for attack simulation parameters
- * @type {Object}
- */
 let attackConfig = {
-    successProbability: 0.5,   // Base success probability (0.0 - 1.0)
-    attackerHashPower: 30,     // Attacker's hash power percentage (1-100)
-    forceSuccess: false,       // Override to force attack success
-    forceFailure: false        // Override to force attack failure
+    successProbability: 0.5,
+    attackerHashPower: 30,
+    forceSuccess: false,
+    forceFailure: false
 };
 
+let networkCharts = {
+    activityChart: null,
+    blockchainDataChart: null,
+    attackAnalysisChart: null,
+    nodeDistributionChart: null
+};
+
+// Store attack history for analysis
+let attackHistory = [];
+
 // ================================
-// UTILITY FUNCTIONS
+// ATTACK VISUALIZATION FUNCTIONS
 // ================================
 
 /**
- * Display user notification with type-based styling
- * @param {string} message - Notification content to display
- * @param {string} type - Notification type: 'info', 'success', 'error'
+ * Update attack visualization with transaction details
  */
+function updateAttackVisualization(attackData) {
+    if (!attackData) return;
+
+    // Step 1: Legitimate Transaction
+    updateLegitimateTransaction(attackData);
+
+    // Step 2: Malicious Transaction
+    updateMaliciousTransaction(attackData);
+
+    // Step 3: Private Mining
+    updatePrivateMining(attackData);
+
+    // Step 4: Network Race
+    simulateNetworkRace(attackData); // FIXED: Changed from updateNetworkRace to simulateNetworkRace
+}
+
+/**
+ * Update legitimate transaction display
+ */
+function updateLegitimateTransaction(attackData) {
+    const sender = attackData.attacker || 'RedHawk';
+    const victim = 'Victim_Wallet';
+    const amount = attackData.amount || 10;
+    const timestamp = new Date().toLocaleString();
+
+    document.getElementById('attack-sender').textContent = sender;
+    document.getElementById('attack-victim').textContent = victim;
+    document.getElementById('attack-amount-display').textContent = amount;
+    document.getElementById('attack-time').textContent = timestamp;
+
+    // Mark step as completed
+    document.getElementById('step1').classList.add('completed');
+}
+
+/**
+ * Update malicious transaction display
+ */
+function updateMaliciousTransaction(attackData) {
+    const sender = attackData.attacker || 'RedHawk';
+    const receiver = attackData.attacker || 'RedHawk'; // Sending to self
+    const amount = attackData.amount || 10;
+    const timestamp = new Date().toLocaleString();
+
+    document.getElementById('malicious-sender').textContent = sender;
+    document.getElementById('malicious-receiver').textContent = receiver;
+    document.getElementById('malicious-amount').textContent = amount;
+    document.getElementById('malicious-time').textContent = timestamp;
+
+    // Mark step as completed
+    document.getElementById('step2').classList.add('completed');
+}
+
+/**
+ * Update private mining visualization
+ */
+function updatePrivateMining(attackData) {
+    const blocksToMine = attackData.blocks || 1;
+    const miningStatus = document.getElementById('mining-status');
+    const progressFill = document.getElementById('mining-progress');
+    const progressText = document.getElementById('mining-text');
+    const privateBlocksList = document.getElementById('private-blocks-list');
+
+    // Clear previous blocks
+    privateBlocksList.innerHTML = '';
+
+    // Simulate mining progress
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 5;
+        if (progress <= 100) {
+            progressFill.style.width = progress + '%';
+            progressText.textContent = progress + '%';
+            miningStatus.textContent = `⛏️ Mining private blocks... (${progress}%)`;
+        } else {
+            clearInterval(interval);
+
+            // Add private blocks to display
+            for (let i = 0; i < blocksToMine; i++) {
+                const blockElement = document.createElement('div');
+                blockElement.className = 'private-block';
+                blockElement.textContent = `Private Block ${i + 1}`;
+                privateBlocksList.appendChild(blockElement);
+            }
+
+            miningStatus.textContent = '✅ Private blocks mined successfully!';
+            miningStatus.style.color = '#27ae60';
+
+            // Mark step as completed
+            document.getElementById('step3').classList.add('completed');
+        }
+    }, 200);
+}
+
+/**
+ * Simulate network race between honest and attacker chains - FIXED FUNCTION NAME
+ */
+function simulateNetworkRace(attackData) {
+    const honestBlocks = document.getElementById('honest-blocks');
+    const attackerBlocks = document.getElementById('attacker-blocks');
+    const raceResult = document.getElementById('race-result');
+
+    // Clear previous blocks
+    honestBlocks.innerHTML = '';
+    attackerBlocks.innerHTML = '';
+    raceResult.innerHTML = '';
+
+    const blocksToMine = attackData.blocks || 1;
+    const isSuccessful = attackData.result?.successful || false;
+
+    // Add existing honest blocks
+    for (let i = 0; i < 3; i++) {
+        const block = document.createElement('div');
+        block.className = 'block honest-block';
+        block.textContent = i + 1;
+        honestBlocks.appendChild(block);
+    }
+
+    // Add attacker blocks with animation
+    let attackerBlockCount = 0;
+    const attackerInterval = setInterval(() => {
+        if (attackerBlockCount < blocksToMine) {
+            const block = document.createElement('div');
+            block.className = 'block attack-block';
+            block.textContent = 3 + attackerBlockCount + 1;
+            attackerBlocks.appendChild(block);
+            attackerBlockCount++;
+        } else {
+            clearInterval(attackerInterval);
+
+            // Show race result
+            if (isSuccessful) {
+                raceResult.className = 'race-result race-success';
+                raceResult.innerHTML = '🎯 ATTACK SUCCESSFUL!<br>Attacker chain is longer and wins the race!';
+            } else {
+                raceResult.className = 'race-result race-failure';
+                raceResult.innerHTML = '🛡️ ATTACK FAILED!<br>Honest chain remains the longest!';
+            }
+
+            // Mark step as completed
+            document.getElementById('step4').classList.add('completed');
+        }
+    }, 500);
+
+    // Add one more honest block to show the race
+    setTimeout(() => {
+        if (!isSuccessful) {
+            const block = document.createElement('div');
+            block.className = 'block honest-block';
+            block.textContent = '4';
+            honestBlocks.appendChild(block);
+        }
+    }, 1500);
+}
+
+/**
+ * Reset attack visualization
+ */
+function resetAttackVisualization() {
+    // Reset all steps
+    const steps = document.querySelectorAll('.process-step');
+    steps.forEach(step => {
+        step.classList.remove('active', 'completed', 'failed');
+    });
+
+    // Reset mining progress
+    document.getElementById('mining-progress').style.width = '0%';
+    document.getElementById('mining-text').textContent = '0%';
+    document.getElementById('mining-status').textContent = '⏳ Waiting for attack...';
+    document.getElementById('mining-status').style.color = '';
+
+    // Clear blocks
+    document.getElementById('private-blocks-list').innerHTML = '';
+    document.getElementById('honest-blocks').innerHTML = '';
+    document.getElementById('attacker-blocks').innerHTML = '';
+    document.getElementById('race-result').innerHTML = '';
+
+    // Reset transaction displays
+    const txElements = [
+        'attack-sender', 'attack-victim', 'attack-amount-display', 'attack-time',
+        'malicious-sender', 'malicious-receiver', 'malicious-amount', 'malicious-time'
+    ];
+
+    txElements.forEach(id => {
+        document.getElementById(id).textContent = '--';
+    });
+}
+
+/**
+ * Enhanced attack simulation with visualization
+ */
+async function runAttackWithVisualization() {
+    console.log('🎯 Running attack simulation with visualization...');
+
+    // Reset previous visualization
+    resetAttackVisualization();
+
+    const attacker = document.getElementById('attack-attacker').value.trim() || 'RedHawk';
+    const blocks = parseInt(document.getElementById('attack-blocks').value) || 1;
+    const amount = parseFloat(document.getElementById('attack-amount').value) || 10.0;
+
+    if (blocks <= 0 || amount <= 0) {
+        showNotification('❌ Please enter valid values for blocks and amount', 'error');
+        return;
+    }
+
+    try {
+        showNotification('🚀 Starting attack simulation with visualization...', 'info');
+
+        const payload = {
+            attacker: attacker,
+            blocks: blocks,
+            amount: amount,
+            frontend_config: {
+                hash_power: attackConfig.attackerHashPower,
+                success_probability: attackConfig.successProbability * 100,
+                force_success: attackConfig.forceSuccess,
+                force_failure: attackConfig.forceFailure,
+                latency: 100
+            }
+        };
+
+        // Prepare attack data for visualization
+        const attackData = {
+            attacker: attacker,
+            blocks: blocks,
+            amount: amount,
+            config: payload.frontend_config
+        };
+
+        // Start visualization
+        updateAttackVisualization(attackData);
+
+        const response = await fetch('/api/attack/run', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('🎯 Attack response:', data);
+
+        // Update visualization with actual result
+        attackData.result = data;
+        simulateNetworkRace(attackData); // FIXED: Use correct function name
+
+        const box = document.getElementById('attack-output');
+        if (box) {
+            box.style.display = 'block';
+            box.textContent = formatAttackResponse(data);
+        }
+
+        const attackSuccessful = data.successful || false;
+        if (attackSuccessful) {
+            showNotification('🎯 Attack successful! Double spending achieved!', 'success');
+        } else {
+            showNotification('🛡️ Attack prevented! Network security maintained.', 'info');
+        }
+
+        // Refresh all data and charts after attack
+        refreshEnhancedBalances();
+        refreshChain();
+        setTimeout(refreshAllCharts, 1500);
+
+    } catch (error) {
+        console.error('Attack simulation error:', error);
+        showNotification('💥 Attack failed: ' + error.message, 'error');
+
+        const box = document.getElementById('attack-output');
+        if (box) {
+            box.style.display = 'block';
+            box.textContent = `❌ ATTACK SIMULATION FAILED\n\n📛 Error: ${error.message}\n\n💡 Please make sure the backend server is running on http://127.0.0.1:5000`;
+        }
+
+        // Mark steps as failed
+        document.getElementById('step3').classList.add('failed');
+        document.getElementById('step4').classList.add('failed');
+    }
+}
+
+// ================================
+// USER-FRIENDLY OUTPUT FORMATTING
+// ================================
+
+/**
+ * Format transaction response for user-friendly display
+ */
+function formatTransactionResponse(data) {
+    if (!data) return 'No response data received';
+
+    let output = '';
+
+    if (data.status === 'ok') {
+        output += '✅ TRANSACTION SUCCESSFUL\n\n';
+        output += `📧 Transaction ID: ${data.txid.substring(0, 16)}...\n`;
+        output += `📊 Pending Transactions: ${data.mempool_size}\n`;
+        output += `⏰ Status: Confirmed and added to mempool\n\n`;
+        output += '💡 The transaction is now waiting to be included in the next block.';
+    } else {
+        output += '❌ TRANSACTION FAILED\n\n';
+        output += `📛 Error: ${data.error || 'Unknown error'}\n`;
+        output += '💡 Please check the sender balance and try again.';
+    }
+
+    return output;
+}
+
+/**
+ * Format mining response for user-friendly display
+ */
+function formatMiningResponse(data) {
+    if (!data) return 'No response data received';
+
+    let output = '';
+
+    if (data.status === 'ok') {
+        output += '⛏️ BLOCK MINED SUCCESSFULLY\n\n';
+        output += `📦 Block #${data.block.index} created\n`;
+        output += `🔗 Block Hash: ${data.block.hash.substring(0, 16)}...\n`;
+        output += `⏰ Timestamp: ${new Date(data.block.timestamp * 1000).toLocaleString()}\n`;
+        output += `📊 Transactions in block: ${data.block.transactions.length}\n`;
+        output += `⛓️ Total blocks in chain: ${data.chain_length}\n\n`;
+
+        // Show transaction summary
+        const userTransactions = data.block.transactions.filter(tx => tx.sender !== 'SYSTEM');
+        const rewardTransactions = data.block.transactions.filter(tx => tx.sender === 'SYSTEM');
+
+        if (userTransactions.length > 0) {
+            output += '💸 User Transactions:\n';
+            userTransactions.forEach(tx => {
+                output += `   • ${tx.sender} → ${tx.receiver}: ${tx.amount} coins\n`;
+            });
+        }
+
+        if (rewardTransactions.length > 0) {
+            output += '💰 Mining Rewards:\n';
+            rewardTransactions.forEach(tx => {
+                output += `   • SYSTEM → ${tx.receiver}: ${tx.amount} coins (mining reward)\n`;
+            });
+        }
+
+    } else {
+        output += '❌ MINING FAILED\n\n';
+        output += `📛 Error: ${data.error || 'Unknown error'}\n`;
+        output += '💡 Please try again or check for pending transactions.';
+    }
+
+    return output;
+}
+
+/**
+ * Format balances for user-friendly display
+ */
+function formatBalancesResponse(data) {
+    if (!data) return 'No balance data received';
+
+    let output = '';
+    output += '💰 WALLET BALANCES OVERVIEW\n\n';
+
+    const { balances, attack_info, total_wallets, active_attacks } = data;
+
+    output += `📊 Total Wallets: ${total_wallets}\n`;
+    output += `🛡️ Active Attacks: ${active_attacks}\n\n`;
+
+    // Display balances
+    output += '💳 CURRENT BALANCES:\n';
+    Object.entries(balances).forEach(([wallet, balance]) => {
+        const status = balance >= 0 ? '✅' : '⚠️';
+        output += `   ${status} ${wallet}: ${balance.toFixed(2)} coins\n`;
+    });
+
+    // Display attack information
+    if (Object.keys(attack_info).length > 0) {
+        output += '\n🦠 ATTACK ACTIVITY:\n';
+        Object.entries(attack_info).forEach(([attacker, info]) => {
+            const attackResult = info.success ? 'SUCCESSFUL 🎯' : 'FAILED 🚫';
+            const victimInfo = info.victim === 'None (Attack Failed)' ? 'No victim (attack failed)' : info.victim;
+            output += `   • ${attacker}: ${attackResult}\n`;
+            output += `     Amount: ${info.amount} coins | Victim: ${victimInfo}\n`;
+        });
+    }
+
+    return output;
+}
+
+/**
+ * Format blockchain data for user-friendly display
+ */
+function formatChainResponse(data) {
+    if (!data) return 'No blockchain data received';
+
+    let output = '';
+    output += '⛓️ BLOCKCHAIN EXPLORER\n\n';
+
+    const { length, lastBlock, mempoolSize, difficulty } = data;
+
+    output += `📊 Blockchain Summary:\n`;
+    output += `   • Total Blocks: ${length}\n`;
+    output += `   • Pending Transactions: ${mempoolSize}\n`;
+    output += `   • Mining Difficulty: ${difficulty}\n\n`;
+
+    if (lastBlock) {
+        output += `📦 Latest Block (#${lastBlock.index}):\n`;
+        output += `   • Hash: ${lastBlock.hash.substring(0, 20)}...\n`;
+        output += `   • Timestamp: ${new Date(lastBlock.timestamp * 1000).toLocaleString()}\n`;
+        output += `   • Transactions: ${lastBlock.transactions.length}\n`;
+
+        if (lastBlock.transactions.length > 0) {
+            output += `   • Recent Activity:\n`;
+            lastBlock.transactions.slice(0, 3).forEach(tx => {
+                if (tx.sender === 'SYSTEM') {
+                    output += `     💎 ${tx.receiver} received ${tx.amount} coins (mining reward)\n`;
+                } else {
+                    output += `     💸 ${tx.sender} → ${tx.receiver}: ${tx.amount} coins\n`;
+                }
+            });
+            if (lastBlock.transactions.length > 3) {
+                output += `     ... and ${lastBlock.transactions.length - 3} more transactions\n`;
+            }
+        }
+    }
+
+    return output;
+}
+
+/**
+ * Format attack simulation response for user-friendly display
+ */
+function formatAttackResponse(data) {
+    if (!data) return 'No attack data received';
+
+    let output = '';
+
+    if (data.successful) {
+        output += '🎯 DOUBLE SPENDING ATTACK SUCCESSFUL!\n\n';
+        output += '💀 Attack Summary:\n';
+        output += `   • Status: COMPROMISED 🚨\n`;
+        output += `   • Attack Type: Double Spending\n`;
+        output += `   • Success Probability: ${(data.success_probability || 0).toFixed(1)}%\n`;
+        output += `   • Blocks Mined Privately: ${data.blocks_mined || 0}\n`;
+        output += `   • Hash Power Used: ${data.hash_power || 0}%\n\n`;
+    } else {
+        output += '🛡️ ATTACK PREVENTED!\n\n';
+        output += '✅ Defense Summary:\n';
+        output += `   • Status: BLOCKED ✅\n`;
+        output += `   • Attack Type: Double Spending\n`;
+        output += `   • Success Probability: ${(data.success_probability || 0).toFixed(1)}%\n`;
+        output += `   • Reason: ${data.message || 'Network consensus rejected private chain'}\n\n`;
+    }
+
+    // Add execution steps
+    if (data.steps && data.steps.length > 0) {
+        output += '🔧 Attack Execution Steps:\n';
+        data.steps.forEach((step, index) => {
+            const stepNumber = index + 1;
+            if (step.action === 'improved_probability') {
+                output += `   ${stepNumber}. Probability Calculation: ${step.result ? 'Favorable' : 'Unfavorable'}\n`;
+            } else if (step.action === 'mining') {
+                output += `   ${stepNumber}. Private Mining: ${step.mining_success ? 'Successful' : 'Failed'}\n`;
+            } else if (step.action === 'broadcast') {
+                output += `   ${stepNumber}. Network Broadcast: ${step.result ? 'Accepted' : 'Rejected'}\n`;
+            } else {
+                output += `   ${stepNumber}. ${step.action}: ${step.result || step.mining_success || 'Completed'}\n`;
+            }
+        });
+    }
+
+    output += '\n💡 ' + (data.successful ?
+        'The attacker successfully spent the same coins twice!' :
+        'The network successfully detected and prevented the double spending attempt.');
+
+    return output;
+}
+
+/**
+ * Format peer network response for user-friendly display
+ */
+function formatPeerResponse(data) {
+    if (!data) return 'No network data received';
+
+    let output = '';
+
+    if (data.message && data.message.includes('added successfully')) {
+        output += '✅ PEER CONNECTION ESTABLISHED\n\n';
+        output += `🌐 New peer added to network\n`;
+        output += `📡 Connected Peers: ${data.peers ? data.peers.length : 1}\n\n`;
+
+        if (data.peers && data.peers.length > 0) {
+            output += '🔗 Active Peer Connections:\n';
+            data.peers.forEach(peer => {
+                output += `   • ${peer}\n`;
+            });
+        }
+    } else {
+        output += '❌ PEER CONNECTION FAILED\n\n';
+        output += `📛 Error: ${data.error || 'Unknown connection error'}\n`;
+        output += '💡 Please check the peer address and try again.';
+    }
+
+    return output;
+}
+
+/**
+ * Format consensus response for user-friendly display
+ */
+function formatConsensusResponse(data) {
+    if (!data) return 'No consensus data received';
+
+    let output = '';
+
+    if (data.message && data.message.includes('authoritative')) {
+        output += '✅ NETWORK CONSENSUS VERIFIED\n\n';
+        output += '🔄 Consensus Check Results:\n';
+        output += `   • Status: SYNCHRONIZED ✅\n`;
+        output += `   • Local Chain: UP-TO-DATE\n`;
+        output += `   • Total Blocks: ${data.chain ? data.chain.length : 'Unknown'}\n`;
+        output += `   • Result: No conflicts detected\n\n`;
+        output += '💡 Your node has the longest and most valid chain.';
+    } else if (data.message && data.message.includes('replaced')) {
+        output += '🔄 NETWORK CHAIN UPDATED\n\n';
+        output += '📥 Consensus Check Results:\n';
+        output += `   • Status: UPDATED 🔄\n`;
+        output += `   • Action: Chain replaced with longer valid chain\n`;
+        output += `   • New Total Blocks: ${data.new_chain ? data.new_chain.length : 'Unknown'}\n`;
+        output += `   • Result: Synchronized with network\n\n`;
+        output += '💡 Your node accepted a longer valid chain from the network.';
+    } else {
+        output += '❌ CONSENSUS CHECK FAILED\n\n';
+        output += `📛 Error: ${data.error || 'Unknown consensus error'}\n`;
+        output += '💡 Network synchronization issue detected.';
+    }
+
+    return output;
+}
+
+/**
+ * Format SimBlock response for user-friendly display
+ */
+function formatSimBlockResponse(data) {
+    if (!data) return 'No simulation data received';
+
+    let output = '';
+
+    if (data.success) {
+        output += '🌐 SIMBLOCK NETWORK SIMULATION COMPLETE\n\n';
+        output += '📊 Simulation Results:\n';
+        output += `   • Status: SUCCESSFUL ✅\n`;
+        output += `   • Network: 120+ nodes initialized\n`;
+        output += `   • Regions: Global distribution active\n`;
+        output += `   • Latency: Realistic network conditions\n`;
+        output += `   • Attack Simulation: Ready\n\n`;
+        output += '💡 Large-scale P2P network is now active for testing.';
+    } else {
+        output += '❌ SIMBLOCK SIMULATION FAILED\n\n';
+        output += `📛 Error: ${data.error || 'Simulation initialization failed'}\n`;
+        output += '💡 Please check the SimBlock configuration.';
+    }
+
+    return output;
+}
+
+// ================================
+// NOTIFICATION SYSTEM
+// ================================
 function showNotification(message, type = 'info') {
-    console.log(`📢 ${type.toUpperCase()} Notification:`, message);
+    console.log(`📢 ${type.toUpperCase()}:`, message);
 
     // Clear existing notifications
     document.querySelectorAll('.notification').forEach(n => n.remove());
 
-    // Create notification element
     const notification = document.createElement('div');
     notification.className = 'notification';
 
-    // Set background color based on type
     const colors = {
         info: '#3498db',
         success: '#27ae60',
@@ -76,56 +632,842 @@ function showNotification(message, type = 'info') {
         align-items: center;
         max-width: 400px;
         font-weight: bold;
-        animation: slideIn 0.3s ease;
     `;
 
     document.body.appendChild(notification);
-
-    // Auto-remove after 5 seconds
     setTimeout(() => notification.remove(), 5000);
 }
 
+// ================================
+// ENHANCED CHART SYSTEM - SYNCHRONIZED
+// ================================
+
 /**
- * Create formatted HTML output for displaying results
- * @param {string} content - Main content to display
- * @param {string} title - Section title
- * @returns {string} Formatted HTML string
+ * Initialize synchronized charts
  */
-function createUserFriendlyOutput(content, title) {
-    return `
-        <div class="user-friendly-output">
-            <h4>${title}</h4>
-            <div class="output-content">${content}</div>
-        </div>
-    `;
+function initializeNetworkCharts() {
+    console.log('📊 Initializing synchronized charts...');
+
+    // Destroy existing charts to prevent duplicates
+    Object.values(networkCharts).forEach(chart => {
+        if (chart) {
+            chart.destroy();
+        }
+    });
+
+    createNetworkActivityChart();
+    createBlockchainDataChart();
+    createAttackAnalysisChart();
+    createNodeDistributionChart();
+
+    // Load initial data immediately
+    setTimeout(updateChartsWithRealData, 500);
+    showNotification('📈 Charts initialized! Loading real data...', 'info');
+}
+
+/**
+ * Create network activity chart
+ */
+function createNetworkActivityChart() {
+    const ctx = document.getElementById('networkActivityChart');
+    if (!ctx) {
+        console.error('❌ Network Activity Chart canvas not found');
+        return;
+    }
+
+    networkCharts.activityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Loading...',
+                data: [],
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Network Activity - Loading...',
+                    font: { size: 14, weight: 'bold' }
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Transaction Count' }
+                },
+                x: {
+                    title: { display: true, text: 'Block Height' }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Create blockchain data chart - INDIVIDUAL BLOCKS
+ */
+function createBlockchainDataChart() {
+    const ctx = document.getElementById('blockchainDataChart');
+    if (!ctx) {
+        console.error('❌ Blockchain Data Chart canvas not found');
+        return;
+    }
+
+    networkCharts.blockchainDataChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Honest Blocks',
+                    data: [],
+                    backgroundColor: 'rgba(52, 152, 219, 0.8)',
+                    borderColor: '#2980b9',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Attack Blocks',
+                    data: [],
+                    backgroundColor: 'rgba(231, 76, 60, 0.8)',
+                    borderColor: '#c0392b',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Blockchain Data - Loading...',
+                    font: { size: 14, weight: 'bold' }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const datasetIndex = context.datasetIndex;
+                            const value = context.parsed.y;
+                            const blockIndex = context.dataIndex;
+                            const blockLabel = context.chart.data.labels[blockIndex];
+
+                            if (value > 0) {
+                                if (datasetIndex === 0) {
+                                    return `Honest Block: ${blockLabel}`;
+                                } else {
+                                    return `Attack Block: ${blockLabel}`;
+                                }
+                            }
+                            return '';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    display: false, // Hide Y axis as we're showing individual blocks
+                    beginAtZero: true
+                },
+                x: {
+                    title: { display: true, text: 'Block Index' }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Create enhanced attack analysis chart with ATTACKER NODES metric
+ */
+function createAttackAnalysisChart() {
+    const ctx = document.getElementById('attackAnalysisChart');
+    if (!ctx) {
+        console.error('❌ Attack Analysis Chart canvas not found');
+        return;
+    }
+
+    networkCharts.attackAnalysisChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [
+                'Success Rate',
+                'Hash Power',
+                'Blocks Mined',
+                'Amount Stolen',
+                'Attacker Nodes',
+                'Latency Impact',
+                'Network Health'
+            ],
+            datasets: [{
+                label: 'Attack Metrics',
+                data: [0, 0, 0, 0, 0, 0, 0],
+                backgroundColor: [
+                    'rgba(46, 204, 113, 0.8)',    // Success Rate - Green
+                    'rgba(52, 152, 219, 0.8)',    // Hash Power - Blue
+                    'rgba(155, 89, 182, 0.8)',    // Blocks Mined - Purple
+                    'rgba(241, 196, 15, 0.8)',    // Amount Stolen - Yellow
+                    'rgba(230, 126, 34, 0.8)',    // Attacker Nodes - Orange (NEW)
+                    'rgba(231, 76, 60, 0.8)',     // Latency Impact - Red
+                    'rgba(149, 165, 166, 0.8)'    // Network Health - Gray
+                ],
+                borderColor: [
+                    '#27ae60',    // Success Rate
+                    '#2980b9',    // Hash Power
+                    '#8e44ad',    // Blocks Mined
+                    '#f39c12',    // Amount Stolen
+                    '#d35400',    // Attacker Nodes (NEW)
+                    '#c0392b',    // Latency Impact
+                    '#7f8c8d'     // Network Health
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Double Spending Attack Analysis',
+                    font: { size: 14, weight: 'bold' }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            const value = context.parsed.y;
+                            const metric = context.chart.data.labels[context.dataIndex];
+
+                            switch(metric) {
+                                case 'Success Rate':
+                                    return `${label}: ${value.toFixed(1)}%`;
+                                case 'Hash Power':
+                                    return `${label}: ${value.toFixed(1)}%`;
+                                case 'Blocks Mined':
+                                    return `${label}: ${value} blocks`;
+                                case 'Amount Stolen':
+                                    return `${label}: ${value} coins`;
+                                case 'Attacker Nodes':
+                                    return `${label}: ${value} nodes`;
+                                case 'Latency Impact':
+                                    return `${label}: ${value.toFixed(1)}%`;
+                                case 'Network Health':
+                                    return `${label}: ${value.toFixed(1)}%`;
+                                default:
+                                    return `${label}: ${value}`;
+                            }
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: { display: true, text: 'Percentage/Value' }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Create node distribution chart as bar chart
+ */
+function createNodeDistributionChart() {
+    const ctx = document.getElementById('nodeDistributionChart');
+    if (!ctx) {
+        console.error('❌ Node Distribution Chart canvas not found');
+        return;
+    }
+
+    networkCharts.nodeDistributionChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['North America', 'Europe', 'Asia', 'South America', 'Africa', 'Oceania'],
+            datasets: [{
+                label: 'Node Count',
+                data: [0, 0, 0, 0, 0, 0],
+                backgroundColor: [
+                    'rgba(52, 152, 219, 0.7)',
+                    'rgba(46, 204, 113, 0.7)',
+                    'rgba(155, 89, 182, 0.7)',
+                    'rgba(241, 196, 15, 0.7)',
+                    'rgba(230, 126, 34, 0.7)',
+                    'rgba(231, 76, 60, 0.7)'
+                ],
+                borderColor: [
+                    '#3498db',
+                    '#2ecc71',
+                    '#9b59b6',
+                    '#f1c40f',
+                    '#e67e22',
+                    '#e74c3c'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Global Node Distribution',
+                    font: { size: 14, weight: 'bold' }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Number of Nodes' }
+                }
+            }
+        }
+    });
 }
 
 // ================================
-// ATTACK CONTROL FUNCTIONS
+// REAL-TIME DATA UPDATES - SYNCHRONIZED
 // ================================
 
 /**
- * Update attack success probability and refresh display
- * @param {string} value - New probability value (1-100)
+ * Update charts with real blockchain data
+ */
+async function updateChartsWithRealData() {
+    try {
+        console.log('🔄 Fetching real data for charts...');
+
+        const [chainResponse, balancesResponse, networkResponse] = await Promise.allSettled([
+            fetch('/api/chain').catch(() => ({ ok: false })),
+            fetch('/api/balances/detailed').catch(() => ({ ok: false })),
+            fetch('/api/simblock/network').catch(() => ({ ok: false }))
+        ]);
+
+        let chainData = { chain: [] };
+        let balancesData = { balances: {}, attack_info: {} };
+        let networkData = {};
+
+        if (chainResponse.status === 'fulfilled' && chainResponse.value.ok) {
+            chainData = await chainResponse.value.json();
+            console.log('📦 Chain data loaded:', chainData.chain.length, 'blocks');
+        }
+
+        if (balancesResponse.status === 'fulfilled' && balancesResponse.value.ok) {
+            balancesData = await balancesResponse.value.json();
+            console.log('💰 Balance data loaded');
+        }
+
+        if (networkResponse.status === 'fulfilled' && networkResponse.value.ok) {
+            networkData = await networkResponse.value.json();
+            console.log('🌐 Network data loaded');
+        }
+
+        updateAllChartsWithData(chainData, balancesData, networkData);
+        showNotification('📈 Charts updated with real data!', 'success');
+
+    } catch (error) {
+        console.error('Error updating charts:', error);
+        showNotification('❌ Failed to update charts with real data', 'error');
+        // Fallback to demo data
+        updateChartsWithDemoData();
+    }
+}
+
+/**
+ * Update all charts with real data
+ */
+function updateAllChartsWithData(chainData, balancesData, networkData) {
+    console.log('🔄 Updating all charts with real data...');
+    updateNetworkActivityChart(chainData);
+    updateBlockchainDataChart(chainData, balancesData);
+    updateAttackAnalysisChart(chainData, balancesData, networkData);
+    updateNodeDistributionChart(networkData);
+    updateRealTimeMetrics(networkData, balancesData, chainData);
+}
+
+/**
+ * Update network activity chart with real data - FIXED to show ALL blocks
+ */
+function updateNetworkActivityChart(chainData) {
+    if (!networkCharts.activityChart) return;
+
+    const blocks = chainData.chain || [];
+
+    if (blocks.length === 0) {
+        networkCharts.activityChart.data.labels = ['No blocks yet'];
+        networkCharts.activityChart.data.datasets[0].data = [0];
+        networkCharts.activityChart.data.datasets[0].label = 'No transactions';
+    } else {
+        // Show ALL blocks, not just recent ones
+        const labels = blocks.map(block => `Block ${block.index}`);
+        const txCounts = blocks.map(block => block.transactions ? block.transactions.length : 0);
+
+        networkCharts.activityChart.data.labels = labels;
+        networkCharts.activityChart.data.datasets[0].data = txCounts;
+        networkCharts.activityChart.data.datasets[0].label = 'Transactions per Block';
+    }
+
+    networkCharts.activityChart.options.plugins.title.text = `Network Activity (${blocks.length} blocks)`;
+    networkCharts.activityChart.update();
+    console.log('✅ Network activity chart updated - Blocks:', blocks.length);
+}
+
+/**
+ * Update blockchain data chart with INDIVIDUAL BLOCKS - FIXED to show ALL blocks
+ */
+function updateBlockchainDataChart(chainData, balancesData) {
+    if (!networkCharts.blockchainDataChart) return;
+
+    const blocks = chainData.chain || [];
+    const attackInfo = balancesData.attack_info || {};
+
+    // Get successful attacks
+    const successfulAttacks = Object.values(attackInfo).filter(info => info.success === true);
+    const successfulAttackBlocks = successfulAttacks.length;
+
+    // Prepare data for ALL individual blocks
+    const blockLabels = blocks.map(block => `Block ${block.index}`);
+    const honestBlockData = new Array(blocks.length).fill(0);
+    const attackBlockData = new Array(blocks.length).fill(0);
+
+    // All blocks start as honest (1)
+    for (let i = 0; i < blocks.length; i++) {
+        honestBlockData[i] = 1;
+    }
+
+    // Mark attack blocks only if there are successful attacks
+    // We'll mark the most recent blocks as attack blocks based on successful attacks
+    if (successfulAttackBlocks > 0 && blocks.length > 0) {
+        // Start marking from the end backwards for the most recent attacks
+        for (let i = 0; i < successfulAttackBlocks && i < blocks.length; i++) {
+            const blockIndex = blocks.length - 1 - i;
+            honestBlockData[blockIndex] = 0; // Remove from honest
+            attackBlockData[blockIndex] = 1; // Mark as attack block
+        }
+    }
+
+    networkCharts.blockchainDataChart.data.labels = blockLabels;
+    networkCharts.blockchainDataChart.data.datasets[0].data = honestBlockData;
+    networkCharts.blockchainDataChart.data.datasets[1].data = attackBlockData;
+
+    const totalBlocks = blocks.length;
+    const attackBlocks = successfulAttackBlocks;
+    const honestBlocks = totalBlocks - attackBlocks;
+
+    networkCharts.blockchainDataChart.options.plugins.title.text = `Blockchain Data (${totalBlocks} blocks, ${attackBlocks} attacks)`;
+    networkCharts.blockchainDataChart.update();
+    console.log('✅ Blockchain data chart updated - Individual blocks:', {
+        totalBlocks: totalBlocks,
+        attackBlocks: attackBlocks,
+        honestBlocks: honestBlocks,
+        labels: blockLabels
+    });
+}
+
+/**
+ * Update enhanced attack analysis with ATTACKER NODES metric
+ */
+function updateAttackAnalysisChart(chainData, balancesData, networkData) {
+    if (!networkCharts.attackAnalysisChart) return;
+
+    const blocks = chainData.chain || [];
+    const attackInfo = balancesData.attack_info || {};
+    const totalNodes = networkData.node_count || 120;
+
+    // Calculate accurate attack metrics
+    const totalAttacks = Object.keys(attackInfo).length;
+    const successfulAttacks = Object.values(attackInfo).filter(info => info.success === true).length;
+    const failedAttacks = totalAttacks - successfulAttacks;
+
+    // Success rate based on actual attacks
+    const successRate = totalAttacks > 0 ? (successfulAttacks / totalAttacks) * 100 : 0;
+
+    // Calculate actual amount stolen only from successful attacks
+    const successfulAttackAmount = Object.values(attackInfo)
+        .filter(info => info.success === true)
+        .reduce((sum, info) => sum + (info.amount || 0), 0);
+
+    // Blocks mined in attacks (only count successful attack blocks)
+    const attackBlocks = successfulAttacks;
+
+    // Calculate attacker nodes based on hash power and attack success
+    // More hash power and successful attacks indicate more malicious nodes
+    const baseMaliciousNodes = Math.floor((attackConfig.attackerHashPower / 100) * totalNodes * 0.3);
+    const attackSuccessBonus = successfulAttacks * 2; // More successful attacks = more nodes
+    const hashPowerBonus = Math.floor(attackConfig.attackerHashPower / 10);
+    const attackerNodes = Math.min(totalNodes * 0.4, baseMaliciousNodes + attackSuccessBonus + hashPowerBonus);
+
+    // Network health (better when fewer successful attacks and malicious nodes)
+    const networkHealth = Math.max(0, 100 - (successfulAttacks * 15) - (attackerNodes * 0.5));
+
+    // Latency impact (increases with more attacks and malicious nodes)
+    const latencyImpact = Math.min((successfulAttacks * 10) + (attackerNodes * 0.3), 100);
+
+    const metrics = [
+        successRate,           // Success Rate (%)
+        attackConfig.attackerHashPower, // Hash Power (%)
+        attackBlocks,          // Blocks Mined in successful attacks
+        successfulAttackAmount, // Amount Stolen (actual amount)
+        Math.round(attackerNodes), // Attacker Nodes (NEW METRIC)
+        latencyImpact,         // Latency Impact (%)
+        networkHealth          // Network Health (%)
+    ];
+
+    networkCharts.attackAnalysisChart.data.datasets[0].data = metrics;
+    networkCharts.attackAnalysisChart.update();
+    console.log('✅ Attack analysis chart updated with attacker nodes:', {
+        successRate,
+        hashPower: attackConfig.attackerHashPower,
+        attackBlocks,
+        amountStolen: successfulAttackAmount,
+        attackerNodes: Math.round(attackerNodes),
+        latencyImpact,
+        networkHealth,
+        totalNodes
+    });
+}
+
+/**
+ * Update node distribution chart with real data
+ */
+function updateNodeDistributionChart(networkData) {
+    if (!networkCharts.nodeDistributionChart) return;
+
+    const nodeCount = networkData.node_count || 120;
+    const distribution = [
+        Math.floor(nodeCount * 0.35), // North America
+        Math.floor(nodeCount * 0.28), // Europe
+        Math.floor(nodeCount * 0.22), // Asia
+        Math.floor(nodeCount * 0.08), // South America
+        Math.floor(nodeCount * 0.04), // Africa
+        Math.floor(nodeCount * 0.03)  // Oceania
+    ];
+
+    networkCharts.nodeDistributionChart.data.datasets[0].data = distribution;
+    networkCharts.nodeDistributionChart.update();
+    console.log('✅ Node distribution chart updated');
+}
+
+/**
+ * Fallback to demo data if real data fails
+ */
+function updateChartsWithDemoData() {
+    console.log('📊 Using demo data for charts...');
+
+    // Demo network activity
+    if (networkCharts.activityChart) {
+        networkCharts.activityChart.data.labels = ['Block 1', 'Block 2', 'Block 3'];
+        networkCharts.activityChart.data.datasets[0].data = [2, 3, 1];
+        networkCharts.activityChart.data.datasets[0].label = 'Transactions (Demo)';
+        networkCharts.activityChart.update();
+    }
+
+    // Demo blockchain data - individual blocks
+    if (networkCharts.blockchainDataChart) {
+        networkCharts.blockchainDataChart.data.labels = ['Block 1', 'Block 2', 'Block 3'];
+        networkCharts.blockchainDataChart.data.datasets[0].data = [1, 1, 1];
+        networkCharts.blockchainDataChart.data.datasets[1].data = [0, 0, 0];
+        networkCharts.blockchainDataChart.update();
+    }
+
+    // Demo attack analysis - all zeros for fresh start
+    if (networkCharts.attackAnalysisChart) {
+        networkCharts.attackAnalysisChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0, 100];
+        networkCharts.attackAnalysisChart.update();
+    }
+
+    // Demo node distribution
+    if (networkCharts.nodeDistributionChart) {
+        networkCharts.nodeDistributionChart.data.datasets[0].data = [42, 34, 26, 10, 5, 3];
+        networkCharts.nodeDistributionChart.update();
+    }
+
+    // Demo metrics
+    updateRealTimeMetrics(
+        { average_latency: 85, node_count: 120 },
+        { total_wallets: 0, active_attacks: 0 },
+        { chain: Array(3) }
+    );
+}
+
+/**
+ * Update real-time metrics display with actual data
+ */
+function updateRealTimeMetrics(networkData, balancesData, chainData) {
+    const blocks = chainData.chain || [];
+    const totalWallets = balancesData.total_wallets || 0;
+    const activeAttacks = balancesData.active_attacks || 0;
+    const attackInfo = balancesData.attack_info || {};
+
+    // Calculate successful attacks for accurate metrics
+    const successfulAttacks = Object.values(attackInfo).filter(info => info.success === true).length;
+
+    // Calculate attacker nodes for real-time metrics
+    const totalNodes = networkData.node_count || 120;
+    const baseMaliciousNodes = Math.floor((attackConfig.attackerHashPower / 100) * totalNodes * 0.3);
+    const attackSuccessBonus = successfulAttacks * 2;
+    const hashPowerBonus = Math.floor(attackConfig.attackerHashPower / 10);
+    const attackerNodes = Math.min(totalNodes * 0.4, baseMaliciousNodes + attackSuccessBonus + hashPowerBonus);
+
+    const metrics = {
+        latency: (networkData.average_latency || 85) + 'ms',
+        nodes: (networkData.node_count || 120) + '+',
+        throughput: blocks.length > 0 ? Math.floor(blocks.length * 1.5) + '/min' : '0/min',
+        blockTime: blocks.length > 1 ? '12.5s' : '--',
+        health: Math.max(10, 100 - (successfulAttacks * 15) - (attackerNodes * 0.5)) + '%',
+        attack: attackConfig.attackerHashPower + '%'
+    };
+
+    // Update metric cards
+    Object.keys(metrics).forEach(metric => {
+        const element = document.getElementById(metric);
+        if (element) {
+            element.textContent = metrics[metric];
+            element.classList.add('metric-update');
+            setTimeout(() => element.classList.remove('metric-update'), 500);
+        }
+    });
+
+    // Update the specific elements mentioned in HTML
+    const specificElements = {
+        'current-latency': metrics.latency,
+        'active-nodes': metrics.nodes,
+        'tx-throughput': metrics.throughput,
+        'block-time': metrics.blockTime,
+        'network-health': metrics.health,
+        'attack-success': metrics.attack
+    };
+
+    Object.keys(specificElements).forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = specificElements[id];
+            element.classList.add('metric-update');
+            setTimeout(() => element.classList.remove('metric-update'), 500);
+        }
+    });
+
+    console.log('✅ Real-time metrics updated:', metrics);
+}
+
+/**
+ * Refresh all charts with latest data
+ */
+function refreshAllCharts() {
+    console.log('🔄 Refreshing all charts with real data...');
+    updateChartsWithRealData();
+}
+
+/**
+ * Export charts as PNG images
+ */
+function exportCharts() {
+    const chartsContainer = document.getElementById('network-charts-dashboard');
+    if (!chartsContainer) return;
+
+    const charts = chartsContainer.querySelectorAll('canvas');
+    let exported = 0;
+
+    charts.forEach((chart, index) => {
+        const link = document.createElement('a');
+        link.download = `blockchain-chart-${index + 1}-${new Date().toISOString().split('T')[0]}.png`;
+        link.href = chart.toDataURL();
+        link.click();
+        exported++;
+    });
+
+    showNotification(`📸 ${exported} charts exported as PNG!`, 'success');
+}
+
+// ================================
+// BLOCKCHAIN OPERATIONS - UPDATED WITH USER-FRIENDLY OUTPUTS
+// ================================
+
+/**
+ * Submit a new transaction
+ */
+async function submitTransaction() {
+    console.log('📝 Submitting transaction...');
+
+    const sender = document.getElementById('tx-sender').value.trim();
+    const receiver = document.getElementById('tx-receiver').value.trim();
+    const amount = parseFloat(document.getElementById('tx-amount').value);
+
+    if (!sender || !receiver || isNaN(amount) || amount <= 0) {
+        showNotification('❌ Please fill all fields with valid values', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/tx/new', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                sender: sender,
+                receiver: receiver,
+                amount: amount
+            })
+        });
+
+        const data = await response.json();
+
+        const box = document.getElementById('tx-response');
+        if (box) {
+            box.style.display = 'block';
+            box.textContent = formatTransactionResponse(data);
+        }
+
+        if (response.ok) {
+            showNotification('✅ Transaction submitted successfully!', 'success');
+            // Clear form and refresh data
+            document.getElementById('tx-sender').value = '';
+            document.getElementById('tx-receiver').value = '';
+            document.getElementById('tx-amount').value = '';
+            // Refresh charts to show new transaction
+            setTimeout(refreshAllCharts, 1000);
+        } else {
+            showNotification('❌ Transaction failed: ' + (data.error || 'Unknown error'), 'error');
+        }
+
+    } catch (error) {
+        console.error('Transaction error:', error);
+        showNotification('💥 Network error: ' + error.message, 'error');
+    }
+}
+
+/**
+ * Mine a new block
+ */
+async function mineBlock() {
+    console.log('⛏️ Mining block...');
+
+    const miner = document.getElementById('miner-name').value.trim() || 'DefaultMiner';
+
+    try {
+        const response = await fetch('/api/mine', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                miner: miner
+            })
+        });
+
+        const data = await response.json();
+
+        const box = document.getElementById('mine-response');
+        if (box) {
+            box.style.display = 'block';
+            box.textContent = formatMiningResponse(data);
+        }
+
+        if (response.ok) {
+            showNotification('✅ Block mined successfully!', 'success');
+            refreshEnhancedBalances();
+            refreshChain();
+            // Refresh charts to show new block
+            setTimeout(refreshAllCharts, 1000);
+        } else {
+            showNotification('❌ Mining failed: ' + (data.error || 'Unknown error'), 'error');
+        }
+
+    } catch (error) {
+        console.error('Mining error:', error);
+        showNotification('💥 Network error: ' + error.message, 'error');
+    }
+}
+
+/**
+ * Refresh wallet balances
+ */
+async function refreshEnhancedBalances() {
+    console.log('💰 Refreshing balances...');
+
+    try {
+        const response = await fetch('/api/balances/detailed');
+        const data = await response.json();
+
+        const box = document.getElementById('balances-output');
+        if (box) {
+            box.textContent = formatBalancesResponse(data);
+        }
+
+    } catch (error) {
+        console.error('Balance refresh error:', error);
+        showNotification('💥 Failed to refresh balances', 'error');
+    }
+}
+
+/**
+ * Refresh blockchain data
+ */
+async function refreshChain() {
+    console.log('⛓️ Refreshing chain...');
+
+    try {
+        const response = await fetch('/api/chain');
+        const data = await response.json();
+
+        const box = document.getElementById('chain-output');
+        if (box) {
+            box.textContent = formatChainResponse(data);
+        }
+
+    } catch (error) {
+        console.error('Chain refresh error:', error);
+        showNotification('💥 Failed to refresh chain', 'error');
+    }
+}
+
+// ================================
+// ATTACK SIMULATION - UPDATED WITH USER-FRIENDLY OUTPUTS
+// ================================
+
+/**
+ * Update success probability
  */
 function updateSuccessProbability(value) {
     attackConfig.successProbability = parseFloat(value) / 100;
     document.getElementById('probability-value').textContent = value + '%';
     updateControlStatus();
+    // Update attack analysis chart when probability changes
+    if (networkCharts.attackAnalysisChart) {
+        setTimeout(updateChartsWithRealData, 100);
+    }
 }
 
 /**
- * Update attacker's hash power percentage
- * @param {string} value - New hash power value (1-100)
+ * Update hash power
  */
 function updateHashPower(value) {
     attackConfig.attackerHashPower = parseFloat(value);
     document.getElementById('hashpower-value').textContent = value + '%';
     updateControlStatus();
+    // Update attack analysis chart when hash power changes
+    if (networkCharts.attackAnalysisChart) {
+        setTimeout(updateChartsWithRealData, 100);
+    }
 }
 
 /**
- * Force attack to always succeed (override probability)
+ * Force attack success
  */
 function forceAttackSuccess() {
     attackConfig.forceSuccess = true;
@@ -142,7 +1484,7 @@ function forceAttackSuccess() {
 }
 
 /**
- * Force attack to always fail (override probability)
+ * Force attack failure
  */
 function forceAttackFailure() {
     attackConfig.forceFailure = true;
@@ -159,7 +1501,7 @@ function forceAttackFailure() {
 }
 
 /**
- * Reset attack controls to random probability mode
+ * Reset to random mode
  */
 function resetAttackControl() {
     attackConfig.forceSuccess = false;
@@ -176,7 +1518,7 @@ function resetAttackControl() {
 }
 
 /**
- * Update display showing current attack control mode
+ * Update control status display
  */
 function updateControlStatus() {
     const element = document.getElementById('current-mode');
@@ -195,1156 +1537,11 @@ function updateControlStatus() {
 }
 
 // ================================
-// CHART MANAGEMENT FUNCTIONS - UPDATED FOR DYNAMIC DATA
+// NETWORK OPERATIONS - UPDATED WITH USER-FRIENDLY OUTPUTS
 // ================================
 
 /**
- * Initialize chart canvases with proper dimensions
- */
-function initializeCharts() {
-    console.log('📊 Initializing chart canvases...');
-
-    const chartIds = [
-        'blockchainGrowthChart',
-        'balanceDistributionChart',
-        'miningAnalysisChart',
-        'networkActivityChart',
-        'simblockAnalysisChart'
-    ];
-
-    // Set dimensions for each chart canvas
-    chartIds.forEach(id => {
-        const canvas = document.getElementById(id);
-        if (canvas) {
-            const container = canvas.parentElement;
-            if (container) {
-                canvas.width = container.clientWidth - 40;
-                canvas.height = 300;
-            }
-        }
-    });
-}
-
-/**
- * Update blockchain growth chart with transaction data
- * @param {Object} chartData - Chart data from API
- */
-function updateBlockchainGrowthChart(chartData) {
-    const ctx = document.getElementById('blockchainGrowthChart');
-    if (!ctx) return;
-
-    // Destroy existing chart
-    if (blockchainCharts.growthChart) {
-        blockchainCharts.growthChart.destroy();
-    }
-
-    try {
-        const labels = chartData.labels || [];
-        const data = chartData.datasets?.[0]?.data || [];
-
-        if (labels.length === 0) {
-            console.log('No data for blockchain growth chart');
-            return;
-        }
-
-        blockchainCharts.growthChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Transactions per Block',
-                    data: data,
-                    backgroundColor: '#2a5298',
-                    borderColor: '#1e3c72',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Number of Transactions', font: { weight: 'bold' } }
-                    },
-                    x: {
-                        title: { display: true, text: 'Block Number', font: { weight: 'bold' } }
-                    }
-                },
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Blockchain Growth Analysis',
-                        font: { size: 16, weight: 'bold' }
-                    }
-                }
-            }
-        });
-        console.log('✅ Blockchain growth chart updated');
-    } catch (error) {
-        console.error('Error creating growth chart:', error);
-    }
-}
-
-/**
- * Update balance distribution pie chart with ALL wallets
- * @param {Object} chartData - Balance data from API
- */
-function updateBalanceDistributionChart(chartData) {
-    const ctx = document.getElementById('balanceDistributionChart');
-    if (!ctx) return;
-
-    if (blockchainCharts.balanceChart) {
-        blockchainCharts.balanceChart.destroy();
-    }
-
-    try {
-        const labels = chartData.labels || [];
-        const data = chartData.datasets?.[0]?.data || [];
-
-        // Show informative message when no data
-        if (labels.length === 0 || data.length === 0 || labels[0] === 'No Data') {
-            // Create empty state chart
-            blockchainCharts.balanceChart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: ['No Balance Data'],
-                    datasets: [{
-                        data: [1],
-                        backgroundColor: ['#C9CBCF']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Wallet Balance Distribution - No Data',
-                            font: { size: 16, weight: 'bold' }
-                        },
-                        legend: { position: 'right' }
-                    }
-                }
-            });
-            return;
-        }
-
-        blockchainCharts.balanceChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: [
-                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
-                        '#9966FF', '#FF9F40', '#9b59b6', '#34495e'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Wallet Balance Distribution (All Wallets)',
-                        font: { size: 16, weight: 'bold' }
-                    },
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            generateLabels: function(chart) {
-                                const data = chart.data;
-                                if (data.labels.length && data.datasets.length) {
-                                    return data.labels.map((label, i) => {
-                                        const value = data.datasets[0].data[i];
-                                        return {
-                                            text: `${label}: ${value} coins`,
-                                            fillStyle: data.datasets[0].backgroundColor[i],
-                                            hidden: false,
-                                            index: i
-                                        };
-                                    });
-                                }
-                                return [];
-                            }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.parsed;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
-                                return `${label}: ${value} coins (${percentage}%)`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        console.log('✅ Balance distribution chart updated with enhanced data');
-    } catch (error) {
-        console.error('Error creating balance chart:', error);
-    }
-}
-
-/**
- * Update mining analysis line chart
- * @param {Object} chartData - Mining data from API
- */
-function updateMiningAnalysisChart(chartData) {
-    const ctx = document.getElementById('miningAnalysisChart');
-    if (!ctx) return;
-
-    if (blockchainCharts.miningChart) {
-        blockchainCharts.miningChart.destroy();
-    }
-
-    try {
-        const labels = chartData.labels || [];
-        const data = chartData.datasets?.[0]?.data || [];
-
-        if (labels.length < 2) {
-            console.log('Insufficient data for mining analysis');
-            return;
-        }
-
-        blockchainCharts.miningChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Mining Time (seconds)',
-                    data: data,
-                    borderColor: '#e74c3c',
-                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Mining Time (seconds)', font: { weight: 'bold' } }
-                    },
-                    x: {
-                        title: { display: true, text: 'Block Index', font: { weight: 'bold' } }
-                    }
-                },
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Mining Time Analysis',
-                        font: { size: 16, weight: 'bold' }
-                    }
-                }
-            }
-        });
-        console.log('✅ Mining analysis chart updated');
-    } catch (error) {
-        console.error('Error creating mining chart:', error);
-    }
-}
-
-/**
- * Update network activity area chart with dynamic data
- * @param {Object} chartData - Network activity data from API
- */
-function updateNetworkActivityChart(chartData) {
-    const ctx = document.getElementById('networkActivityChart');
-    if (!ctx) return;
-
-    if (blockchainCharts.networkChart) {
-        blockchainCharts.networkChart.destroy();
-    }
-
-    try {
-        const labels = chartData.labels || [];
-        const data = chartData.datasets?.[0]?.data || [];
-
-        // Show empty state message when no data
-        if (labels.length === 0 || data.length === 0) {
-            blockchainCharts.networkChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['No Data'],
-                    datasets: [{
-                        label: 'Network Activity Level',
-                        data: [0],
-                        borderColor: '#C9CBCF',
-                        backgroundColor: 'rgba(201, 203, 207, 0.3)',
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: 'Activity Level',
-                                font: { weight: 'bold' }
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Run attacks to see network activity',
-                                font: { weight: 'bold' }
-                            }
-                        }
-                    },
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Network Activity - No Data Available',
-                            font: { size: 16, weight: 'bold' }
-                        },
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-            return;
-        }
-
-        blockchainCharts.networkChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Network Activity Level',
-                    data: data,
-                    borderColor: '#3498db',
-                    backgroundColor: 'rgba(52, 152, 219, 0.3)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'Activity Level',
-                            font: { weight: 'bold' }
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Attack Sequence',
-                            font: { weight: 'bold' }
-                        }
-                    }
-                },
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Network Activity During Attacks',
-                        font: { size: 16, weight: 'bold' }
-                    }
-                }
-            }
-        });
-        console.log('✅ Network activity chart updated with dynamic data');
-    } catch (error) {
-        console.error('Error creating network chart:', error);
-    }
-}
-
-/**
- * Update SimBlock network analysis chart with dynamic data
- */
-async function updateSimBlockAnalysisChart() {
-    const ctx = document.getElementById('simblockAnalysisChart');
-    if (!ctx) return;
-
-    if (blockchainCharts.simblockChart) {
-        blockchainCharts.simblockChart.destroy();
-    }
-
-    try {
-        // Get dynamic SimBlock data from API
-        const response = await fetch('/api/charts/simblock-analysis');
-        let chartData = {
-            labels: ['Network Latency', 'Node Health', 'Message Delivery', 'Attack Resistance'],
-            datasets: [{
-                label: 'Network Performance',
-                data: [0, 0, 0, 0],
-                backgroundColor: ['#C9CBCF', '#C9CBCF', '#C9CBCF', '#C9CBCF'],
-                borderColor: ['#7f8c8d', '#7f8c8d', '#7f8c8d', '#7f8c8d'],
-                borderWidth: 2
-            }]
-        };
-
-        if (response.ok) {
-            const apiData = await response.json();
-
-            // Check if we have real data (not all zeros)
-            const hasData = apiData.datasets && apiData.datasets[0] &&
-                           apiData.datasets[0].data.some(val => val > 0);
-
-            if (hasData) {
-                chartData = apiData;
-            } else {
-                // Show empty state with message
-                chartData.datasets[0].backgroundColor = ['#C9CBCF', '#C9CBCF', '#C9CBCF', '#C9CBCF'];
-                chartData.datasets[0].borderColor = ['#7f8c8d', '#7f8c8d', '#7f8c8d', '#7f8c8d'];
-            }
-        }
-
-        blockchainCharts.simblockChart = new Chart(ctx, {
-            type: 'bar',
-            data: chartData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'Performance Score (%)',
-                            font: { weight: 'bold' }
-                        }
-                    }
-                },
-                plugins: {
-                    title: {
-                        display: true,
-                        text: chartData.datasets[0].data.every(val => val === 0)
-                            ? 'SimBlock Network - No Data Available'
-                            : 'SimBlock P2P Network Analysis',
-                        font: { size: 16, weight: 'bold' }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const value = context.parsed.y;
-                                if (value === 0) {
-                                    return 'No data - run attacks to see metrics';
-                                }
-                                return `${context.dataset.label}: ${value}%`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        console.log('✅ SimBlock analysis chart updated with dynamic data');
-    } catch (error) {
-        console.error('Error creating SimBlock chart:', error);
-    }
-}
-
-/**
- * Reset all chart data to initial state
- */
-async function resetAllCharts() {
-    try {
-        const response = await fetch('/api/charts/reset', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        if (response.ok) {
-            showNotification('🔄 All charts reset to initial state', 'info');
-            // Reload charts to show empty state
-            setTimeout(() => {
-                loadNetworkActivityChart();
-                loadSimBlockAnalysisChart();
-            }, 500);
-        } else {
-            showNotification('❌ Failed to reset charts', 'error');
-        }
-    } catch (error) {
-        console.error('Failed to reset charts:', error);
-        showNotification('❌ Failed to reset charts', 'error');
-    }
-}
-
-// ================================
-// SIMBLOCK INTEGRATION FUNCTIONS
-// ================================
-
-/**
- * Display current SimBlock network conditions
- */
-async function displaySimBlockNetwork() {
-    try {
-        const response = await fetch('/api/simblock/network');
-        if (!response.ok) throw new Error('Network request failed');
-
-        const networkData = await response.json();
-
-        // Create or update network display
-        let networkDisplay = document.getElementById('simblock-network-display');
-        if (!networkDisplay) {
-            networkDisplay = document.createElement('div');
-            networkDisplay.id = 'simblock-network-display';
-            networkDisplay.className = 'section-box';
-            networkDisplay.innerHTML = `
-                <h4>🌐 SimBlock P2P Network</h4>
-                <div id="network-conditions"></div>
-                <div class="chart-actions">
-                    <button class="primary-btn" onclick="startSimBlockSimulation()">Start Network Simulation</button>
-                    <button class="primary-btn" onclick="calculateEnhancedProbability()">Calculate Enhanced Probability</button>
-                </div>
-            `;
-
-            // Insert after attack section
-            const attackSection = document.querySelector('.section-box:has(#run-attack-btn)');
-            if (attackSection) {
-                attackSection.parentNode.insertBefore(networkDisplay, attackSection);
-            }
-        }
-
-        // Update network conditions display
-        const conditionsDiv = document.getElementById('network-conditions');
-        const healthClass = networkData.status === 'good' ? 'health-good' :
-                           networkData.status === 'congested' ? 'health-congested' : 'health-poor';
-
-        conditionsDiv.innerHTML = `
-            <div class="network-stats">
-                <p><strong>Network Status:</strong>
-                   <span class="network-health-indicator ${healthClass}"></span>
-                   <span class="${networkData.status === 'good' ? 'positive' : 'negative'}">
-                   ${networkData.status || 'default'}</span>
-                </p>
-                <p><strong>Average Latency:</strong> ${networkData.latency || '100ms'}</p>
-                <p><strong>Active Nodes:</strong> ${networkData.nodes || 4}</p>
-                <p><strong>Attacker Present:</strong> ${networkData.attacker_present ? 'Yes' : 'No'}</p>
-                <p><strong>Simulation Ready:</strong> ${networkData.simulation_ready ? '✅' : '❌'}</p>
-            </div>
-        `;
-
-    } catch (error) {
-        console.error('Failed to load SimBlock network:', error);
-        showNotification('Failed to load SimBlock network data', 'error');
-    }
-}
-
-/**
- * Start SimBlock network simulation
- */
-async function startSimBlockSimulation() {
-    try {
-        showNotification('🚀 Starting SimBlock network simulation...', 'info');
-
-        const response = await fetch('/api/simblock/start', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            showNotification('✅ SimBlock simulation completed successfully!', 'success');
-            displaySimBlockNetwork(); // Refresh display
-            // Auto-refresh charts after simulation
-            setTimeout(loadAllCharts, 1000);
-        } else {
-            showNotification('❌ SimBlock simulation failed', 'error');
-        }
-
-    } catch (error) {
-        showNotification('💥 SimBlock simulation failed: ' + error.message, 'error');
-    }
-}
-
-/**
- * Calculate enhanced attack probability using SimBlock
- */
-async function calculateEnhancedProbability() {
-    try {
-        const baseProb = attackConfig.successProbability * 100;
-        const hashPower = attackConfig.attackerHashPower;
-
-        const response = await fetch('/api/simblock/attack-probability', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                base_probability: baseProb,
-                hash_power: hashPower,
-                latency: 100
-            })
-        });
-
-        const data = await response.json();
-
-        showNotification(
-            `🎲 Enhanced probability: ${data.enhanced_probability.toFixed(1)}% (Base: ${data.base_probability}%)`,
-            'info'
-        );
-
-    } catch (error) {
-        console.error('Failed to calculate enhanced probability:', error);
-        showNotification('Failed to calculate enhanced probability', 'error');
-    }
-}
-
-// ================================
-// CHART DASHBOARD FUNCTIONS
-// ================================
-
-/**
- * Load all charts with data from blockchain API
- */
-async function loadAllCharts() {
-    try {
-        showNotification('📊 Loading all charts...', 'info');
-        console.log('Loading comprehensive chart data...');
-
-        // Use Promise.allSettled to handle individual chart failures
-        const chartPromises = [
-            loadBlockchainGrowthChart(),
-            loadBalanceDistributionChart(),
-            loadMiningAnalysisChart(),
-            loadNetworkActivityChart(),
-            loadSimBlockAnalysisChart()
-        ];
-
-        const results = await Promise.allSettled(chartPromises);
-
-        // Check which charts loaded successfully
-        const successfulCharts = results.filter(result => result.status === 'fulfilled').length;
-
-        if (successfulCharts > 0) {
-            showNotification(`✅ ${successfulCharts}/5 charts loaded successfully!`, 'success');
-        } else {
-            showNotification('⚠️ Some charts failed to load', 'error');
-        }
-
-        console.log(`Charts loaded: ${successfulCharts}/5 successful`);
-
-    } catch (error) {
-        console.error('Error loading charts:', error);
-        showNotification('Failed to load some charts: ' + error.message, 'error');
-    }
-}
-
-/**
- * Load blockchain growth chart data from API
- */
-async function loadBlockchainGrowthChart() {
-    try {
-        const response = await fetch('/api/charts/blockchain-growth');
-        if (response.ok) {
-            const data = await response.json();
-            updateBlockchainGrowthChart(data);
-        } else {
-            console.warn('Blockchain growth chart API failed');
-        }
-    } catch (error) {
-        console.error('Error loading blockchain growth chart:', error);
-    }
-}
-
-/**
- * Load balance distribution chart data from API
- */
-async function loadBalanceDistributionChart() {
-    try {
-        const response = await fetch('/api/charts/balance-distribution');
-        if (response.ok) {
-            const data = await response.json();
-            updateBalanceDistributionChart(data);
-        } else {
-            console.warn('Balance distribution chart API failed');
-        }
-    } catch (error) {
-        console.error('Error loading balance distribution chart:', error);
-    }
-}
-
-/**
- * Load mining analysis chart data from API
- */
-async function loadMiningAnalysisChart() {
-    try {
-        const response = await fetch('/api/charts/mining-analysis');
-        if (response.ok) {
-            const data = await response.json();
-            updateMiningAnalysisChart(data);
-        } else {
-            console.warn('Mining analysis chart API failed');
-        }
-    } catch (error) {
-        console.error('Error loading mining analysis chart:', error);
-    }
-}
-
-/**
- * Load network activity chart data from API
- */
-async function loadNetworkActivityChart() {
-    try {
-        const response = await fetch('/api/charts/network-activity');
-        if (response.ok) {
-            const data = await response.json();
-            updateNetworkActivityChart(data);
-        } else {
-            console.warn('Network activity chart API failed');
-        }
-    } catch (error) {
-        console.error('Error loading network activity chart:', error);
-    }
-}
-
-/**
- * Load SimBlock analysis chart with real data
- */
-async function loadSimBlockAnalysisChart() {
-    try {
-        const response = await fetch('/api/charts/simblock-analysis');
-        if (response.ok) {
-            const data = await response.json();
-            // Use the updated function that fetches real data
-            await updateSimBlockAnalysisChart();
-        }
-    } catch (error) {
-        console.error('Failed to load SimBlock chart:', error);
-    }
-}
-
-/**
- * Toggle charts dashboard visibility
- * @param {string} sectionId - ID of section to toggle
- */
-function toggleChartSection(sectionId) {
-    const section = document.getElementById(sectionId);
-    const button = document.querySelector(`[onclick="toggleChartSection('${sectionId}')"]`);
-
-    if (section.style.display === 'none' || !section.style.display) {
-        section.style.display = 'block';
-        button.textContent = 'Hide Analytics Dashboard';
-        setTimeout(() => {
-            initializeCharts();
-            loadAllCharts();
-        }, 100);
-    } else {
-        section.style.display = 'none';
-        button.textContent = 'Show Analytics Dashboard';
-    }
-}
-
-// ================================
-// AUTO-REFRESH SETUP
-// ================================
-
-/**
- * Setup automatic chart refresh after blockchain actions
- */
-function setupChartAutoRefresh() {
-    console.log('🔄 Setting up chart auto-refresh...');
-
-    // Store original functions
-    const originalSubmitTransaction = window.submitTransaction;
-    const originalMineBlock = window.mineBlock;
-    const originalRunAttack = window.runAttack;
-
-    // Override submitTransaction with auto-refresh
-    window.submitTransaction = async function() {
-        await originalSubmitTransaction?.();
-        setTimeout(() => {
-            loadAllCharts();
-            refreshEnhancedBalances();
-        }, 1000);
-    };
-
-    // Override mineBlock with auto-refresh
-    window.mineBlock = async function() {
-        await originalMineBlock?.();
-        setTimeout(() => {
-            loadAllCharts();
-            refreshEnhancedBalances();
-            refreshChain();
-        }, 1000);
-    };
-
-    // Override runAttack with auto-refresh
-    window.runAttack = async function() {
-        await originalRunAttack?.();
-        setTimeout(() => {
-            loadAllCharts();
-            refreshEnhancedBalances();
-        }, 1500);
-    };
-
-    console.log('✅ Chart auto-refresh setup completed');
-}
-
-// ================================
-// BLOCKCHAIN CORE FUNCTIONS
-// ================================
-
-/**
- * Submit new transaction to blockchain
- */
-async function submitTransaction() {
-    const sender = document.getElementById('tx-sender').value.trim();
-    const receiver = document.getElementById('tx-receiver').value.trim();
-    const amount = parseFloat(document.getElementById('tx-amount').value);
-
-    // Validation
-    if (!sender || !receiver || !amount || amount <= 0) {
-        showNotification('❌ Please fill all fields with valid values', 'error');
-        return;
-    }
-
-    try {
-        showNotification('💸 Sending transaction...', 'info');
-
-        const response = await fetch('/api/tx/new', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sender, receiver, amount })
-        });
-
-        const data = await response.json();
-        const box = document.getElementById('tx-response');
-
-        if (box) {
-            box.style.display = 'block';
-            if (data.status === 'ok') {
-                box.innerHTML = createUserFriendlyOutput(`
-                    <p>✅ <strong>Transaction Successful!</strong></p>
-                    <p>Transaction ID: <code>${data.txid}</code></p>
-                    <p>From: <strong>${sender}</strong></p>
-                    <p>To: <strong>${receiver}</strong></p>
-                    <p>Amount: <strong>${amount} coins</strong></p>
-                    <p>Pending transactions: ${data.mempool_size}</p>
-                `, 'Transaction Details');
-                showNotification('✅ Transaction added successfully!', 'success');
-
-                // Clear form
-                document.getElementById('tx-sender').value = '';
-                document.getElementById('tx-receiver').value = '';
-                document.getElementById('tx-amount').value = '';
-            } else {
-                box.innerHTML = createUserFriendlyOutput(`
-                    <p>❌ <strong>Transaction Failed</strong></p>
-                    <p>Error: ${data.error || 'Unknown error'}</p>
-                `, 'Transaction Error');
-                showNotification('❌ Transaction failed', 'error');
-            }
-        }
-
-    } catch (error) {
-        showNotification('💥 Transaction failed: ' + error.message, 'error');
-    }
-}
-
-/**
- * Mine new block with pending transactions
- */
-async function mineBlock() {
-    const miner = document.getElementById('miner-name').value.trim() || 'DefaultMiner';
-
-    try {
-        showNotification('⛏️ Mining block...', 'info');
-
-        const response = await fetch('/api/mine', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ miner })
-        });
-
-        const data = await response.json();
-        const box = document.getElementById('mine-response');
-
-        if (box) {
-            box.style.display = 'block';
-            if (data.status === 'ok') {
-                box.innerHTML = createUserFriendlyOutput(`
-                    <p>✅ <strong>Block Mined Successfully!</strong></p>
-                    <p>Miner: <strong>${miner}</strong></p>
-                    <p>Block Index: <strong>${data.block.index}</strong></p>
-                    <p>Block Hash: <code>${data.block.hash.substring(0, 20)}...</code></p>
-                    <p>Transactions in block: <strong>${data.block.transactions.length}</strong></p>
-                    <p>Total chain length: <strong>${data.chain_length} blocks</strong></p>
-                `, 'Mining Results');
-                showNotification('✅ Block mined successfully!', 'success');
-            } else {
-                box.innerHTML = createUserFriendlyOutput(`
-                    <p>❌ <strong>Mining Failed</strong></p>
-                    <p>Error: ${data.error || 'Unknown error'}</p>
-                `, 'Mining Error');
-                showNotification('❌ Mining failed', 'error');
-            }
-        }
-
-    } catch (error) {
-        showNotification('💥 Mining failed: ' + error.message, 'error');
-    }
-}
-
-/**
- * Enhanced balance display with attacker information
- */
-async function refreshEnhancedBalances() {
-    try {
-        // Use detailed balances endpoint
-        const response = await fetch('/api/balances/detailed');
-        if (!response.ok) throw new Error('Failed to fetch balances');
-
-        const data = await response.json();
-        const balances = data.balances || {};
-        const attackInfo = data.attack_info || {};
-
-        const output = document.getElementById('balances-output');
-
-        if (output) {
-            let html = '<div class="balances-table"><h4>💰 Current Balances</h4>';
-
-            // Show attack information if available
-            if (Object.keys(attackInfo).length > 0) {
-                html += '<div class="attack-alert">';
-                html += '<h5>🚨 Recent Attack Activity</h5>';
-                for (const [attacker, info] of Object.entries(attackInfo)) {
-                    if (info.success) {
-                        html += `<p>🦹 <strong>${attacker}</strong> stole <strong>${info.amount} coins</strong> from 😱 <strong>${info.victim}</strong></p>`;
-                    } else {
-                        html += `<p>🦹 <strong>${attacker}</strong>'s attack failed - no coins stolen</p>`;
-                    }
-                }
-                html += '</div>';
-            }
-
-            html += '<table>';
-            html += '<tr><th>Wallet Address</th><th>Balance</th><th>Status</th><th>Role</th></tr>';
-
-            for (const [user, balance] of Object.entries(balances)) {
-                const cls = balance >= 0 ? 'positive' : 'negative';
-                const status = balance > 0 ? '💰' : balance < 0 ? '⚠️' : '➖';
-
-                // Determine role
-                let role = 'User';
-                if (user in attackInfo) {
-                    role = '🦹 Attacker';
-                } else if (Object.values(attackInfo).some(info => info.victim === user)) {
-                    role = '😱 Victim';
-                } else if (balance > 50) {
-                    role = '💰 Rich';
-                } else if (balance < -10) {
-                    role = '💸 Debt';
-                }
-
-                html += `<tr>
-                    <td>${user}</td>
-                    <td class="${cls}">${balance.toFixed(2)} coins</td>
-                    <td>${status}</td>
-                    <td>${role}</td>
-                </tr>`;
-            }
-
-            html += '</table>';
-            html += `<p class="summary">Total Wallets: ${data.total_wallets} | Active Attacks: ${data.active_attacks}</p>`;
-            html += '</div>';
-
-            output.innerHTML = html;
-        }
-
-        console.log('✅ Enhanced balances refreshed with attack info');
-
-        // AUTO-REFRESH: Update balance chart
-        setTimeout(() => {
-            loadBalanceDistributionChart();
-        }, 500);
-
-    } catch (error) {
-        console.error('Failed to load balances:', error);
-        showNotification('❌ Failed to load balances', 'error');
-    }
-}
-
-/**
- * Compatibility function for original refreshBalances
- */
-async function refreshBalances() {
-    await refreshEnhancedBalances();
-}
-
-/**
- * Refresh and display blockchain data
- */
-async function refreshChain() {
-    try {
-        const response = await fetch('/api/chain');
-        if (!response.ok) throw new Error('Failed to fetch chain data');
-
-        const data = await response.json();
-        const output = document.getElementById('chain-output');
-
-        if (output) {
-            let html = '<div class="chain-view"><h4>⛓️ Blockchain Overview</h4>';
-            html += `<p>Total blocks: <strong>${data.chain.length}</strong></p>`;
-            html += `<p>Pending transactions: <strong>${data.mempool.length}</strong></p>`;
-            html += `<p>Difficulty: <strong>${data.difficulty}</strong></p>`;
-
-            html += '<div class="blocks-container">';
-            data.chain.forEach(block => {
-                html += `
-                    <div class="block-card">
-                        <h5>Block #${block.index}</h5>
-                        <p>Hash: <code>${block.hash.substring(0, 15)}...</code></p>
-                        <p>Previous: <code>${block.previous_hash.substring(0, 15)}...</code></p>
-                        <p>Transactions: ${block.transactions.length}</p>
-                        <p>Nonce: ${block.nonce}</p>
-                    </div>
-                `;
-            });
-            html += '</div></div>';
-            output.innerHTML = html;
-        }
-
-        console.log('✅ Blockchain refreshed');
-
-    } catch (error) {
-        console.error('Failed to load blockchain:', error);
-        showNotification('❌ Failed to load blockchain', 'error');
-    }
-}
-
-/**
- * Run double-spending attack simulation
- */
-async function runAttack() {
-    const attacker = document.getElementById('attack-attacker').value.trim() || 'Attacker';
-    const blocks = parseInt(document.getElementById('attack-blocks').value) || 1;
-    const amount = parseFloat(document.getElementById('attack-amount').value) || 5;
-
-    // Validation
-    if (blocks <= 0 || amount <= 0) {
-        showNotification('❌ Please enter valid values for blocks and amount', 'error');
-        return;
-    }
-
-    try {
-        showNotification('🎯 Starting attack simulation...', 'info');
-
-        // Prepare attack payload with proper frontend_config
-        const payload = {
-            attacker: attacker,
-            blocks: blocks,
-            amount: amount,
-            frontend_config: {
-                hash_power: attackConfig.attackerHashPower,  // Correct key name
-                success_probability: attackConfig.successProbability * 100,  // Convert to percentage
-                force_success: attackConfig.forceSuccess,
-                force_failure: attackConfig.forceFailure,
-                latency: 100  // Add latency for SimBlock
-            }
-        };
-
-        console.log('🔧 Sending attack config:', payload);
-
-        const response = await fetch('/api/attack/run', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            throw new Error(`Attack request failed: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('🎯 Attack response:', data);
-
-        const box = document.getElementById('attack-output');
-
-        if (box) {
-            box.style.display = 'block';
-
-            // Create detailed attack report
-            let attackHTML = `
-                <p>🎯 <strong>Double-Spending Attack Results</strong></p>
-                <div class="attack-steps">
-            `;
-
-            // Add attack steps
-            if (data.steps && Array.isArray(data.steps)) {
-                data.steps.forEach((step, index) => {
-                    attackHTML += `<div class="attack-step"><strong>Step ${index + 1}:</strong> ${step.action}`;
-                    if (step.result !== undefined) attackHTML += ` - ${step.result ? '✅ Success' : '❌ Failed'}`;
-                    if (step.mining_success !== undefined) attackHTML += ` - Mining: ${step.mining_success ? '✅' : '❌'}`;
-                    if (step.error) attackHTML += ` - Error: ${step.error}`;
-                    attackHTML += `</div>`;
-                });
-            }
-
-            const attackSuccessful = data.successful || false;
-            const successRate = data.success_rate || 0;
-            const blocksMined = data.blocks_mined || 0;
-
-            attackHTML += `
-                </div>
-                <div class="attack-config">
-                    <p><strong>Attack Configuration:</strong></p>
-                    <p>Success Probability: ${(attackConfig.successProbability * 100).toFixed(1)}%</p>
-                    <p>Hash Power: ${attackConfig.attackerHashPower}%</p>
-                    <p>Mode: ${attackConfig.forceSuccess ? 'FORCED SUCCESS' : attackConfig.forceFailure ? 'FORCED FAILURE' : 'RANDOM'}</p>
-                </div>
-                <div class="attack-result ${attackSuccessful ? 'success' : 'failure'}">
-                    <h4>${attackSuccessful ? '✅ ATTACK SUCCESSFUL!' : '❌ ATTACK FAILED'}</h4>
-                    <p>${attackSuccessful ?
-                        'The double-spending attack was successful! The private chain was accepted.' :
-                        'The attack was prevented by the network.'}
-                    </p>
-                    <p>Success Rate: <strong>${(successRate * 100).toFixed(1)}%</strong></p>
-                    <p>Blocks Mined: <strong>${blocksMined}</strong></p>
-                    ${data.message ? `<p>Message: ${data.message}</p>` : ''}
-                </div>
-            `;
-
-            box.innerHTML = createUserFriendlyOutput(attackHTML, 'Attack Simulation Complete');
-
-            const notificationType = attackSuccessful ? 'success' : 'error';
-            showNotification(
-                `Attack ${attackSuccessful ? 'successful' : 'failed'} (${(successRate * 100).toFixed(1)}% success rate)`,
-                notificationType
-            );
-        }
-
-    } catch (error) {
-        console.error('Attack simulation failed:', error);
-        showNotification('💥 Attack simulation failed: ' + error.message, 'error');
-
-        const box = document.getElementById('attack-output');
-        if (box) {
-            box.style.display = 'block';
-            box.innerHTML = createUserFriendlyOutput(`
-                <p>❌ <strong>Attack Failed</strong></p>
-                <p>Error: ${error.message}</p>
-                <p>Please check if the backend server is running.</p>
-            `, 'Attack Error');
-        }
-    }
-}
-
-// ================================
-// NETWORK MANAGEMENT FUNCTIONS
-// ================================
-
-/**
- * Add new peer to the network
+ * Add a peer to the network
  */
 async function addPeer() {
     const peerAddress = document.getElementById('peer-address').value.trim();
@@ -1355,252 +1552,218 @@ async function addPeer() {
     }
 
     try {
-        showNotification('🔗 Adding peer...', 'info');
-
         const response = await fetch('/peers', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ address: peerAddress })
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                address: peerAddress
+            })
         });
 
         const data = await response.json();
-        const box = document.getElementById('peer-response');
 
+        const box = document.getElementById('peer-response');
         if (box) {
             box.style.display = 'block';
-            if (data.message) {
-                box.innerHTML = createUserFriendlyOutput(`
-                    <p>✅ <strong>Peer Added Successfully!</strong></p>
-                    <p>${data.message}</p>
-                    <p>Total peers: ${data.peers.length}</p>
-                `, 'Network Update');
-                showNotification('✅ Peer added successfully!', 'success');
-            } else {
-                box.innerHTML = createUserFriendlyOutput(`
-                    <p>❌ <strong>Failed to Add Peer</strong></p>
-                    <p>Error: ${data.error || 'Unknown error'}</p>
-                `, 'Network Error');
-                showNotification('❌ Failed to add peer', 'error');
-            }
+            box.textContent = formatPeerResponse(data);
+        }
+
+        if (response.ok) {
+            showNotification('✅ Peer added successfully!', 'success');
+            document.getElementById('peer-address').value = '';
+            // Refresh charts to show network changes
+            setTimeout(refreshAllCharts, 500);
+        } else {
+            showNotification('❌ Failed to add peer: ' + (data.error || 'Unknown error'), 'error');
         }
 
     } catch (error) {
-        showNotification('💥 Failed to add peer: ' + error.message, 'error');
+        console.error('Add peer error:', error);
+        showNotification('💥 Network error: ' + error.message, 'error');
     }
 }
 
 /**
- * Resolve blockchain conflicts with network consensus
+ * Resolve network conflicts
  */
 async function resolveConflicts() {
     try {
-        showNotification('🔄 Checking network consensus...', 'info');
-
         const response = await fetch('/consensus');
         const data = await response.json();
-        const box = document.getElementById('consensus-response');
 
+        const box = document.getElementById('consensus-response');
         if (box) {
             box.style.display = 'block';
-
-            if (data.message && data.message.includes('replaced')) {
-                box.innerHTML = createUserFriendlyOutput(`
-                    <p>🔄 <strong>Chain Replaced!</strong></p>
-                    <p>Our chain was replaced by a longer chain from the network.</p>
-                    <p>New chain length: ${data.new_chain.length} blocks</p>
-                `, 'Consensus Results');
-                showNotification('✅ Chain replaced with longer chain', 'success');
-
-                setTimeout(() => {
-                    refreshChain();
-                    refreshEnhancedBalances();
-                    loadAllCharts();
-                }, 500);
-            } else {
-                box.innerHTML = createUserFriendlyOutput(`
-                    <p>✅ <strong>Chain is Authoritative</strong></p>
-                    <p>Our chain is the longest and most valid chain in the network.</p>
-                    <p>Current chain length: ${data.chain.length} blocks</p>
-                `, 'Consensus Results');
-                showNotification('✅ Our chain is authoritative', 'success');
-            }
+            box.textContent = formatConsensusResponse(data);
         }
 
+        showNotification('🔗 Consensus check completed', 'info');
+        refreshChain();
+        // Refresh charts after consensus check
+        setTimeout(refreshAllCharts, 500);
+
     } catch (error) {
-        showNotification('💥 Failed to run consensus: ' + error.message, 'error');
+        console.error('Consensus error:', error);
+        showNotification('💥 Network error: ' + error.message, 'error');
     }
 }
 
+// ================================
+// SIMBLOCK FUNCTIONS - UPDATED WITH USER-FRIENDLY OUTPUTS
+// ================================
+
 /**
- * Download comprehensive PDF report
+ * Start SimBlock simulation
  */
-async function downloadPDF() {
-    const spinner = document.getElementById('pdf-spinner');
+async function startSimBlockSimulation() {
+    try {
+        showNotification('🚀 Starting SimBlock simulation...', 'info');
+
+        const response = await fetch('/api/simblock/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('✅ SimBlock simulation completed!', 'success');
+            // Refresh charts after simulation
+            setTimeout(refreshAllCharts, 1000);
+        } else {
+            showNotification('❌ SimBlock simulation failed', 'error');
+        }
+
+    } catch (error) {
+        showNotification('💥 SimBlock simulation failed: ' + error.message, 'error');
+    }
+}
+
+// ================================
+// CSV REPORT FUNCTIONS
+// ================================
+
+/**
+ * Download all CSV reports
+ */
+async function downloadCSVReports() {
+    const spinner = document.getElementById('csv-spinner');
 
     try {
-        spinner.style.display = 'inline';
-        showNotification('📄 Generating PDF report...', 'info');
+        if (spinner) spinner.style.display = 'inline';
+        showNotification('📊 Generating CSV reports...', 'info');
 
-        const response = await fetch('/api/report/pdf');
-        if (!response.ok) throw new Error('PDF generation failed');
+        const response = await fetch('/api/report/csv');
+        if (!response.ok) throw new Error('CSV generation failed');
 
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'Blockchain-Analysis-Report.pdf';
+        link.download = 'Blockchain-Analysis-Reports.zip';
         document.body.appendChild(link);
         link.click();
         link.remove();
         window.URL.revokeObjectURL(url);
 
-        showNotification('✅ PDF report downloaded successfully!', 'success');
+        showNotification('✅ CSV reports downloaded successfully!', 'success');
     } catch (error) {
-        showNotification('💥 PDF generation failed: ' + error.message, 'error');
+        showNotification('💥 CSV generation failed: ' + error.message, 'error');
     } finally {
-        spinner.style.display = 'none';
+        if (spinner) spinner.style.display = 'none';
+    }
+}
+
+/**
+ * Download specific CSV report
+ */
+async function downloadSpecificCSV(reportType) {
+    try {
+        showNotification(`📄 Generating ${reportType} report...`, 'info');
+
+        const response = await fetch(`/api/report/csv/${reportType}`);
+        if (!response.ok) throw new Error(`${reportType} report generation failed`);
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+
+        const filenames = {
+            'blockchain': 'blockchain_analysis',
+            'attack': 'attack_analysis',
+            'network': 'network_metrics',
+            'double-spend': 'double_spend_analysis'
+        };
+
+        link.download = `${filenames[reportType] || reportType}_${new Date().toISOString().split('T')[0]}.csv`;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        showNotification(`✅ ${reportType} report downloaded!`, 'success');
+    } catch (error) {
+        showNotification(`💥 ${reportType} report failed: ` + error.message, 'error');
     }
 }
 
 // ================================
-// DASHBOARD CREATION FUNCTIONS - UPDATED WITH RESET BUTTON
+// INITIALIZATION
 // ================================
 
 /**
- * Create charts dashboard section dynamically with reset button
+ * Initialize the application
  */
-function createChartsDashboard() {
-    const chartsSection = document.createElement('div');
-    chartsSection.id = 'charts-dashboard';
-    chartsSection.style.display = 'none';
-    chartsSection.innerHTML = `
-        <div class="section-box">
-            <h3>📊 Blockchain Analytics Dashboard</h3>
-            <p>Comprehensive visualization of blockchain data and network analytics with real-time SimBlock integration</p>
-
-            <div class="chart-info-note">
-                <p><strong>Note:</strong> Network Activity and SimBlock charts will show data only after running attack simulations</p>
-            </div>
-
-            <div class="charts-grid">
-                <div class="chart-container">
-                    <h4>Blockchain Growth</h4>
-                    <canvas id="blockchainGrowthChart"></canvas>
-                </div>
-
-                <div class="chart-container">
-                    <h4>Balance Distribution</h4>
-                    <canvas id="balanceDistributionChart"></canvas>
-                </div>
-
-                <div class="chart-container">
-                    <h4>Mining Analysis</h4>
-                    <canvas id="miningAnalysisChart"></canvas>
-                </div>
-
-                <div class="chart-container">
-                    <h4>Network Activity</h4>
-                    <canvas id="networkActivityChart"></canvas>
-                </div>
-
-                <div class="chart-container">
-                    <h4>SimBlock Network</h4>
-                    <canvas id="simblockAnalysisChart"></canvas>
-                </div>
-            </div>
-
-            <div class="chart-actions">
-                <button class="primary-btn" onclick="loadAllCharts()">🔄 Refresh All Charts</button>
-                <button class="primary-btn" onclick="resetAllCharts()">🗑️ Reset Chart Data</button>
-                <button class="primary-btn" onclick="toggleChartSection('charts-dashboard')">📋 Hide Dashboard</button>
-            </div>
-        </div>
-    `;
-
-    // Insert after introduction section
-    const introSection = document.querySelector('.header-text');
-    if (introSection) {
-        introSection.parentNode.insertBefore(chartsSection, introSection.nextSibling);
-    }
-
-    console.log('✅ Charts dashboard created successfully with reset functionality');
-}
-
-// ================================
-// INITIALIZATION FUNCTIONS
-// ================================
-
-/**
- * Initialize all event listeners
- */
-function initializeEventListeners() {
-    console.log('🔧 Initializing event listeners...');
-
-    // Add charts dashboard toggle button
-    const header = document.querySelector('.header-text');
-    if (header) {
-        const toggleBtn = document.createElement('button');
-        toggleBtn.className = 'primary-btn';
-        toggleBtn.style.margin = '10px';
-        toggleBtn.textContent = '📊 Show Analytics Dashboard';
-        toggleBtn.onclick = function() { toggleChartSection('charts-dashboard'); };
-        header.appendChild(toggleBtn);
-    }
-
-    // Define button configurations
-    const buttons = [
-        { id: 'submit-tx-btn', func: submitTransaction, name: 'Transaction' },
-        { id: 'mine-btn', func: mineBlock, name: 'Mine Block' },
-        { id: 'refresh-balances-btn', func: refreshEnhancedBalances, name: 'Refresh Balances' },
-        { id: 'refresh-chain-btn', func: refreshChain, name: 'Refresh Chain' },
-        { id: 'run-attack-btn', func: runAttack, name: 'Run Attack' },
-        { id: 'add-peer-btn', func: addPeer, name: 'Add Peer' },
-        { id: 'resolve-conflicts-btn', func: resolveConflicts, name: 'Resolve Conflicts' },
-        { id: 'download-report-btn', func: downloadPDF, name: 'Download PDF' }
-    ];
-
-    // Attach event listeners
-    buttons.forEach(btn => {
-        const element = document.getElementById(btn.id);
-        if (element) {
-            element.addEventListener('click', btn.func);
-            console.log('✅ ' + btn.name + ' button listener added');
-        } else {
-            console.log('❌ ' + btn.name + ' button not found');
-        }
-    });
-}
-
-// ================================
-// APPLICATION INITIALIZATION
-// ================================
-
-/**
- * Initialize application when DOM is ready
- */
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 DOM fully loaded! Initializing blockchain application...');
+function initializeApp() {
+    console.log('🚀 Initializing blockchain application...');
 
     // Initialize attack controls
     updateControlStatus();
 
-    // Create UI components
-    createChartsDashboard();
+    // Initialize attack visualization
+    resetAttackVisualization();
 
-    // Initialize charts and event listeners
-    initializeCharts();
-    initializeEventListeners();
+    // Initialize charts immediately
+    setTimeout(initializeNetworkCharts, 500);
 
-    // Setup auto-refresh functionality
-    setTimeout(setupChartAutoRefresh, 3000);
-
-    // Load initial data after short delay
+    // Load initial data
     setTimeout(() => {
         refreshEnhancedBalances();
         refreshChain();
-        displaySimBlockNetwork();
-        showNotification('✅ Blockchain UI with Auto-Refresh Ready!', 'success');
-    }, 2000);
+        showNotification('✅ Blockchain UI Ready! All systems operational.', 'success');
+    }, 1000);
+
+    console.log('✅ app.js fully loaded and ready!');
+}
+
+// Start the application when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 DOM fully loaded!');
+    initializeApp();
 });
 
-console.log('✅ app.js with enhanced features and auto-refresh loaded successfully!');
+// Global export for HTML onclick handlers
+window.submitTransaction = submitTransaction;
+window.mineBlock = mineBlock;
+window.refreshEnhancedBalances = refreshEnhancedBalances;
+window.refreshChain = refreshChain;
+window.runAttack = runAttackWithVisualization;
+window.addPeer = addPeer;
+window.resolveConflicts = resolveConflicts;
+window.downloadCSVReports = downloadCSVReports;
+window.downloadSpecificCSV = downloadSpecificCSV;
+window.updateSuccessProbability = updateSuccessProbability;
+window.updateHashPower = updateHashPower;
+window.forceAttackSuccess = forceAttackSuccess;
+window.forceAttackFailure = forceAttackFailure;
+window.resetAttackControl = resetAttackControl;
+window.startSimBlockSimulation = startSimBlockSimulation;
+window.initializeNetworkCharts = initializeNetworkCharts;
+window.refreshAllCharts = refreshAllCharts;
+window.exportCharts = exportCharts;
+window.resetAttackVisualization = resetAttackVisualization;
+
+console.log('🔧 app.js loaded - all functions are now available globally');

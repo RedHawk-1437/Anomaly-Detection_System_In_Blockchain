@@ -2,24 +2,19 @@
  * Blockchain Anomaly Detection System with SimBlock Integration
  * Comprehensive styling for blockchain simulation interface
  * Enhanced with responsive design and modern UI components
+ * UPDATED FOR SYNCHRONIZED CHARTS AND VISUALIZATION
  */
 
 /* ===========================================
    RESET AND BASE STYLES
    =========================================== */
 
-/**
- * Global reset for consistent styling across browsers
- */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/**
- * Base body styling with gradient background
- */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.5;
@@ -32,9 +27,6 @@ body {
    HEADER AND NAVIGATION STYLES
    =========================================== */
 
-/**
- * Main site header with gradient background
- */
 .site-header {
     background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
     color: white;
@@ -42,9 +34,6 @@ body {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-/**
- * Header container for layout management
- */
 .header-container {
     max-width: 1400px;
     margin: 0 auto;
@@ -55,9 +44,6 @@ body {
     gap: 80px;
 }
 
-/**
- * Instructor and author information sections
- */
 .instructor-info, .author-info {
     flex: 1;
     min-width: 250px;
@@ -72,9 +58,6 @@ body {
     text-align: left;
 }
 
-/**
- * Logo and student picture styling
- */
 .logo, .student-pic {
     width: 60px;
     height: 60px;
@@ -84,9 +67,6 @@ body {
     object-fit: cover;
 }
 
-/**
- * Main title box styling
- */
 .title-box {
     flex: 2;
     text-align: center;
@@ -110,18 +90,12 @@ body {
    MAIN CONTENT AREA STYLES
    =========================================== */
 
-/**
- * Main container for content sections
- */
 .container {
     max-width: 1400px;
     margin: 30px auto;
     padding: 0 40px;
 }
 
-/**
- * Header text section styling
- */
 .header-text {
     text-align: center;
     margin-bottom: 40px;
@@ -146,12 +120,37 @@ body {
 }
 
 /* ===========================================
+   FEATURE HIGHLIGHTS STYLES
+   =========================================== */
+
+.feature-highlights {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.feature-item {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.feature-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+}
+
+/* ===========================================
    SECTION COMPONENT STYLES
    =========================================== */
 
-/**
- * Section box styling for content containers
- */
 .section-box {
     background: white;
     padding: 35px;
@@ -182,48 +181,9 @@ body {
 }
 
 /* ===========================================
-   CHART AND DATA VISUALIZATION STYLES
-   =========================================== */
-
-/**
- * Informational note for chart sections
- */
-.chart-info-note {
-    background: #e8f4fd;
-    border: 1px solid #b3dcf9;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 15px 0;
-    text-align: center;
-}
-
-.chart-info-note p {
-    margin: 0;
-    color: #2c3e50;
-    font-size: 0.95rem;
-}
-
-/**
- * Empty state styling for charts without data
- */
-.chart-empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: #7f8c8d;
-}
-
-.chart-empty-state h4 {
-    color: #7f8c8d;
-    margin-bottom: 10px;
-}
-
-/* ===========================================
    FORM AND INPUT STYLES
    =========================================== */
 
-/**
- * Form group styling for input fields
- */
 .form-group {
     margin-bottom: 25px;
 }
@@ -254,9 +214,6 @@ body {
    BUTTON AND INTERACTION STYLES
    =========================================== */
 
-/**
- * Primary button styling
- */
 .primary-btn {
     background: linear-gradient(135deg, #3498db, #2980b9);
     color: white;
@@ -281,13 +238,29 @@ body {
     transform: translateY(0);
 }
 
+.secondary-btn {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 8px rgba(149, 165, 166, 0.3);
+}
+
+.secondary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(149, 165, 166, 0.4);
+    background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+}
+
 /* ===========================================
    ATTACK SIMULATION CONTROL STYLES
    =========================================== */
 
-/**
- * Attack controls container styling
- */
 .attack-controls {
     background: #f8f9fa;
     padding: 30px;
@@ -307,9 +280,6 @@ body {
     color: #2c3e50;
 }
 
-/**
- * Slider container for probability and hash power controls
- */
 .slider-container {
     background: white;
     padding: 20px;
@@ -343,9 +313,6 @@ body {
     margin-left: 10px;
 }
 
-/**
- * Force attack control buttons
- */
 .force-buttons {
     display: flex;
     gap: 15px;
@@ -388,9 +355,6 @@ body {
     color: #e74c3c;
 }
 
-/**
- * Control status display
- */
 .control-status {
     background: white;
     padding: 20px;
@@ -404,9 +368,6 @@ body {
    RESULT AND OUTPUT DISPLAY STYLES
    =========================================== */
 
-/**
- * Result box for displaying operation outputs
- */
 .result-box {
     background: #f8f9fa;
     border: 1px solid #e9ecef;
@@ -419,9 +380,6 @@ body {
     font-size: 0.9rem;
 }
 
-/**
- * User-friendly output formatting
- */
 .user-friendly-output {
     background: white;
     border-radius: 8px;
@@ -441,241 +399,432 @@ body {
 }
 
 /* ===========================================
-   CHART AND GRID LAYOUT STYLES
+   ENHANCED CHART STYLES - SYNCHRONIZED
    =========================================== */
 
-/**
- * Charts grid layout for responsive chart display
- */
-.charts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+.charts-grid-enhanced {
+    display: flex;
+    flex-direction: column;
     gap: 30px;
-    margin: 30px 0;
+    margin: 25px 0;
 }
 
-.chart-container {
+.chart-row {
+    display: grid;
+    gap: 25px;
+}
+
+/* First row: 2 large charts */
+.chart-row:first-child {
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+}
+
+/* Second row: 3 medium charts */
+.chart-row:last-child {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.chart-container-large {
     background: white;
     padding: 25px;
-    border-radius: 10px;
+    border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     border: 1px solid #e0e0e0;
-    transition: transform 0.3s ease;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
 }
 
-.chart-container:hover {
-    transform: translateY(-2px);
+.chart-container-medium {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e0e0e0;
+    min-height: 350px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
 }
 
-.chart-container h4 {
+.chart-container-large h4,
+.chart-container-medium h4 {
     text-align: center;
     margin-bottom: 15px;
     color: #2c3e50;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 8px;
 }
 
-.chart-container canvas {
+.chart-description {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-top: 15px;
+    font-style: italic;
+}
+
+/* Ensure canvas takes available space */
+.chart-container-large canvas,
+.chart-container-medium canvas {
+    flex: 1;
     width: 100% !important;
     height: 300px !important;
+    max-height: 300px;
 }
 
-.chart-actions {
+/* Chart loading states */
+.chart-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.chart-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #e74c3c;
+    font-weight: bold;
     text-align: center;
-    margin-top: 20px;
+    padding: 20px;
 }
 
-/* ===========================================
-   BLOCKCHAIN SPECIFIC COMPONENT STYLES
-   =========================================== */
+/* Real-time Metrics */
+.real-time-metrics {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 10px;
+    margin-top: 30px;
+    border: 1px solid #e9ecef;
+}
 
-/**
- * Blockchain chain view styling
- */
-.chain-view {
+.real-time-metrics h4 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.metric-card {
     background: white;
     padding: 20px;
     border-radius: 8px;
-    border: 1px solid #e0e0e0;
-}
-
-.blocks-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-    margin-top: 25px;
-}
-
-.block-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #3498db;
     transition: transform 0.3s ease;
 }
 
-.block-card:hover {
+.metric-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.block-card h5 {
-    margin-bottom: 10px;
-    font-size: 1.1rem;
+.metric-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 5px;
 }
 
-.block-card p {
-    margin: 5px 0;
-    font-size: 0.9rem;
-    opacity: 0.9;
+.metric-label {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-/**
- * Balance table styling
- */
-.balances-table {
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+/* Chart Actions */
+.chart-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+    flex-wrap: wrap;
 }
 
-.balances-table table {
-    width: 100%;
-    border-collapse: collapse;
+/* Metric card colors */
+.metric-card.latency { border-left-color: #e74c3c; }
+.metric-card.nodes { border-left-color: #2ecc71; }
+.metric-card.throughput { border-left-color: #3498db; }
+.metric-card.block-time { border-left-color: #f39c12; }
+.metric-card.health { border-left-color: #9b59b6; }
+.metric-card.attack { border-left-color: #e67e22; }
+
+/* Animation for metric updates */
+@keyframes pulseUpdate {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
-.balances-table th {
-    background: #34495e;
-    color: white;
-    padding: 12px 15px;
-    text-align: left;
+.metric-update {
+    animation: pulseUpdate 0.5s ease;
 }
 
-.balances-table td {
-    padding: 10px 15px;
-    border-bottom: 1px solid #ecf0f1;
+/* Chart synchronization indicators */
+.chart-sync-status {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+    background: #ecf0f1;
+    color: #7f8c8d;
 }
 
-.balances-table tr:hover {
-    background: #f8f9fa;
-}
-
-.positive {
+.chart-sync-status.synced {
+    background: #d5f4e6;
     color: #27ae60;
-    font-weight: bold;
 }
 
-.negative {
-    color: #e74c3c;
-    font-weight: bold;
+.chart-sync-status.syncing {
+    background: #fef9e7;
+    color: #f39c12;
 }
 
 /* ===========================================
-   ATTACK RESULTS AND SIMULATION STYLES
+   ATTACK VISUALIZATION STYLES
    =========================================== */
 
-/**
- * Attack steps display
- */
-.attack-steps {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 6px;
+.attack-process {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
     margin: 20px 0;
 }
 
-.attack-step {
-    padding: 12px 15px;
-    margin: 8px 0;
-    background: white;
-    border-radius: 4px;
-    border-left: 3px solid #3498db;
+.process-step {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #3498db;
     transition: all 0.3s ease;
 }
 
-.attack-step:hover {
-    background: #e8f4fd;
+.process-step:hover {
     transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-/**
- * Attack configuration display
- */
-.attack-config {
-    background: #e8f4fd;
+.step-number {
+    background: #3498db;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-content h5 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+/* Transaction Box Styles */
+.transaction-box {
+    background: white;
     padding: 15px;
-    border-radius: 6px;
-    margin: 15px 0;
-    border: 1px solid #b3dcf9;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    margin-bottom: 10px;
 }
 
-/**
- * Attack result display
- */
-.attack-result {
+.transaction-box.malicious {
+    border-color: #e74c3c;
+    background: #fdf2f2;
+}
+
+.tx-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.tx-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.tx-details span {
+    padding: 5px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+/* Mining Box Styles */
+.mining-box {
+    background: white;
     padding: 20px;
     border-radius: 8px;
-    margin: 15px 0;
+    border: 2px solid #f39c12;
+}
+
+.mining-status {
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #f39c12;
+}
+
+.mining-progress {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 20px;
+    background: #ecf0f1;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f39c12, #e67e22);
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.progress-text {
+    font-weight: bold;
+    color: #f39c12;
+    min-width: 40px;
+}
+
+.private-blocks {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.private-block {
+    background: #f39c12;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* Network Race Styles */
+.race-box {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #9b59b6;
+}
+
+.chain-race {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.chain {
     text-align: center;
-    transition: all 0.3s ease;
 }
 
-.attack-result.success {
+.chain h6 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.blocks-container {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.block {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 0.8rem;
+}
+
+.honest-block {
+    background: #3498db;
+}
+
+.attack-block {
+    background: #e74c3c;
+}
+
+.race-result {
+    text-align: center;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.race-success {
     background: #d5f4e6;
+    color: #27ae60;
     border: 2px solid #27ae60;
-    color: #155724;
 }
 
-.attack-result.failure {
+.race-failure {
     background: #fadbd8;
+    color: #e74c3c;
     border: 2px solid #e74c3c;
-    color: #721c24;
+}
+
+/* Step States */
+.process-step.active {
+    border-left-color: #27ae60;
+    background: #f0f9f0;
+}
+
+.process-step.completed .step-number {
+    background: #27ae60;
+}
+
+.process-step.failed .step-number {
+    background: #e74c3c;
 }
 
 /* ===========================================
    NETWORK AND SIMBLOCK STYLES
    =========================================== */
-
-/**
- * Network statistics display
- */
-.network-stats {
-    background: white;
-    padding: 25px;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
-}
-
-.network-stats p {
-    margin: 10px 0;
-    display: flex;
-    align-items: center;
-}
-
-/**
- * Network health indicator animation
- */
-.network-health-indicator {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    margin: 0 10px;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-.health-excellent { background: #27ae60; }
-.health-good { background: #2ecc71; }
-.health-fair { background: #f39c12; }
-.health-poor { background: #e74c3c; }
-.health-unknown { background: #95a5a6; }
 
 .network-status {
     background: #e8f4fd;
@@ -689,9 +838,6 @@ body {
    NOTIFICATION AND FEEDBACK STYLES
    =========================================== */
 
-/**
- * Notification system styling
- */
 .notification {
     position: fixed;
     top: 20px;
@@ -734,9 +880,6 @@ body {
    LOADING AND UTILITY STYLES
    =========================================== */
 
-/**
- * Spinner for loading states
- */
 .spinner {
     text-align: center;
     padding: 20px;
@@ -749,9 +892,6 @@ body {
    FOOTER STYLES
    =========================================== */
 
-/**
- * Site footer styling
- */
 .site-footer {
     background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
     color: white;
@@ -766,13 +906,17 @@ body {
     padding: 0 40px;
 }
 
+.tech-stack {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    font-style: italic;
+}
+
 /* ===========================================
    RESPONSIVE DESIGN BREAKPOINTS
    =========================================== */
 
-/**
- * Tablet and mobile responsive styles
- */
 @media (max-width: 768px) {
     .header-container {
         flex-direction: column;
@@ -813,22 +957,37 @@ body {
         margin: 20px 0;
     }
 
-    .charts-grid {
+    .chart-row:first-child,
+    .chart-row:last-child {
         grid-template-columns: 1fr;
-        gap: 20px;
-        margin: 25px 0;
     }
 
-    .chart-container {
-        min-width: unset;
+    .chart-container-large,
+    .chart-container-medium {
+        min-height: 300px;
+    }
+
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .chart-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .chart-actions button {
+        width: 100%;
+        max-width: 250px;
+    }
+
+    .chart-container-large canvas,
+    .chart-container-medium canvas {
+        height: 250px !important;
     }
 
     .force-buttons {
         flex-direction: column;
-    }
-
-    .blocks-container {
-        grid-template-columns: 1fr;
     }
 
     .primary-btn {
@@ -836,14 +995,24 @@ body {
         margin: 8px 0;
     }
 
-    .attack-controls {
-        padding: 25px;
+    .attack-process {
+        gap: 15px;
+    }
+
+    .process-step {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .chain-race {
+        grid-template-columns: 1fr;
+    }
+
+    .tx-details {
+        grid-template-columns: 1fr;
     }
 }
 
-/**
- * Mobile-specific responsive styles
- */
 @media (max-width: 480px) {
     .container {
         padding: 0 20px;
@@ -866,15 +1035,26 @@ body {
         right: 10px;
         max-width: none;
     }
+
+    .chart-container-large,
+    .chart-container-medium {
+        padding: 15px;
+    }
+
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-container-large canvas,
+    .chart-container-medium canvas {
+        height: 200px !important;
+    }
 }
 
 /* ===========================================
    SCROLLBAR AND INTERACTION STYLES
    =========================================== */
 
-/**
- * Custom scrollbar styling
- */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -896,9 +1076,6 @@ body {
    DECORATIVE AND UTILITY STYLES
    =========================================== */
 
-/**
- * Horizontal rule styling
- */
 hr {
     border: none;
     height: 2px;
@@ -906,9 +1083,6 @@ hr {
     margin: 40px 0;
 }
 
-/**
- * Code block styling
- */
 code {
     background: #f8f9fa;
     padding: 2px 6px;
@@ -916,50 +1090,4 @@ code {
     font-family: 'Courier New', monospace;
     color: #e74c3c;
     font-size: 0.9em;
-}
-
-/* ===========================================
-   PRINT STYLES FOR REPORTS
-   =========================================== */
-
-/**
- * Print-specific styles for report generation
- */
-@media print {
-    .primary-btn, .force-btn {
-        display: none;
-    }
-
-    .section-box {
-        break-inside: avoid;
-        box-shadow: none;
-        border: 1px solid #ddd;
-    }
-
-    .site-header, .site-footer {
-        display: none;
-    }
-}
-
-/* ===========================================
-   UTILITY CLASSES FOR LAYOUT MANAGEMENT
-   =========================================== */
-
-/**
- * Utility classes for consistent spacing
- */
-.content-padding {
-    padding: 30px 40px;
-}
-
-.section-spacing {
-    margin: 30px 0;
-}
-
-.inner-spacing {
-    padding: 25px;
-}
-
-.form-spacing {
-    margin-bottom: 30px;
 }

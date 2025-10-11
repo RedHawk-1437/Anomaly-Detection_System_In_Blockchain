@@ -4,38 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Anomaly Detection in Blockchain - Double Spending Attack Simulation</title>
-
-  <!-- External Stylesheets -->
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-
-  <!-- Chart.js Library for Data Visualization -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Main Application Script -->
-  <script defer src="{{ url_for('static', filename='app.js') }}"></script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 <body>
-  <!-- ===========================================
-       SITE HEADER WITH PROJECT INFORMATION
-       =========================================== -->
+  <!-- HEADER SECTION -->
   <header class="site-header">
     <div class="header-container">
-
-      <!-- Instructor Information Section -->
       <div class="instructor-info">
         <img src="{{ url_for('static', filename='vu_logo.png') }}" alt="Virtual University Logo" class="logo">
         <p><strong>Project Instructor:</strong> Fouzia Jumani</p>
         <p>Skype: fouziajumani</p>
         <p>Email: fouziajumani@vu.edu.pk</p>
       </div>
-
-      <!-- Main Project Title Section -->
       <div class="title-box">
         <h1>Anomaly Detection System in Blockchain</h1>
-        <h2>Prototype: Double Spending Attack Simulation with SimBlock Integration</h2>
+        <h2>Prototype: Double Spending Attack Simulation with 120+ Node Network</h2>
       </div>
-
-      <!-- Author Information Section -->
       <div class="author-info">
         <img src="{{ url_for('static', filename='student_pic.png') }}" alt="Project Author" class="student-pic">
         <p><strong>Project Author:</strong> Eng. Muhammad Imtiaz Shaffi</p>
@@ -45,28 +31,93 @@
     </div>
   </header>
 
-  <!-- ===========================================
-       MAIN CONTENT AREA
-       =========================================== -->
+  <!-- MAIN CONTENT -->
   <main class="container">
-
-    <!-- Project Introduction Section -->
+    <!-- Project Introduction -->
     <div class="header-text">
       <h2>Blockchain Anomaly Detection Prototype</h2>
-      <p>This interactive prototype demonstrates a complete blockchain network with double-spending attack simulation,
-         comprehensive analytics, and SimBlock P2P network integration for research and educational purposes.</p>
+      <p>This interactive prototype demonstrates a complete blockchain network with 120+ nodes, double-spending attack simulation, private network visualization, comprehensive analytics, and SimBlock P2P network integration.</p>
     </div>
 
-    <!-- Charts Dashboard Section (Dynamically Generated) -->
-    <hr>
-    <div id="charts-dashboard"></div>
+    <!-- ENHANCED NETWORK VISUALIZATION DASHBOARD -->
+    <div class="section-box">
+      <h3>📊 Enhanced Network Analytics Dashboard</h3>
+      <p>Comprehensive visualization of blockchain network metrics, performance indicators, and attack patterns</p>
 
-    <!-- ===========================================
-         BLOCKCHAIN OPERATIONS SECTION
-         =========================================== -->
+      <div class="chart-actions">
+          <button class="primary-btn" onclick="initializeNetworkCharts()">🔄 Initialize Charts</button>
+          <button class="primary-btn" onclick="refreshAllCharts()">📈 Refresh Data</button>
+          <button class="primary-btn" onclick="exportCharts()">📸 Export Charts</button>
+      </div>
+
+      <div id="network-charts-dashboard" class="charts-grid-enhanced">
+          <!-- Row 1: Activity and Blockchain Data -->
+          <div class="chart-row">
+              <div class="chart-container-large">
+                  <h4>🌐 Network Activity Timeline</h4>
+                  <canvas id="networkActivityChart"></canvas>
+                  <p class="chart-description">Real-time tracking of transactions and block mining activity across the network</p>
+              </div>
+
+              <div class="chart-container-large">
+                  <h4>⛓️ Blockchain Data Analysis</h4>
+                  <canvas id="blockchainDataChart"></canvas>
+                  <p class="chart-description">Block mining analysis - Honest blocks (Blue) vs Attack blocks (Red)</p>
+              </div>
+          </div>
+
+          <!-- Row 2: Attack Analysis and Node Distribution -->
+          <div class="chart-row">
+              <div class="chart-container-medium">
+                  <h4>🛡️ Double Spending Attack Analysis</h4>
+                  <canvas id="attackAnalysisChart"></canvas>
+                  <p class="chart-description">Double spending attack success rates and patterns</p>
+              </div>
+
+              <div class="chart-container-medium">
+                  <h4>🌍 Global Node Distribution</h4>
+                  <canvas id="nodeDistributionChart"></canvas>
+                  <p class="chart-description">Geographical distribution of nodes in the network</p>
+              </div>
+          </div>
+      </div>
+
+      <!-- Real-time Metrics Display -->
+      <div class="real-time-metrics">
+          <h4>📡 Real-time Network Metrics</h4>
+          <div class="metrics-grid">
+              <div class="metric-card latency">
+                  <div class="metric-value" id="current-latency">--</div>
+                  <div class="metric-label">Average Latency</div>
+              </div>
+              <div class="metric-card nodes">
+                  <div class="metric-value" id="active-nodes">--</div>
+                  <div class="metric-label">Active Nodes</div>
+              </div>
+              <div class="metric-card throughput">
+                  <div class="metric-value" id="tx-throughput">--</div>
+                  <div class="metric-label">TX Throughput</div>
+              </div>
+              <div class="metric-card block-time">
+                  <div class="metric-value" id="block-time">--</div>
+                  <div class="metric-label">Avg Block Time</div>
+              </div>
+              <div class="metric-card health">
+                  <div class="metric-value" id="network-health">--</div>
+                  <div class="metric-label">Network Health</div>
+              </div>
+              <div class="metric-card attack">
+                  <div class="metric-value" id="attack-success">--</div>
+                  <div class="metric-label">Attack Success Rate</div>
+              </div>
+          </div>
+      </div>
+    </div>
+
+    <!-- BLOCKCHAIN OPERATIONS -->
     <h3>-: Custom Blockchain Implementation :-</h3>
 
-    <!-- Transaction Creation Section -->
+    <!-- Transaction Creation -->
     <div class="section-box">
       <h4>💸 Create New Transaction</h4>
       <div id="tx-form">
@@ -82,39 +133,52 @@
           <label for="tx-amount">Amount (coins):</label>
           <input type="number" id="tx-amount" placeholder="e.g., 10" step="any" min="0.01" required>
         </div>
-        <button type="button" id="submit-tx-btn" class="primary-btn">Submit Transaction</button>
+        <button type="button" class="primary-btn" onclick="submitTransaction()">Submit Transaction</button>
       </div>
       <pre id="tx-response" class="result-box" style="display:none;"></pre>
     </div>
 
-    <!-- Block Mining Section -->
+    <!-- Block Mining -->
     <div class="section-box">
       <h4>⛏️ Mine Pending Transactions</h4>
       <div class="form-group">
         <label for="miner-name">Miner Name:</label>
         <input type="text" id="miner-name" placeholder="e.g., MinerNode1">
       </div>
-      <button id="mine-btn" class="primary-btn">Mine Block</button>
+      <button class="primary-btn" onclick="mineBlock()">Mine Block</button>
       <pre id="mine-response" class="result-box" style="display:none;"></pre>
     </div>
 
-    <!-- Wallet Balances Section -->
+    <!-- Wallet Balances -->
     <div class="section-box">
       <h4>💰 Current Wallet Balances</h4>
-      <button id="refresh-balances-btn" class="primary-btn">Refresh Balances</button>
-      <pre id="balances-output"></pre>
+      <button class="primary-btn" onclick="refreshEnhancedBalances()">Refresh Balances</button>
+      <pre id="balances-output">Click "Refresh Balances" to load data...</pre>
     </div>
 
-    <!-- Blockchain Explorer Section -->
+    <!-- Blockchain Explorer -->
     <div class="section-box">
       <h4>⛓️ Blockchain Explorer</h4>
-      <button id="refresh-chain-btn" class="primary-btn">Refresh Blockchain</button>
-      <pre id="chain-output"></pre>
+      <button class="primary-btn" onclick="refreshChain()">Refresh Blockchain</button>
+      <pre id="chain-output">Click "Refresh Blockchain" to load data...</pre>
     </div>
 
-    <!-- ===========================================
-         ATTACK SIMULATION SECTION
-         =========================================== -->
+    <!-- SIMBLOCK NETWORK -->
+    <hr>
+    <div class="section-box">
+      <h4>🌐 SimBlock P2P Network (120+ Nodes)</h4>
+      <p><strong>Large Scale Network Simulation:</strong></p>
+      <ul>
+        <li>✅ <strong>120+ Nodes</strong> with regional distribution</li>
+        <li>✅ <strong>Realistic Network Conditions</strong> with latency simulation</li>
+        <li>✅ <strong>Enhanced Probability Calculations</strong> with network factors</li>
+        <li>✅ <strong>Private Network Support</strong> for attack simulation</li>
+      </ul>
+      <button class="primary-btn" onclick="startSimBlockSimulation()">Start SimBlock Simulation</button>
+      <div id="simblock-network-display"></div>
+    </div>
+
+    <!-- ATTACK SIMULATION -->
     <hr>
     <div class="section-box">
       <h4>🎯 Double-Spending Attack Simulation</h4>
@@ -127,9 +191,7 @@
         <div class="control-group">
           <label>Success Probability: <span id="probability-value" class="slider-value">50%</span></label>
           <div class="slider-container">
-            <input type="range" min="1" max="100" value="50"
-                   oninput="updateSuccessProbability(this.value)"
-                   title="Adjust base success probability">
+            <input type="range" min="1" max="100" value="50" oninput="updateSuccessProbability(this.value)">
             <small>Adjust the base probability of attack success</small>
           </div>
         </div>
@@ -138,9 +200,7 @@
         <div class="control-group">
           <label>Attacker Hash Power: <span id="hashpower-value" class="slider-value">30%</span></label>
           <div class="slider-container">
-            <input type="range" min="1" max="100" value="30"
-                   oninput="updateHashPower(this.value)"
-                   title="Adjust attacker's hash power percentage">
+            <input type="range" min="1" max="100" value="30" oninput="updateHashPower(this.value)">
             <small>Control the computational power available to the attacker</small>
           </div>
         </div>
@@ -149,15 +209,9 @@
         <div class="control-group">
           <label>Force Attack Outcome:</label>
           <div class="force-buttons">
-            <button id="force-success-btn" class="force-btn" onclick="forceAttackSuccess()">
-              ✅ Force Success
-            </button>
-            <button id="force-failure-btn" class="force-btn" onclick="forceAttackFailure()">
-              ❌ Force Failure
-            </button>
-            <button class="force-btn" onclick="resetAttackControl()">
-              🎲 Random Mode
-            </button>
+            <button id="force-success-btn" class="force-btn" onclick="forceAttackSuccess()">✅ Force Success</button>
+            <button id="force-failure-btn" class="force-btn" onclick="forceAttackFailure()">❌ Force Failure</button>
+            <button class="force-btn" onclick="resetAttackControl()">🎲 Random Mode</button>
           </div>
           <small>Override probability for testing specific scenarios</small>
         </div>
@@ -169,84 +223,171 @@
         </div>
       </div>
 
+      <!-- ATTACK VISUALIZATION -->
+      <div class="section-box">
+        <h4>🔍 Double Spending Attack Visualization</h4>
+
+        <!-- Attack Process Steps -->
+        <div class="attack-process">
+            <div class="process-step" id="step1">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h5>Initial Legitimate Transaction</h5>
+                    <div id="legitimate-tx" class="transaction-box">
+                        <div class="tx-header">📤 To Victim</div>
+                        <div class="tx-details">
+                            <span class="tx-sender">Sender: <span id="attack-sender">--</span></span>
+                            <span class="tx-receiver">Receiver: <span id="attack-victim">--</span></span>
+                            <span class="tx-amount">Amount: <span id="attack-amount-display">--</span> coins</span>
+                            <span class="tx-time">Timestamp: <span id="attack-time">--</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-step" id="step2">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h5>Secret Double Spending Transaction</h5>
+                    <div id="malicious-tx" class="transaction-box malicious">
+                        <div class="tx-header">🕵️ To Self (Secret)</div>
+                        <div class="tx-details">
+                            <span class="tx-sender">Sender: <span id="malicious-sender">--</span></span>
+                            <span class="tx-receiver">Receiver: <span id="malicious-receiver">--</span></span>
+                            <span class="tx-amount">Amount: <span id="malicious-amount">--</span> coins</span>
+                            <span class="tx-time">Timestamp: <span id="malicious-time">--</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-step" id="step3">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h5>Private Block Mining</h5>
+                    <div id="private-mining" class="mining-box">
+                        <div class="mining-status" id="mining-status">⏳ Waiting for attack...</div>
+                        <div class="mining-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="mining-progress"></div>
+                            </div>
+                            <span class="progress-text" id="mining-text">0%</span>
+                        </div>
+                        <div class="private-blocks" id="private-blocks-list">
+                            <!-- Private blocks will be listed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-step" id="step4">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h5>Network Broadcast & Race</h5>
+                    <div id="network-race" class="race-box">
+                        <div class="chain-race">
+                            <div class="chain honest-chain">
+                                <h6>🏛️ Honest Chain</h6>
+                                <div class="blocks-container" id="honest-blocks">
+                                    <!-- Honest blocks -->
+                                </div>
+                            </div>
+                            <div class="chain attacker-chain">
+                                <h6>🦹 Attacker Chain</h6>
+                                <div class="blocks-container" id="attacker-blocks">
+                                    <!-- Attacker blocks -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="race-result" id="race-result">
+                            <!-- Race result will be shown here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+
       <!-- Attack Parameters Form -->
       <div class="form-group">
         <label for="attack-attacker">Attacker Name:</label>
-        <input id="attack-attacker" placeholder="e.g., Hacker">
+        <input type="text" id="attack-attacker" placeholder="e.g., RedHawk" value="RedHawk">
 
         <label for="attack-blocks">Private Blocks to Mine:</label>
-        <input id="attack-blocks" type="number" value="1" min="1" max="10">
+        <input type="number" id="attack-blocks" value="1" min="1" max="10">
 
         <label for="attack-amount">Attack Amount (coins):</label>
-        <input id="attack-amount" type="number" value="10" step="any" min="0.01">
+        <input type="number" id="attack-amount" value="2" step="any" min="0.01">
       </div>
 
       <!-- Attack Execution Button -->
-      <button id="run-attack-btn" class="primary-btn">🚀 Run Attack Simulation</button>
+      <button class="primary-btn" onclick="runAttack()">🚀 Run Attack Simulation</button>
+
+      <!-- Visualization Containers -->
+      <div id="private-network-display" class="visualization-container" style="display:none;"></div>
+      <div id="double-spend-display" class="visualization-container" style="display:none;"></div>
+
       <pre id="attack-output" class="result-box" style="display:none;"></pre>
     </div>
 
-    <!-- ===========================================
-         P2P NETWORK MANAGEMENT SECTION
-         =========================================== -->
+    <!-- P2P NETWORK MANAGEMENT -->
     <hr>
     <h3>-: P2P Network Management :-</h3>
 
-    <!-- Network Management Section -->
+    <!-- Network Management -->
     <div class="section-box">
-      <h4>🌐 P2P Network Management</h4>
-      <p><strong>Dual Network Architecture:</strong></p>
-      <ul>
-        <li>✅ <strong>SimBlock P2P</strong> - Advanced network simulation with realistic conditions</li>
-        <li>✅ <strong>Traditional P2P</strong> - Basic peer connectivity and consensus</li>
-      </ul>
-
-      <!-- Peer Addition Form -->
+      <h4>🌐 Traditional P2P Network</h4>
       <div class="form-group">
         <label for="peer-address">Peer Node Address:</label>
         <input type="text" id="peer-address" placeholder="http://127.0.0.1:5001" required>
       </div>
+      <button class="primary-btn" onclick="addPeer()">Add Peer to Network</button>
 
-      <button id="add-peer-btn" class="primary-btn">Add Peer to Network</button>
-
-      <!-- Network Status Display -->
       <div class="network-status">
         <p><strong>Current Network Status:</strong></p>
-        <p>🔗 SimBlock Nodes: <span id="simblock-nodes">4</span> (Simulated)</p>
+        <p>🔗 SimBlock Nodes: <span id="simblock-nodes">120+</span> (Simulated)</p>
         <p>🔗 Traditional Peers: <span id="traditional-peers">0</span> (Connected)</p>
       </div>
-
       <pre id="peer-response" class="result-box" style="display:none;"></pre>
     </div>
 
-    <!-- Network Consensus Section -->
+    <!-- Network Consensus -->
     <div class="section-box">
       <h4>🔄 Network Consensus</h4>
       <p>Resolve conflicts with other nodes in the network using the longest chain rule.</p>
-      <button id="resolve-conflicts-btn" class="primary-btn">Check Network Consensus</button>
+      <button class="primary-btn" onclick="resolveConflicts()">Check Network Consensus</button>
       <pre id="consensus-response" class="result-box" style="display:none;"></pre>
     </div>
 
-    <!-- ===========================================
-         REPORTING SECTION
-         =========================================== -->
+    <!-- REPORTING SECTION -->
     <hr>
     <div class="section-box">
-      <h4>📊 Comprehensive Reporting</h4>
-      <p>Generate detailed PDF reports with blockchain analytics, attack simulations, and network analysis.</p>
-      <button id="download-report-btn" class="primary-btn">Download Comprehensive PDF Report</button>
-      <div id="pdf-spinner" class="spinner" style="display:none;">⏳ Generating PDF Report...</div>
-    </div>
+      <h4>📊 Comprehensive Data Analysis</h4>
+      <p>Generate detailed CSV reports for deep analysis of blockchain data, attack simulations, and network metrics.</p>
 
+      <div class="report-actions">
+        <button class="primary-btn" onclick="downloadCSVReports()">📈 Download All CSV Reports (ZIP)</button>
+        <div id="csv-spinner" class="spinner" style="display:none;">⏳ Generating CSV Reports...</div>
+      </div>
+
+      <div class="individual-reports">
+        <h5>Individual CSV Reports:</h5>
+        <div class="report-buttons">
+          <button class="secondary-btn" onclick="downloadSpecificCSV('blockchain')">Blockchain Data</button>
+          <button class="secondary-btn" onclick="downloadSpecificCSV('attack')">Attack Analysis</button>
+          <button class="secondary-btn" onclick="downloadSpecificCSV('network')">Network Metrics</button>
+          <button class="secondary-btn" onclick="downloadSpecificCSV('double-spend')">Double Spend Analysis</button>
+        </div>
+      </div>
+    </div>
   </main>
 
-  <!-- ===========================================
-       SITE FOOTER
-       =========================================== -->
+  <!-- FOOTER -->
   <footer class="site-footer">
     <div class="footer-container">
       <p>© 2025 This project is developed under the supervision of Virtual University of Pakistan</p>
       <p>Blockchain Anomaly Detection Research Project - Educational Use</p>
+      <p class="tech-stack">Technology Stack: Python Flask, JavaScript, Chart.js, SimBlock Integration, CSV Analytics</p>
     </div>
   </footer>
 

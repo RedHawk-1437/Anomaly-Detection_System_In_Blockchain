@@ -1,7 +1,7 @@
 {
   "network": {
     "average_latency": 100,
-    "node_count": 4,
+    "node_count": 120,
     "health": "good",
     "simulation_mode": "gradle"
   },
@@ -9,17 +9,17 @@
     {
       "height": 1,
       "miner": "Node_1",
-      "timestamp": 1759419997
+      "timestamp": 1760098455
     },
     {
       "height": 2,
       "miner": "Node_2",
-      "timestamp": 1759420147
+      "timestamp": 1760098605
     }
   ],
   "attack_simulation": {
     "success_probability": 70.0,
-    "hash_power": 50.0,
+    "hash_power": 25.0,
     "status": "ready"
   }
 }

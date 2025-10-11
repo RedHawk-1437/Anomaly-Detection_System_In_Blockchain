@@ -1,37 +1,15 @@
-"""
-main.py - Blockchain Anomaly Detection System Main Application
-
-This module serves as the main Flask web server for the blockchain anomaly detection system.
-It provides a comprehensive web interface for blockchain simulation, attack detection,
-analytics visualization, and report generation.
-
-Key Features:
-- Flask web server with RESTful API endpoints
-- Real-time blockchain simulation and visualization
-- Double-spending attack simulation and detection
-- Interactive chart generation and analytics
-- PDF report generation with comprehensive analysis
-- SimBlock network integration for realistic simulations
-- Peer-to-peer network management
-- Balance calculation with attack impact tracking
-
-The application combines blockchain technology, network simulation, and security analysis
-to provide a complete platform for studying blockchain anomalies and attack vectors.
-"""
-
 import os
 import json
 import time
 import sys
+import csv
 from datetime import datetime
 from typing import Dict, Any, Tuple
 
 import requests
 import matplotlib
 import numpy as np
-from flask import Flask, jsonify, render_template, send_file, request
-from fpdf import FPDF
-from fpdf.enums import XPos, YPos
+from flask import Flask, jsonify, render_template, send_file, request, send_from_directory
 
 # Configure matplotlib for server environment
 matplotlib.use('Agg')
@@ -86,397 +64,8 @@ SIMBLOCK_METRICS_DATA = {
 
 
 # ================================
-# BALANCE CALCULATION ENGINE
+# CHART DATA MANAGEMENT FUNCTIONS
 # ================================
-
-def get_balances_with_attackers() -> Tuple[Dict[str, float], Dict[str, Any]]:
-    """
-    Compute wallet balances with attack impact integration.
-
-    Processes all transactions in the blockchain and applies attack results
-    to modify balances, tracking both successful and failed attack attempts.
-    Handles special cases like mining rewards and double-spending impacts.
-
-    Returns:
-        Tuple containing:
-        - balances: Dictionary mapping wallet addresses to their current balances
-        - attack_victims: Dictionary containing attack impact details including
-                         victim information, amounts, and success status
-    """
-    balances = {}
-    attack_victims = {}
-
-    # Process all blockchain transactions
-    for block in blockchain_instance.chain:
-        for tx in block.transactions:
-            sender = tx.sender
-            receiver = tx.receiver
-            amount = tx.amount
-
-            # Initialize new wallets
-            if sender not in balances:
-                balances[sender] = 0
-            if receiver not in balances:
-                balances[receiver] = 0
-
-            # Apply transaction amounts (skip deduction for SYSTEM rewards)
-            if sender != "SYSTEM":
-                balances[sender] -= amount
-            balances[receiver] += amount
-
-    # Integrate attack results into balances
-    if 'last_attack' in RECENT_ATTACK_RESULTS:
-        attack_data = RECENT_ATTACK_RESULTS['last_attack']
-        attacker = attack_data.get('attacker', 'RedHawk')
-        amount = attack_data.get('amount', 0)
-        attack_success = attack_data.get('result', {}).get('successful', False)
-
-        # Ensure attacker wallet exists
-        if attacker not in balances:
-            balances[attacker] = 0
-
-        # Apply successful attack transfers
-        if attack_success:
-            balances[attacker] += amount
-
-            # Locate victim transaction in recent blocks
-            victim_found = False
-            if blockchain_instance.chain:
-                for block in reversed(blockchain_instance.chain[-3:]):
-                    for tx in block.transactions:
-                        if (tx.sender != "SYSTEM" and
-                                abs(tx.amount - amount) < 0.01 and
-                                tx.receiver != attacker):
-                            victim = tx.receiver
-                            if victim in balances:
-                                balances[victim] -= amount
-                                attack_victims[attacker] = {
-                                    'victim': victim,
-                                    'amount': amount,
-                                    'success': True,
-                                    'timestamp': attack_data.get('timestamp', time.time())
-                                }
-                                victim_found = True
-                                break
-                    if victim_found:
-                        break
-
-            # Create generic victim if none found
-            if not victim_found:
-                generic_victim = "Victim_Wallet"
-                if generic_victim not in balances:
-                    balances[generic_victim] = 100
-                balances[generic_victim] -= amount
-                attack_victims[attacker] = {
-                    'victim': generic_victim,
-                    'amount': amount,
-                    'success': True,
-                    'timestamp': attack_data.get('timestamp', time.time())
-                }
-        else:
-            # Record failed attack attempt
-            attack_victims[attacker] = {
-                'victim': 'None (Attack Failed)',
-                'amount': amount,
-                'success': False,
-                'timestamp': attack_data.get('timestamp', time.time())
-            }
-
-    # Remove system account from display
-    if "SYSTEM" in balances:
-        del balances["SYSTEM"]
-
-    return balances, attack_victims
-
-
-# ================================
-# CHART GENERATION SYSTEM
-# ================================
-
-def generate_blockchain_growth_chart(chain_data: Dict[str, Any]):
-    """
-    Create blockchain growth visualization showing transactions per block.
-
-    Generates a bar chart displaying the number of transactions in each block
-    to visualize blockchain growth and transaction patterns over time.
-
-    Args:
-        chain_data: Blockchain data dictionary containing chain information
-
-    Returns:
-        matplotlib.figure.Figure: Configured matplotlib figure object
-    """
-    try:
-        fig, ax = plt.subplots(figsize=(10, 6))
-
-        if not chain_data.get("chain"):
-            ax.text(0.5, 0.5, 'No blockchain data available\nfor growth chart',
-                    ha='center', va='center', fontsize=12, fontweight='bold')
-            ax.set_title('Blockchain Growth - Transactions per Block', fontsize=14, fontweight='bold')
-            ax.set_xlabel('Block Number', fontsize=12, fontweight='bold')
-            ax.set_ylabel('Number of Transactions', fontsize=12, fontweight='bold')
-            ax.grid(axis='y', alpha=0.3)
-            plt.tight_layout()
-            return fig
-
-        labels = [f"Block {b['index']}" for b in chain_data["chain"]]
-        tx_counts = [len(b["transactions"]) for b in chain_data["chain"]]
-
-        bars = ax.bar(labels, tx_counts, color='#2a5298', alpha=0.8)
-
-        ax.set_xlabel('Block Number', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Number of Transactions', fontsize=12, fontweight='bold')
-        ax.set_title('Blockchain Growth - Transactions per Block', fontsize=14, fontweight='bold')
-
-        ax.set_xticks(range(len(labels)))
-        ax.set_xticklabels(labels, rotation=45, ha='right')
-
-        ax.grid(axis='y', alpha=0.3)
-
-        for bar, count in zip(bars, tx_counts):
-            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.1,
-                    str(count), ha='center', va='bottom', fontweight='bold')
-
-        plt.tight_layout()
-        return fig
-
-    except Exception as e:
-        print(f"❌ Error creating blockchain growth chart: {e}")
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.text(0.5, 0.5, f'Error generating chart:\n{str(e)}',
-                ha='center', va='center', fontsize=10, color='red')
-        ax.set_title('Blockchain Growth Chart', fontsize=14, fontweight='bold')
-        plt.tight_layout()
-        return fig
-
-
-def generate_balance_distribution_chart(balances: Dict[str, float]):
-    """
-    Generate wallet balance distribution pie chart.
-
-    Creates a pie chart visualization of wallet balances, showing the
-    distribution of coins across different wallet addresses with color
-    coding for positive and negative balances.
-
-    Args:
-        balances: Dictionary mapping wallet addresses to their balances
-
-    Returns:
-        matplotlib.figure.Figure: Configured matplotlib figure object
-    """
-    try:
-        fig, ax = plt.subplots(figsize=(8, 8))
-
-        if not balances:
-            ax.text(0.5, 0.5, 'No wallet balance data\navailable for chart',
-                    ha='center', va='center', fontsize=12, fontweight='bold')
-            ax.set_title('Wallet Balance Distribution', fontsize=14, fontweight='bold')
-            return fig
-
-        non_zero_balances = {k: v for k, v in balances.items() if v != 0}
-
-        if not non_zero_balances:
-            ax.text(0.5, 0.5, 'No wallet activity\navailable for chart',
-                    ha='center', va='center', fontsize=12, fontweight='bold')
-            ax.set_title('Wallet Balance Distribution', fontsize=14, fontweight='bold')
-            return fig
-
-        labels = list(non_zero_balances.keys())
-        values = list(non_zero_balances.values())
-
-        colors = []
-        for balance in values:
-            if balance > 0:
-                colors.append('#2ecc71')
-            else:
-                colors.append('#e74c3c')
-
-        wedges, texts, autotexts = ax.pie([abs(v) for v in values], labels=labels, colors=colors,
-                                          autopct='%1.1f%%', startangle=90, shadow=True)
-
-        ax.set_title('Wallet Balance Distribution (All Active Wallets)', fontsize=14, fontweight='bold')
-
-        for text in texts + autotexts:
-            text.set_fontsize(10)
-            text.set_fontweight('bold')
-
-        ax.legend(wedges, [f'{label}: {value:.2f} coins' for label, value in zip(labels, values)],
-                  title="Wallet Balances", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
-
-        return fig
-
-    except Exception as e:
-        print(f"❌ Error creating balance distribution chart: {e}")
-        fig, ax = plt.subplots(figsize=(8, 8))
-        ax.text(0.5, 0.5, f'Error generating chart:\n{str(e)}',
-                ha='center', va='center', fontsize=10, color='red')
-        ax.set_title('Balance Distribution Chart', fontsize=14, fontweight='bold')
-        return fig
-
-
-def generate_mining_analysis_chart(chain_data: Dict[str, Any]):
-    """
-    Create mining performance analysis chart.
-
-    Generates a line chart showing simulated mining times across blocks
-    with trend analysis to visualize mining difficulty and performance.
-
-    Args:
-        chain_data: Blockchain data dictionary containing chain information
-
-    Returns:
-        matplotlib.figure.Figure: Configured matplotlib figure object
-    """
-    try:
-        fig, ax = plt.subplots(figsize=(10, 6))
-
-        if not chain_data.get("chain") or len(chain_data["chain"]) < 2:
-            ax.text(0.5, 0.5, 'Insufficient blockchain data\nfor mining analysis',
-                    ha='center', va='center', fontsize=12, fontweight='bold')
-            ax.set_xlabel('Block Index', fontsize=12, fontweight='bold')
-            ax.set_ylabel('Mining Time (seconds)', fontsize=12, fontweight='bold')
-            ax.set_title('Block Mining Time Analysis', fontsize=14, fontweight='bold')
-            ax.grid(True, alpha=0.3)
-            plt.tight_layout()
-            return fig
-
-        blocks = chain_data["chain"]
-        mining_times = [i * 2.5 for i in range(len(blocks))]
-
-        ax.plot(range(len(blocks)), mining_times, marker='o', linewidth=2, markersize=8,
-                color='#e74c3c', markerfacecolor='#c0392b')
-
-        ax.set_xlabel('Block Index', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Mining Time (seconds)', fontsize=12, fontweight='bold')
-        ax.set_title('Block Mining Time Analysis', fontsize=14, fontweight='bold')
-        ax.grid(True, alpha=0.3)
-
-        z = np.polyfit(range(len(blocks)), mining_times, 1)
-        p = np.poly1d(z)
-        ax.plot(range(len(blocks)), p(range(len(blocks))), "r--", alpha=0.7)
-
-        plt.tight_layout()
-        return fig
-
-    except Exception as e:
-        print(f"❌ Error creating mining analysis chart: {e}")
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.text(0.5, 0.5, f'Error generating chart:\n{str(e)}',
-                ha='center', va='center', fontsize=10, color='red')
-        ax.set_title('Mining Analysis Chart', fontsize=14, fontweight='bold')
-        plt.tight_layout()
-        return fig
-
-
-def generate_network_activity_chart():
-    """
-    Generate network activity timeline chart.
-
-    Creates a line chart showing network activity levels over time based on
-    attack simulations and network conditions. Visualizes the impact of
-    attacks on network behavior.
-
-    Returns:
-        matplotlib.figure.Figure: Configured matplotlib figure object
-    """
-    try:
-        fig, ax = plt.subplots(figsize=(10, 6))
-
-        if not NETWORK_ACTIVITY_DATA['labels']:
-            ax.text(0.5, 0.5, 'No network activity data available\nRun attacks to see network activity',
-                    ha='center', va='center', fontsize=12, fontweight='bold')
-            ax.set_xlabel('Time', fontsize=12, fontweight='bold')
-            ax.set_ylabel('Network Activity Level', fontsize=12, fontweight='bold')
-            ax.set_title('P2P Network Activity Over Time', fontsize=14, fontweight='bold')
-            ax.grid(True, alpha=0.3)
-            plt.tight_layout()
-            return fig
-
-        labels = NETWORK_ACTIVITY_DATA['labels']
-        activity_levels = NETWORK_ACTIVITY_DATA['data']
-
-        ax.fill_between(range(len(labels)), activity_levels, alpha=0.4, color='#3498db')
-        ax.plot(range(len(labels)), activity_levels, linewidth=2, color='#2980b9', marker='o')
-
-        ax.set_xlabel('Attack Sequence', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Network Activity Level', fontsize=12, fontweight='bold')
-        ax.set_title('Network Activity During Attacks', fontsize=14, fontweight='bold')
-        ax.grid(True, alpha=0.3)
-
-        ax.set_xticks(range(len(labels)))
-        ax.set_xticklabels(labels, rotation=45, ha='right')
-
-        plt.tight_layout()
-        return fig
-
-    except Exception as e:
-        print(f"❌ Error creating network activity chart: {e}")
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.text(0.5, 0.5, f'Error generating chart:\n{str(e)}',
-                ha='center', va='center', fontsize=10, color='red')
-        ax.set_title('Network Activity Chart', fontsize=14, fontweight='bold')
-        plt.tight_layout()
-        return fig
-
-
-def generate_simblock_analysis_chart():
-    """
-    Create SimBlock network performance radar chart.
-
-    Generates a bar chart showing various network performance metrics
-    including latency, node health, message delivery, and attack resistance
-    based on SimBlock simulation data.
-
-    Returns:
-        matplotlib.figure.Figure: Configured matplotlib figure object
-    """
-    try:
-        fig, ax = plt.subplots(figsize=(10, 6))
-
-        metrics = ['Network Latency', 'Node Health', 'Message Delivery', 'Attack Resistance']
-
-        values = [
-            SIMBLOCK_METRICS_DATA['network_latency'],
-            SIMBLOCK_METRICS_DATA['node_health'],
-            SIMBLOCK_METRICS_DATA['message_delivery'],
-            SIMBLOCK_METRICS_DATA['attack_resistance']
-        ]
-
-        if all(v == 0 for v in values):
-            ax.text(0.5, 0.5, 'No SimBlock metrics available\nRun attacks to see network performance',
-                    ha='center', va='center', fontsize=12, fontweight='bold')
-            ax.set_xlabel('Network Metrics', fontsize=12, fontweight='bold')
-            ax.set_ylabel('Performance Score', fontsize=12, fontweight='bold')
-            ax.set_title('SimBlock P2P Network Analysis', fontsize=14, fontweight='bold')
-            ax.set_ylim(0, 100)
-            ax.grid(axis='y', alpha=0.3)
-            plt.tight_layout()
-            return fig
-
-        bars = ax.bar(metrics, values, color=['#3498db', '#2ecc71', '#f39c12', '#e74c3c'])
-
-        ax.set_xlabel('Network Metrics', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Performance Score', fontsize=12, fontweight='bold')
-        ax.set_title('SimBlock P2P Network Analysis', fontsize=14, fontweight='bold')
-        ax.set_ylim(0, 100)
-        ax.grid(axis='y', alpha=0.3)
-
-        for bar, value in zip(bars, values):
-            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 1,
-                    f'{value}%', ha='center', va='bottom', fontweight='bold')
-
-        plt.tight_layout()
-        return fig
-
-    except Exception as e:
-        print(f"❌ Error creating SimBlock chart: {e}")
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.text(0.5, 0.5, f'Error generating chart:\n{str(e)}',
-                ha='center', va='center', fontsize=10, color='red')
-        ax.set_title('SimBlock Analysis Chart', fontsize=14, fontweight='bold')
-        plt.tight_layout()
-        return fig
-
 
 def update_network_chart_data(attack_successful, hash_power, probability):
     """
@@ -547,560 +136,813 @@ def reset_chart_data():
 
 
 # ================================
-# PDF REPORT GENERATION SYSTEM
+# BALANCE CALCULATION ENGINE
 # ================================
 
-class BlockchainPDF(FPDF):
+def get_balances_with_attackers() -> Tuple[Dict[str, float], Dict[str, Any]]:
+    balances = {}
+    attack_victims = {}
+
+    # Process all blockchain transactions
+    for block in blockchain_instance.chain:
+        for tx in block.transactions:
+            sender = tx.sender
+            receiver = tx.receiver
+            amount = tx.amount
+
+            # Initialize new wallets
+            if sender not in balances:
+                balances[sender] = 0
+            if receiver not in balances:
+                balances[receiver] = 0
+
+            # Apply transaction amounts (skip deduction for SYSTEM rewards)
+            if sender != "SYSTEM":
+                balances[sender] -= amount
+            balances[receiver] += amount
+
+    # Integrate attack results into balances - ENHANCED SECTION
+    if 'last_attack' in RECENT_ATTACK_RESULTS:
+        attack_data = RECENT_ATTACK_RESULTS['last_attack']
+        attacker = attack_data.get('attacker', 'RedHawk')
+        amount = attack_data.get('amount', 0)
+        attack_success = attack_data.get('result', {}).get('successful', False)
+        transactions = attack_data.get('transactions', {})
+
+        # Ensure attacker wallet exists
+        if attacker not in balances:
+            balances[attacker] = 0
+
+        # Apply successful attack transfers
+        if attack_success:
+            # Add the malicious transaction amount to attacker
+            if 'malicious' in transactions:
+                balances[attacker] += amount
+
+            # Deduct from victim for the legitimate transaction
+            victim = transactions.get('legitimate', {}).get('receiver', 'Victim_Wallet')
+            if victim in balances:
+                balances[victim] -= amount
+
+            attack_victims[attacker] = {
+                'victim': victim,
+                'amount': amount,
+                'success': True,
+                'timestamp': attack_data.get('timestamp', time.time()),
+                'transactions': transactions  # Include transaction details
+            }
+        else:
+            # Record failed attack attempt with transaction details
+            attack_victims[attacker] = {
+                'victim': 'None (Attack Failed)',
+                'amount': amount,
+                'success': False,
+                'timestamp': attack_data.get('timestamp', time.time()),
+                'transactions': transactions  # Include transaction details even for failed attacks
+            }
+
+    # Remove system account from display
+    if "SYSTEM" in balances:
+        del balances["SYSTEM"]
+
+    return balances, attack_victims
+
+
+# ================================
+# ENHANCED CSV REPORT GENERATION SYSTEM
+# ================================
+
+def generate_blockchain_csv_report() -> str:
     """
-    Custom PDF generator for blockchain analysis reports.
-
-    Extends FPDF to provide specialized formatting for blockchain analytics
-    with custom headers, footers, and section layouts. Includes institutional
-    branding and comprehensive data presentation.
-
-    Features:
-    - Custom header with institutional logos
-    - Professional section formatting
-    - Data table generation
-    - Image embedding for charts
-    - Automated pagination
-    """
-
-    def header(self):
-        """Generate PDF header with institutional branding."""
-        script_dir = os.path.dirname(__file__)
-        logo_path = os.path.join(script_dir, "web", "static", "vu_logo.png")
-        author_pic = os.path.join(script_dir, "web", "static", "student_pic.png")
-
-        if os.path.exists(logo_path):
-            self.image(logo_path, 10, 8, 20)
-
-        if os.path.exists(author_pic):
-            self.image(author_pic, self.w - 30, 8, 20)
-
-        self.set_font("helvetica", "B", 16)
-        self.set_xy(0, 10)
-        self.cell(0, 8, "Blockchain Anomaly Detection System", align="C", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-        self.set_font("helvetica", "B", 14)
-        self.cell(0, 6, "Comprehensive Analysis Report", align="C", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-        self.set_font("helvetica", "", 10)
-        self.cell(0, 5, f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                  align="C", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-        self.set_font("helvetica", "", 9)
-        self.set_xy(10, 35)
-        self.multi_cell(80, 4,
-                        "Project Instructor: Fouzia Jumani\n"
-                        "Email: fouziajumani@vu.edu.pk\n"
-                        "Virtual University of Pakistan")
-
-        self.set_xy(self.w - 85, 35)
-        self.multi_cell(75, 4,
-                        "Project Author: Eng. Muhammad Imtiaz Shaffi\n"
-                        "VU ID: BC220200917\n"
-                        "Email: bc220200917mis@vu.edu.pk")
-
-        self.set_line_width(0.5)
-        self.line(10, 55, self.w - 10, 55)
-        self.set_y(65)
-
-    def footer(self):
-        """Generate PDF footer with pagination and copyright."""
-        self.set_y(-15)
-        self.set_font("helvetica", "I", 8)
-        self.set_text_color(128)
-
-        self.cell(0, 10, f"Page {self.page_no()}", align="L")
-
-        self.set_y(-12)
-        self.cell(0, 10, "© 2025 Virtual University of Pakistan - Blockchain Anomaly Detection Research",
-                  align="C")
-
-    def add_section_title(self, title: str):
-        """Add formatted section title to PDF.
-
-        Args:
-            title: Section title text to display
-        """
-        self.set_font("helvetica", "B", 14)
-        self.set_fill_color(240, 240, 240)
-        self.cell(0, 10, title, border=1, fill=True, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-        self.ln(5)
-
-    def add_table(self, title: str, data: Dict[str, Any], col_widths: tuple = (60, 120)):
-        """
-        Add formatted data table to PDF.
-
-        Args:
-            title: Table title to display above the table
-            data: Dictionary of key-value pairs to display in the table
-            col_widths: Tuple specifying column widths (metric_col, value_col)
-        """
-        self.set_font("helvetica", "B", 12)
-        self.cell(0, 8, title, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-        self.set_font("helvetica", "B", 10)
-        self.set_fill_color(200, 200, 200)
-        self.cell(col_widths[0], 8, "Metric", border=1, fill=True, align="C")
-        self.cell(col_widths[1], 8, "Value", border=1, fill=True, align="C", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-        self.set_font("helvetica", "", 9)
-        for key, value in data.items():
-            if self.get_y() > self.h - 30:
-                self.add_page()
-
-            display_value = str(value)
-            if len(display_value) > 50:
-                display_value = display_value[:47] + "..."
-
-            self.cell(col_widths[0], 7, str(key), border=1, align="L")
-            self.cell(col_widths[1], 7, display_value, border=1, align="L",
-                      new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-        self.ln(5)
-
-
-def generate_charts_for_pdf(chain_data: Dict[str, Any], balances: Dict[str, float], charts_dir: str) -> Dict[str, str]:
-    """
-    Generate all chart images for PDF report inclusion.
-
-    Creates and saves all visualization charts to temporary files for
-    embedding in the PDF report. Handles error cases gracefully.
-
-    Args:
-        chain_data: Blockchain data dictionary
-        balances: Wallet balances dictionary
-        charts_dir: Output directory for chart images
-
-    Returns:
-        Dict[str, str]: Dictionary mapping chart types to their file paths
-    """
-    chart_paths = {}
-
-    try:
-        print("🔄 Generating charts for PDF report...")
-
-        print("  📊 Generating blockchain growth chart...")
-        growth_fig = generate_blockchain_growth_chart(chain_data)
-        if growth_fig:
-            chart_path = os.path.join(charts_dir, "blockchain_growth.png")
-            growth_fig.savefig(chart_path, dpi=150, bbox_inches='tight')
-            plt.close(growth_fig)
-            chart_paths['blockchain_growth'] = chart_path
-            print(f"    ✅ Blockchain growth chart saved: {chart_path}")
-
-        print("  📊 Generating balance distribution chart...")
-        balance_fig = generate_balance_distribution_chart(balances)
-        if balance_fig:
-            chart_path = os.path.join(charts_dir, "balance_distribution.png")
-            balance_fig.savefig(chart_path, dpi=150, bbox_inches='tight')
-            plt.close(balance_fig)
-            chart_paths['balance_distribution'] = chart_path
-            print(f"    ✅ Balance distribution chart saved: {chart_path}")
-
-        print("  📊 Generating mining analysis chart...")
-        mining_fig = generate_mining_analysis_chart(chain_data)
-        if mining_fig:
-            chart_path = os.path.join(charts_dir, "mining_analysis.png")
-            mining_fig.savefig(chart_path, dpi=150, bbox_inches='tight')
-            plt.close(mining_fig)
-            chart_paths['mining_analysis'] = chart_path
-            print(f"    ✅ Mining analysis chart saved: {chart_path}")
-
-        print("  📊 Generating network activity chart...")
-        network_fig = generate_network_activity_chart()
-        if network_fig:
-            chart_path = os.path.join(charts_dir, "network_activity.png")
-            network_fig.savefig(chart_path, dpi=150, bbox_inches='tight')
-            plt.close(network_fig)
-            chart_paths['network_activity'] = chart_path
-            print(f"    ✅ Network activity chart saved: {chart_path}")
-
-        print("  📊 Generating SimBlock analysis chart...")
-        simblock_fig = generate_simblock_analysis_chart()
-        if simblock_fig:
-            chart_path = os.path.join(charts_dir, "simblock_analysis.png")
-            simblock_fig.savefig(chart_path, dpi=150, bbox_inches='tight')
-            plt.close(simblock_fig)
-            chart_paths['simblock_analysis'] = chart_path
-            print(f"    ✅ SimBlock analysis chart saved: {chart_path}")
-
-        print(f"✅ Generated {len(chart_paths)} charts for PDF report")
-
-    except Exception as e:
-        print(f"❌ Chart generation error: {e}")
-        import traceback
-        traceback.print_exc()
-
-    return chart_paths
-
-
-def generate_comprehensive_pdf_report() -> str:
-    """
-    Generate complete PDF analysis report with charts and analytics.
-
-    Creates a comprehensive PDF report containing blockchain statistics,
-    transaction analysis, wallet balances, attack simulations, network
-    performance metrics, and security recommendations.
-
-    Returns:
-        str: File path to the generated PDF report
-
-    Raises:
-        Exception: If PDF generation fails
+    Generate comprehensive blockchain data CSV report with enhanced formatting.
     """
     try:
-        print("🚀 Starting comprehensive PDF report generation...")
-
         script_dir = os.path.dirname(__file__)
         reports_dir = os.path.join(script_dir, "reports")
-        charts_dir = os.path.join(reports_dir, "charts")
-        os.makedirs(charts_dir, exist_ok=True)
+        os.makedirs(reports_dir, exist_ok=True)
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        csv_path = os.path.join(reports_dir, f"blockchain_analysis_{timestamp}.csv")
 
         chain_data = blockchain_instance.to_dict()
         balances, attack_victims = get_balances_with_attackers()
         network_info = get_network_info()
 
-        print(f"📊 Collected data: {len(chain_data.get('chain', []))} blocks, {len(balances)} wallets")
+        with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
 
-        chart_paths = generate_charts_for_pdf(chain_data, balances, charts_dir)
+            # ===== ENHANCED HEADER SECTION =====
+            writer.writerow(['BLOCKCHAIN ANOMALY DETECTION SYSTEM - COMPREHENSIVE ANALYSIS REPORT'])
+            writer.writerow(['Generated', datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+            writer.writerow(['System', 'Double Spending Attack Simulation & Detection'])
+            writer.writerow(['Version', '1.0 - Educational Prototype'])
+            writer.writerow([])
+            writer.writerow([])
 
-        pdf = BlockchainPDF()
-        pdf.add_page()
+            # ===== EXECUTIVE SUMMARY =====
+            writer.writerow(['EXECUTIVE SUMMARY'])
+            writer.writerow(['Metric', 'Value', 'Status'])
+            writer.writerow(['Total Blocks', len(chain_data.get("chain", [])), 'Active'])
+            writer.writerow(
+                ['Total Transactions', sum(len(b["transactions"]) for b in chain_data.get("chain", [])), 'Processed'])
+            writer.writerow(['Pending Transactions', len(chain_data.get("mempool", [])), 'Queued'])
+            writer.writerow(['Active Wallets', len(balances), 'Monitored'])
+            writer.writerow(['Network Nodes', network_info.get('nodes', 120), 'Simulated'])
+            writer.writerow(['Attack Simulations', len(attack_victims), 'Performed'])
+            writer.writerow(
+                ['Successful Attacks', sum(1 for info in attack_victims.values() if info['success']), 'Detected'])
+            writer.writerow([])
+            writer.writerow([])
 
-        pdf.add_section_title("1. Executive Summary")
-        pdf.set_font("helvetica", "", 11)
-        pdf.multi_cell(0, 6,
-                       "This comprehensive report provides detailed analytics of the blockchain network, "
-                       "including transaction patterns, mining statistics, double-spending attack simulations, "
-                       "and SimBlock P2P network integration analysis. The report is generated automatically "
-                       "from the live blockchain data and includes visual charts for better analysis.")
-        pdf.ln(10)
+            # ===== BLOCKCHAIN OVERVIEW =====
+            writer.writerow(['BLOCKCHAIN TECHNICAL OVERVIEW'])
+            writer.writerow(['Parameter', 'Specification', 'Details'])
+            writer.writerow(['Consensus Algorithm', 'Proof of Work (PoW)', 'SHA-256 Hashing'])
+            writer.writerow(['Mining Difficulty', chain_data.get("difficulty", "N/A"), 'Adjustable'])
+            writer.writerow(['Block Time', 'Variable', 'Based on network conditions'])
+            writer.writerow(['Mining Reward', f"{chain_data.get('miner_reward', 'N/A')} coins", 'Per block'])
+            writer.writerow(['Network Protocol', 'REST API + SimBlock', 'Hybrid implementation'])
+            writer.writerow(['Connected Peers', len(PEERS), 'Active connections'])
+            writer.writerow([])
 
-        pdf.add_section_title("2. Blockchain Overview")
+            # ===== BLOCK DETAILS - ENHANCED =====
+            writer.writerow(['BLOCKCHAIN DATA - DETAILED ANALYSIS'])
+            writer.writerow(
+                ['Block Index', 'Timestamp', 'Transaction Count', 'Block Hash (Short)', 'Previous Hash (Short)',
+                 'Status'])
 
-        blockchain_stats = {
-            "Total Blocks": len(chain_data.get("chain", [])),
-            "Total Transactions": sum(len(b["transactions"]) for b in chain_data.get("chain", [])),
-            "Pending Transactions": len(chain_data.get("mempool", [])),
-            "Current Difficulty": chain_data.get("difficulty", "N/A"),
-            "Mining Reward": f"{chain_data.get('miner_reward', 'N/A')} coins",
-            "Connected Peers": len(PEERS)
-        }
-        pdf.add_table("Blockchain Statistics", blockchain_stats)
+            for block in chain_data.get("chain", []):
+                block_index = block.get('index', '')
+                timestamp = datetime.fromtimestamp(block.get('timestamp', 0)).strftime('%Y-%m-%d %H:%M:%S')
+                tx_count = len(block.get('transactions', []))
+                block_hash = block.get('hash', '')[:16] + '...' if block.get('hash') else 'N/A'
+                prev_hash = block.get('previous_hash', '')[:16] + '...' if block.get('previous_hash') else 'GENESIS'
 
-        if chart_paths.get('blockchain_growth'):
-            pdf.ln(5)
-            pdf.set_font("helvetica", "B", 12)
-            pdf.cell(0, 8, "Blockchain Growth Chart", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-            try:
-                if os.path.exists(chart_paths['blockchain_growth']):
-                    pdf.image(chart_paths['blockchain_growth'], x=10, w=pdf.w - 20)
-                    pdf.ln(5)
-                    print("✅ Added blockchain growth chart to PDF")
+                # Determine block status
+                if block_index == 0:
+                    status = 'GENESIS BLOCK'
+                elif any('RedHawk' in str(tx.get('sender', '')) for tx in block.get('transactions', [])):
+                    status = 'ATTACK RELATED'
                 else:
-                    pdf.set_font("helvetica", "", 10)
-                    pdf.cell(0, 8, "Chart file not found", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-            except Exception as e:
-                pdf.set_font("helvetica", "", 10)
-                pdf.cell(0, 8, f"Chart not available: {str(e)}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-                print(f"❌ Error adding blockchain growth chart: {e}")
+                    status = 'NORMAL'
 
-        pdf.add_section_title("3. Transaction Analysis")
+                writer.writerow([block_index, timestamp, tx_count, block_hash, prev_hash, status])
+            writer.writerow([])
 
-        if chain_data.get("chain"):
-            recent_txs = []
-            for block in chain_data["chain"][-5:]:
-                for tx in block["transactions"][-3:]:
-                    if tx.get("sender") != "SYSTEM":
-                        recent_txs.append(
-                            f"{tx.get('sender', 'Unknown')} -> {tx.get('receiver', 'Unknown')}: {tx.get('amount', 0)} coins")
+            # ===== TRANSACTION ANALYSIS - ENHANCED =====
+            writer.writerow(['TRANSACTION ANALYSIS - COMPREHENSIVE'])
+            writer.writerow(['Block', 'Transaction ID', 'Sender', 'Receiver', 'Amount', 'Type', 'Timestamp'])
 
-            if recent_txs:
-                pdf.set_font("helvetica", "B", 11)
-                pdf.cell(0, 8, "Recent Transactions:", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-                pdf.set_font("helvetica", "", 9)
-                for tx in recent_txs[-10:]:
-                    pdf.cell(0, 6, f"- {tx}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-                pdf.ln(5)
+            total_transactions = 0
+            user_transactions = 0
+            system_transactions = 0
 
-        pdf.add_section_title("4. Wallet Balances")
+            for block in chain_data.get("chain", []):
+                for tx in block.get("transactions", []):
+                    total_transactions += 1
+                    sender = tx.get('sender', '')
+                    receiver = tx.get('receiver', '')
+                    amount = tx.get('amount', 0)
 
-        if balances:
-            balance_data = {}
-            for wallet, balance in balances.items():
-                balance_data[wallet] = f"{balance:.2f} coins"
-            pdf.add_table("Current Wallet Balances", balance_data)
-
-            if chart_paths.get('balance_distribution'):
-                pdf.ln(5)
-                pdf.set_font("helvetica", "B", 12)
-                pdf.cell(0, 8, "Balance Distribution Chart", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-                try:
-                    if os.path.exists(chart_paths['balance_distribution']):
-                        pdf.image(chart_paths['balance_distribution'], x=10, w=pdf.w - 20)
-                        pdf.ln(5)
-                        print("✅ Added balance distribution chart to PDF")
+                    if sender == 'SYSTEM':
+                        tx_type = 'MINING REWARD'
+                        system_transactions += 1
                     else:
-                        pdf.set_font("helvetica", "", 10)
-                        pdf.cell(0, 8, "Chart file not found", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-                except Exception as e:
-                    pdf.set_font("helvetica", "", 10)
-                    pdf.cell(0, 8, f"Chart not available: {str(e)}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-                    print(f"❌ Error adding balance distribution chart: {e}")
-        else:
-            pdf.set_font("helvetica", "", 10)
-            pdf.cell(0, 8, "No wallet balance data available.", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+                        tx_type = 'USER TRANSACTION'
+                        user_transactions += 1
 
-        if chart_paths.get('mining_analysis'):
-            pdf.add_page()
-            pdf.add_section_title("5. Mining Analysis")
-            pdf.set_font("helvetica", "B", 12)
-            pdf.cell(0, 8, "Mining Time Analysis Chart", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-            try:
-                if os.path.exists(chart_paths['mining_analysis']):
-                    pdf.image(chart_paths['mining_analysis'], x=10, w=pdf.w - 20)
-                    pdf.ln(5)
-                    print("✅ Added mining analysis chart to PDF")
+                    tx_timestamp = datetime.fromtimestamp(tx.get('timestamp', 0)).strftime('%Y-%m-%d %H:%M:%S')
+
+                    writer.writerow([
+                        block.get('index', ''),
+                        tx.get('id', '')[:20] + '...',
+                        sender,
+                        receiver,
+                        f"{amount:.2f}",
+                        tx_type,
+                        tx_timestamp
+                    ])
+
+            writer.writerow([])
+            writer.writerow(['TRANSACTION SUMMARY', '', '', '', '', '', ''])
+            writer.writerow(['Total Transactions', total_transactions, '', '', '', '', ''])
+            writer.writerow(['User Transactions', user_transactions, '', '', '', '', ''])
+            writer.writerow(['System Transactions', system_transactions, '', '', '', '', ''])
+            writer.writerow([])
+
+            # ===== WALLET BALANCES - ENHANCED =====
+            writer.writerow(['WALLET PORTFOLIO ANALYSIS'])
+            writer.writerow(['Wallet Address', 'Balance (coins)', 'Status', 'Transaction Count'])
+
+            # Calculate transaction counts per wallet
+            wallet_tx_counts = {}
+            for block in chain_data.get("chain", []):
+                for tx in block.get("transactions", []):
+                    sender = tx.get('sender', '')
+                    receiver = tx.get('receiver', '')
+
+                    if sender != 'SYSTEM':
+                        wallet_tx_counts[sender] = wallet_tx_counts.get(sender, 0) + 1
+                    wallet_tx_counts[receiver] = wallet_tx_counts.get(receiver, 0) + 1
+
+            # Sort wallets by balance (highest first)
+            sorted_wallets = sorted(balances.items(), key=lambda x: x[1], reverse=True)
+
+            for wallet, balance in sorted_wallets:
+                tx_count = wallet_tx_counts.get(wallet, 0)
+                if balance > 0:
+                    status = 'ACTIVE - POSITIVE'
+                elif balance == 0:
+                    status = 'INACTIVE'
                 else:
-                    pdf.set_font("helvetica", "", 10)
-                    pdf.cell(0, 8, "Chart file not found", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-            except Exception as e:
-                pdf.set_font("helvetica", "", 10)
-                pdf.cell(0, 8, f"Chart not available: {str(e)}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-                print(f"❌ Error adding mining analysis chart: {e}")
+                    status = 'ACTIVE - NEGATIVE'
 
-            if chain_data.get("chain"):
-                mining_stats = {
-                    "Total Blocks Mined": len(chain_data["chain"]),
-                    "Average Transactions per Block": f"{sum(len(b['transactions']) for b in chain_data['chain']) / len(chain_data['chain']):.1f}",
-                    "Genesis Block": chain_data["chain"][0]["hash"][:20] + "...",
-                    "Latest Block": chain_data["chain"][-1]["hash"][:20] + "..."
-                }
-                pdf.add_table("Mining Statistics", mining_stats)
+                writer.writerow([wallet, f"{balance:.2f}", status, tx_count])
 
-        pdf.add_page()
-        pdf.add_section_title("6. SimBlock P2P Network Analysis")
+            writer.writerow([])
 
-        simblock_stats = {
-            "Network Status": network_info.get('status', 'default').title(),
-            "Average Latency": network_info.get('latency', '100ms'),
-            "Active Nodes": network_info.get('nodes', 4),
-            "Attacker Present": "Yes" if network_info.get('attacker_present') else "No",
-            "Simulation Ready": "Yes" if network_info.get('simulation_ready') else "No",
-            "Network Health": network_info.get('status', 'unknown').title()
-        }
-        pdf.add_table("Network Conditions", simblock_stats)
+            # ===== SECURITY ANALYSIS =====
+            writer.writerow(['SECURITY & ATTACK ANALYSIS'])
+            writer.writerow(['Metric', 'Value', 'Risk Level', 'Recommendation'])
 
-        if chart_paths.get('network_activity'):
-            pdf.ln(5)
-            pdf.set_font("helvetica", "B", 12)
-            pdf.cell(0, 8, "Network Activity Analysis", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-            try:
-                if os.path.exists(chart_paths['network_activity']):
-                    pdf.image(chart_paths['network_activity'], x=10, w=pdf.w - 20)
-                    pdf.ln(5)
-                    print("✅ Added network activity chart to PDF")
-                else:
-                    pdf.set_font("helvetica", "", 10)
-                    pdf.cell(0, 8, "Chart file not found", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-            except Exception as e:
-                pdf.set_font("helvetica", "", 10)
-                pdf.cell(0, 8, f"Chart not available: {str(e)}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-                print(f"❌ Error adding network activity chart: {e}")
+            total_attacks = len(attack_victims)
+            successful_attacks = sum(1 for info in attack_victims.values() if info['success'])
+            success_rate = (successful_attacks / total_attacks * 100) if total_attacks > 0 else 0
 
-        if chart_paths.get('simblock_analysis'):
-            pdf.ln(5)
-            pdf.set_font("helvetica", "B", 12)
-            pdf.cell(0, 8, "SimBlock Network Performance", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-            try:
-                if os.path.exists(chart_paths['simblock_analysis']):
-                    pdf.image(chart_paths['simblock_analysis'], x=10, w=pdf.w - 20)
-                    pdf.ln(5)
-                    print("✅ Added SimBlock analysis chart to PDF")
-                else:
-                    pdf.set_font("helvetica", "", 10)
-                    pdf.cell(0, 8, "Chart file not found", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-            except Exception as e:
-                pdf.set_font("helvetica", "", 10)
-                pdf.cell(0, 8, f"Chart not available: {str(e)}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-                print(f"❌ Error adding SimBlock analysis chart: {e}")
-
-        if 'last_attack' in RECENT_ATTACK_RESULTS:
-            pdf.add_page()
-            pdf.add_section_title("7. Double-Spending Attack Simulation")
-
-            attack_data = RECENT_ATTACK_RESULTS['last_attack']
-            attack_result = attack_data.get('result', {})
-
-            print(f"🔍 PDF Debug - Attack Data: {attack_data}")
-            print(f"🔍 PDF Debug - Frontend Config: {attack_data.get('config', {})}")
-
-            frontend_config = attack_data.get('config', {})
-            hash_power = frontend_config.get('hash_power', 0)
-            success_probability = frontend_config.get('success_probability', 0)
-
-            if hash_power == 0 and attack_result.get('hash_power'):
-                hash_power = attack_result.get('hash_power', 0)
-            if success_probability == 0 and attack_result.get('success_probability'):
-                success_probability = attack_result.get('success_probability', 0)
-
-            attack_config = {
-                "Attacker": attack_data.get('attacker', 'Unknown'),
-                "Private Blocks Mined": attack_data.get('blocks', 0),
-                "Attack Amount": f"{attack_data.get('amount', 0)} coins",
-                "Hash Power": f"{hash_power}%",
-                "Success Probability": f"{success_probability}%"
-            }
-            pdf.add_table("Attack Configuration", attack_config)
-
-            attack_successful = attack_result.get('success', False)
-            pdf.set_font("helvetica", "B", 12)
-            pdf.cell(0, 8, "Attack Outcome:", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-            pdf.set_font("helvetica", "B", 14)
-            if attack_successful:
-                pdf.set_text_color(0, 128, 0)
-                pdf.cell(0, 10, "SUCCESS - Attack Successful", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+            # Risk assessment
+            if success_rate == 0:
+                risk_level = 'LOW'
+                recommendation = 'Network security is strong'
+            elif success_rate < 30:
+                risk_level = 'MEDIUM'
+                recommendation = 'Monitor network activity closely'
             else:
-                pdf.set_text_color(255, 0, 0)
-                pdf.cell(0, 10, "FAILED - Attack Prevented", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+                risk_level = 'HIGH'
+                recommendation = 'Implement additional security measures'
 
-            pdf.set_text_color(0, 0, 0)
+            writer.writerow(['Total Attack Simulations', total_attacks, risk_level, recommendation])
+            writer.writerow(['Successful Attacks', successful_attacks, risk_level, ''])
+            writer.writerow(['Attack Success Rate', f"{success_rate:.1f}%", risk_level, ''])
+            writer.writerow(['Double Spending Risk', risk_level, risk_level, recommendation])
+            writer.writerow([])
 
-            if attack_result.get('message'):
-                pdf.set_font("helvetica", "", 10)
-                pdf.multi_cell(0, 6, f"Details: {attack_result.get('message')}")
+            # ===== NETWORK PERFORMANCE =====
+            writer.writerow(['NETWORK PERFORMANCE METRICS'])
+            writer.writerow(['Metric', 'Current Value', 'Target Range', 'Status'])
+            writer.writerow(['Network Latency', f"{SIMBLOCK_METRICS_DATA['network_latency']}%", '0-40%',
+                             'GOOD' if SIMBLOCK_METRICS_DATA['network_latency'] < 40 else 'HIGH'])
+            writer.writerow(['Node Health', f"{SIMBLOCK_METRICS_DATA['node_health']}%", '80-100%',
+                             'GOOD' if SIMBLOCK_METRICS_DATA['node_health'] > 80 else 'LOW'])
+            writer.writerow(['Message Delivery', f"{SIMBLOCK_METRICS_DATA['message_delivery']}%", '90-100%',
+                             'GOOD' if SIMBLOCK_METRICS_DATA['message_delivery'] > 90 else 'LOW'])
+            writer.writerow(['Attack Resistance', f"{SIMBLOCK_METRICS_DATA['attack_resistance']}%", '80-100%',
+                             'GOOD' if SIMBLOCK_METRICS_DATA['attack_resistance'] > 80 else 'LOW'])
+            writer.writerow([])
 
-            if attack_victims:
-                pdf.ln(5)
-                pdf.set_font("helvetica", "B", 12)
-                pdf.cell(0, 8, "Attack Impact:", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-                pdf.set_font("helvetica", "", 10)
-                for attacker, info in attack_victims.items():
-                    if info['success']:
-                        pdf.multi_cell(0, 6,
-                                       f"Attacker '{attacker}' stole {info['amount']} coins from victim '{info['victim']}'")
-                    else:
-                        pdf.multi_cell(0, 6,
-                                       f"Attacker '{attacker}'s attack failed - no coins stolen")
+            # ===== TECHNICAL SPECIFICATIONS =====
+            writer.writerow(['TECHNICAL SPECIFICATIONS'])
+            writer.writerow(['Component', 'Implementation', 'Version', 'Status'])
+            writer.writerow(['Blockchain Core', 'Custom Python Implementation', '1.0', 'ACTIVE'])
+            writer.writerow(['Consensus Mechanism', 'Proof of Work (PoW)', '1.0', 'ACTIVE'])
+            writer.writerow(['Network Simulation', 'SimBlock Integration', '1.0', 'ACTIVE'])
+            writer.writerow(['Web Interface', 'Flask + JavaScript', '1.0', 'ACTIVE'])
+            writer.writerow(['Data Analytics', 'Real-time Charts & Metrics', '1.0', 'ACTIVE'])
+            writer.writerow(['Attack Detection', 'Double Spending Algorithm', '1.0', 'ACTIVE'])
+            writer.writerow([])
 
-        pdf.add_page()
-        pdf.add_section_title("8. Network Performance Metrics")
+            # ===== FOOTER =====
+            writer.writerow(['REPORT GENERATED BY: Blockchain Anomaly Detection System'])
+            writer.writerow(['EDUCATIONAL PURPOSE: Virtual University of Pakistan'])
+            writer.writerow(['TIMESTAMP:', datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+            writer.writerow(['REPORT ID:', f"BLOCKCHAIN_REPORT_{timestamp}"])
 
-        performance_data = {
-            "Blockchain Synchronization": "Optimal",
-            "Transaction Throughput": f"{len(chain_data.get('mempool', []))} pending",
-            "Network Latency": network_info.get('latency', '100ms'),
-            "Node Connectivity": f"{len(PEERS)} direct peers",
-            "Consensus Efficiency": "Active",
-            "Attack Detection": "Enabled"
-        }
-        pdf.add_table("Performance Metrics", performance_data)
-
-        pdf.add_section_title("9. Security Analysis")
-
-        total_attacks = 0
-        successful_attacks = 0
-
-        if 'last_attack' in RECENT_ATTACK_RESULTS:
-            total_attacks = 1
-            attack_result = RECENT_ATTACK_RESULTS['last_attack'].get('result', {})
-            if attack_result.get('success'):
-                successful_attacks = 1
-
-        security_metrics = {
-            "Total Attack Simulations": total_attacks,
-            "Successful Attacks": successful_attacks,
-            "Attack Success Rate": f"{(successful_attacks / total_attacks) * 100 if total_attacks > 0 else 0:.1f}%",
-            "Network Resilience": "High" if successful_attacks == 0 else "Medium",
-            "Double-Spending Risk": "Low" if successful_attacks == 0 else "Medium"
-        }
-        pdf.add_table("Security Metrics", security_metrics)
-
-        pdf.add_section_title("10. Security Recommendations")
-
-        recommendations = [
-            "Monitor for unusual transaction patterns regularly",
-            "Maintain network node diversity for better security",
-            "Implement additional validation for high-value transactions",
-            "Regularly update consensus algorithm parameters",
-            "Conduct periodic security audits and attack simulations",
-            "Monitor hash power distribution among network participants"
-        ]
-
-        pdf.set_font("helvetica", "", 10)
-        for i, recommendation in enumerate(recommendations, 1):
-            pdf.cell(0, 6, f"{i}. {recommendation}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-        pdf.ln(10)
-        pdf.set_font("helvetica", "B", 12)
-        pdf.cell(0, 8, "Conclusion", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-        pdf.set_font("helvetica", "", 10)
-
-        if 'last_attack' in RECENT_ATTACK_RESULTS:
-            attack_result = RECENT_ATTACK_RESULTS['last_attack'].get('result', {})
-            if attack_result.get('success'):
-                conclusion_text = (
-                    "The blockchain network successfully defended against double-spending attacks "
-                    "in most scenarios. However, recent simulations show that under certain conditions "
-                    "(high hash power, favorable network conditions), attacks can succeed. "
-                    "Continued monitoring and security enhancements are recommended."
-                )
-            else:
-                conclusion_text = (
-                    "The blockchain network demonstrated strong resilience against double-spending attacks "
-                    "in all simulated scenarios. The current security measures are effective, but "
-                    "continuous monitoring and periodic security assessments should be maintained."
-                )
-        else:
-            conclusion_text = (
-                "The blockchain network is operating within expected parameters. "
-                "Regular monitoring and continued security assessments are recommended "
-                "to maintain network integrity and detect potential anomalies."
-            )
-
-        pdf.multi_cell(0, 6, conclusion_text)
-
-        pdf.add_page()
-        pdf.add_section_title("11. Technical Details")
-
-        technical_details = {
-            "Blockchain Implementation": "Custom Python Blockchain",
-            "Consensus Algorithm": "Proof of Work (PoW)",
-            "Mining Difficulty": chain_data.get("difficulty", "N/A"),
-            "Block Time": "Variable (Based on difficulty)",
-            "Transaction Format": "JSON-based",
-            "Hash Algorithm": "SHA-256",
-            "Network Protocol": "REST API + SimBlock P2P",
-            "Report Generation": f"Automated - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-        }
-        pdf.add_table("System Configuration", technical_details)
-
-        try:
-            for chart_path in chart_paths.values():
-                if os.path.exists(chart_path):
-                    os.remove(chart_path)
-                    print(f"🧹 Cleaned up chart file: {chart_path}")
-            if os.path.exists(charts_dir) and not os.listdir(charts_dir):
-                os.rmdir(charts_dir)
-                print(f"🧹 Cleaned up charts directory: {charts_dir}")
-        except Exception as e:
-            print(f"Note: Could not clean up chart files: {e}")
-
-        report_path = os.path.join(reports_dir, f"Blockchain-Report-{datetime.now().strftime('%Y%m%d-%H%M%S')}.pdf")
-        pdf.output(report_path)
-
-        print(f"✅ Comprehensive PDF report with charts generated: {report_path}")
-        return report_path
+        print(f"✅ Enhanced Blockchain CSV report generated: {csv_path}")
+        return csv_path
 
     except Exception as e:
-        print(f"❌ PDF generation error: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ Enhanced Blockchain CSV generation error: {e}")
+        raise
+
+
+def generate_attack_analysis_csv() -> str:
+    """
+    Generate detailed attack analysis CSV report with enhanced formatting.
+    """
+    try:
+        script_dir = os.path.dirname(__file__)
+        reports_dir = os.path.join(script_dir, "reports")
+        os.makedirs(reports_dir, exist_ok=True)
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        csv_path = os.path.join(reports_dir, f"attack_analysis_{timestamp}.csv")
+
+        with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
+
+            # ===== ENHANCED HEADER =====
+            writer.writerow(['DOUBLE SPENDING ATTACK ANALYSIS - COMPREHENSIVE REPORT'])
+            writer.writerow(['Generated', datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+            writer.writerow(['Report Type', 'Security Analysis & Attack Forensics'])
+            writer.writerow([])
+            writer.writerow([])
+
+            if 'last_attack' in RECENT_ATTACK_RESULTS:
+                attack_data = RECENT_ATTACK_RESULTS['last_attack']
+                attack_result = attack_data.get('result', {})
+                config = attack_data.get('config', {})
+                transactions = attack_data.get('transactions', {})
+
+                # ===== ATTACK EXECUTIVE SUMMARY =====
+                writer.writerow(['ATTACK EXECUTIVE SUMMARY'])
+                writer.writerow(['Metric', 'Value', 'Impact Level'])
+
+                attack_successful = attack_result.get('successful', False)
+                impact_level = 'HIGH' if attack_successful else 'LOW'
+
+                writer.writerow(['Attack Status', 'SUCCESSFUL' if attack_successful else 'FAILED', impact_level])
+                writer.writerow(['Attacker Identity', attack_data.get('attacker', 'Unknown'), impact_level])
+                writer.writerow(['Attack Amount', f"{attack_data.get('amount', 0)} coins", impact_level])
+                writer.writerow(['Private Blocks Mined', attack_data.get('blocks', 0), impact_level])
+                writer.writerow(['Success Probability', f"{config.get('success_probability', 0)}%", impact_level])
+                writer.writerow(['Hash Power Used', f"{config.get('hash_power', 0)}%", impact_level])
+                writer.writerow([])
+
+                # ===== ATTACK CONFIGURATION DETAILS =====
+                writer.writerow(['ATTACK CONFIGURATION DETAILS'])
+                writer.writerow(['Parameter', 'Setting', 'Description'])
+                writer.writerow(
+                    ['Attacker Name', attack_data.get('attacker', 'Unknown'), 'Primary attacker identifier'])
+                writer.writerow(['Target Blocks', attack_data.get('blocks', 0), 'Private blocks to mine'])
+                writer.writerow(['Attack Amount', f"{attack_data.get('amount', 0)} coins", 'Double spending amount'])
+                writer.writerow(['Hash Power', f"{config.get('hash_power', 0)}%", 'Computational resources'])
+                writer.writerow(
+                    ['Success Probability', f"{config.get('success_probability', 0)}%", 'Base success chance'])
+                writer.writerow(
+                    ['Force Success', 'ENABLED' if config.get('force_success') else 'DISABLED', 'Override mode'])
+                writer.writerow(
+                    ['Force Failure', 'ENABLED' if config.get('force_failure') else 'DISABLED', 'Override mode'])
+                writer.writerow(['Network Latency', f"{config.get('latency', 100)}ms", 'Simulated conditions'])
+                writer.writerow([])
+
+                # ===== TRANSACTION FORENSICS - ENHANCED =====
+                writer.writerow(['TRANSACTION FORENSICS ANALYSIS'])
+                writer.writerow(['Transaction Type', 'Sender', 'Receiver', 'Amount', 'Timestamp', 'Purpose', 'Status'])
+
+                legitimate_tx = transactions.get('legitimate', {})
+                malicious_tx = transactions.get('malicious', {})
+
+                # Legitimate transaction
+                writer.writerow([
+                    'LEGITIMATE TRANSACTION',
+                    transactions.get('transaction_1', {}).get('type', ''),
+                    transactions.get('transaction_1', {}).get('purpose', ''),
+                    legitimate_tx.get('sender', ''),
+                    legitimate_tx.get('receiver', ''),
+                    legitimate_tx.get('amount', 0),
+                    datetime.fromtimestamp(legitimate_tx.get('timestamp', 0)).strftime('%Y-%m-%d %H:%M:%S'),
+                    'VALID'
+                ])
+
+                # Malicious transaction
+                writer.writerow([
+                    'MALICIOUS TRANSACTION',
+                    transactions.get('transaction_2', {}).get('type', ''),
+                    transactions.get('transaction_2', {}).get('purpose', ''),
+                    malicious_tx.get('sender', ''),
+                    malicious_tx.get('receiver', ''),
+                    malicious_tx.get('amount', 0),
+                    datetime.fromtimestamp(malicious_tx.get('timestamp', 0)).strftime('%Y-%m-%d %H:%M:%S'),
+                    'FRAUDULENT'
+                ])
+                writer.writerow([])
+
+                # ===== DOUBLE SPENDING INDICATORS =====
+                writer.writerow(['DOUBLE SPENDING DETECTION INDICATORS'])
+                writer.writerow(['Indicator', 'Present', 'Confidence Level', 'Description'])
+
+                indicators = [
+                    ('Same Sender', True, 'HIGH', 'Both transactions from same wallet'),
+                    ('Same Amount', True, 'HIGH', 'Identical transaction amounts'),
+                    ('Same Timestamp', True, 'MEDIUM', 'Transactions created simultaneously'),
+                    ('Different Receivers', True, 'HIGH', 'Funds sent to different destinations'),
+                    ('Private Mining', attack_data.get('blocks', 0) > 0, 'HIGH', 'Attempt to create alternative chain')
+                ]
+
+                for indicator, present, confidence, description in indicators:
+                    status = 'DETECTED' if present else 'NOT DETECTED'
+                    writer.writerow([indicator, status, confidence, description])
+                writer.writerow([])
+
+                # ===== ATTACK EXECUTION TIMELINE =====
+                writer.writerow(['ATTACK EXECUTION TIMELINE'])
+                writer.writerow(['Step', 'Action', 'Result', 'Timestamp', 'Status'])
+
+                steps = attack_result.get('steps', [])
+                attack_start_time = attack_data.get('timestamp', time.time())
+
+                for i, step in enumerate(steps, 1):
+                    step_time = attack_start_time + (i * 2)  # Simulated timing
+                    step_timestamp = datetime.fromtimestamp(step_time).strftime('%H:%M:%S')
+
+                    action = step.get('action', '').replace('_', ' ').title()
+                    result = step.get('result', '') or step.get('mining_success', '') or 'Completed'
+                    status = 'SUCCESS' if result else 'FAILED'
+
+                    writer.writerow([i, action, result, step_timestamp, status])
+                writer.writerow([])
+
+                # ===== NETWORK IMPACT ANALYSIS =====
+                writer.writerow(['NETWORK IMPACT ANALYSIS'])
+                writer.writerow(['Metric', 'Before Attack', 'After Attack', 'Change', 'Impact Level'])
+
+                if len(NETWORK_ACTIVITY_DATA['data']) > 1:
+                    before_activity = NETWORK_ACTIVITY_DATA['data'][-2]
+                    after_activity = NETWORK_ACTIVITY_DATA['data'][-1]
+                    change = after_activity - before_activity
+                    impact = 'HIGH' if abs(change) > 30 else 'MEDIUM' if abs(change) > 15 else 'LOW'
+
+                    writer.writerow([
+                        'Network Activity',
+                        f"{before_activity}%",
+                        f"{after_activity}%",
+                        f"{change:+.1f}%",
+                        impact
+                    ])
+
+                # Add other metrics
+                metrics_impact = [
+                    ('Network Latency', SIMBLOCK_METRICS_DATA['network_latency'], 'Higher indicates congestion'),
+                    ('Node Health', SIMBLOCK_METRICS_DATA['node_health'], 'Lower indicates node issues'),
+                    ('Message Delivery', SIMBLOCK_METRICS_DATA['message_delivery'], 'Lower indicates delivery problems'),
+                    ('Attack Resistance', SIMBLOCK_METRICS_DATA['attack_resistance'], 'Lower indicates vulnerability')
+                ]
+
+                for metric, value, description in metrics_impact:
+                    status = 'CONCERN' if (('Latency' in metric and value > 50) or
+                                          (value < 50 and 'Latency' not in metric)) else 'NORMAL'
+                    writer.writerow([metric, f"{value}%", 'Current', '', status])
+
+                writer.writerow([])
+
+                # ===== SECURITY RECOMMENDATIONS =====
+                writer.writerow(['SECURITY RECOMMENDATIONS & MITIGATIONS'])
+                writer.writerow(['Priority', 'Recommendation', 'Implementation', 'Expected Impact'])
+
+                security_recommendations = [
+                    ('HIGH', 'Wait for multiple confirmations', 'Transaction validation', 'Prevents double spending'),
+                    ('HIGH', 'Monitor transaction patterns', 'Real-time analytics', 'Early detection'),
+                    ('MEDIUM', 'Implement network monitoring', 'Node surveillance', 'Attack prevention'),
+                    ('MEDIUM', 'Use longer block times', 'Consensus parameters', 'Increases security'),
+                    ('LOW', 'Regular security audits', 'Periodic reviews', 'Continuous improvement')
+                ]
+
+                for priority, recommendation, implementation, expected_impact in security_recommendations:
+                    writer.writerow([priority, recommendation, implementation, expected_impact])
+
+                writer.writerow([])
+
+                # ===== RISK ASSESSMENT =====
+                writer.writerow(['COMPREHENSIVE RISK ASSESSMENT'])
+                writer.writerow(['Risk Factor', 'Level', 'Probability', 'Impact', 'Mitigation Strategy'])
+
+                risk_factors = [
+                    ('Double Spending Success', 'HIGH' if attack_successful else 'LOW',
+                     f"{config.get('success_probability', 0)}%", 'HIGH' if attack_successful else 'LOW',
+                     'Multiple confirmations, monitoring'),
+                    ('Network Vulnerability', 'MEDIUM', '60%', 'MEDIUM', 'Enhanced node security'),
+                    ('Consensus Weakness', 'LOW', '30%', 'HIGH', 'Algorithm improvements'),
+                    ('User Awareness', 'MEDIUM', '70%', 'MEDIUM', 'Education & training')
+                ]
+
+                for factor, level, probability, impact, mitigation in risk_factors:
+                    writer.writerow([factor, level, probability, impact, mitigation])
+
+                writer.writerow([])
+
+            else:
+                # ===== NO ATTACK DATA SECTION =====
+                writer.writerow(['NO ATTACK DATA AVAILABLE'])
+                writer.writerow(['Status', 'No recent attack simulations found'])
+                writer.writerow(['Action Required', 'Run attack simulation to generate analysis data'])
+                writer.writerow(['Recommendation', 'Use the attack simulation interface to test scenarios'])
+                writer.writerow([])
+
+            # ===== REPORT FOOTER =====
+            writer.writerow([])
+            writer.writerow(['ATTACK ANALYSIS REPORT GENERATED BY: Blockchain Security System'])
+            writer.writerow(['EDUCATIONAL USE: Virtual University Blockchain Research'])
+            writer.writerow(['REPORT TIMESTAMP:', datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+            writer.writerow(['REPORT ID:', f"ATTACK_ANALYSIS_{timestamp}"])
+
+        print(f"✅ Enhanced Attack analysis CSV generated: {csv_path}")
+        return csv_path
+
+    except Exception as e:
+        print(f"❌ Enhanced Attack analysis CSV generation error: {e}")
+        raise
+
+
+def generate_network_metrics_csv() -> str:
+    """
+    Generate network metrics and performance CSV report with enhanced formatting.
+    """
+    try:
+        script_dir = os.path.dirname(__file__)
+        reports_dir = os.path.join(script_dir, "reports")
+        os.makedirs(reports_dir, exist_ok=True)
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        csv_path = os.path.join(reports_dir, f"network_metrics_{timestamp}.csv")
+
+        network_info = get_network_info()
+
+        with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
+
+            # ===== ENHANCED HEADER =====
+            writer.writerow(['NETWORK PERFORMANCE METRICS - COMPREHENSIVE REPORT'])
+            writer.writerow(['Generated', datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+            writer.writerow(['Network Type', 'SimBlock P2P Blockchain Simulation'])
+            writer.writerow(['Node Count', f"{network_info.get('nodes', 120)} nodes"])
+            writer.writerow([])
+            writer.writerow([])
+
+            # ===== NETWORK OVERVIEW =====
+            writer.writerow(['NETWORK OVERVIEW & STATUS'])
+            writer.writerow(['Metric', 'Value', 'Status', 'Details'])
+            writer.writerow(['Network Status', network_info.get('status', 'default').title(),
+                             'ACTIVE', 'Primary network status'])
+            writer.writerow(['Average Latency', network_info.get('latency', '100ms'),
+                             'OPTIMAL' if 'ms' in str(network_info.get('latency', '')) and int(
+                                 network_info.get('latency', '100').replace('ms', '')) < 150 else 'HIGH',
+                             'Network communication delay'])
+            writer.writerow(['Active Nodes', network_info.get('nodes', 4),
+                             'HEALTHY', 'Participating network nodes'])
+            writer.writerow(['Attacker Present', 'Yes' if network_info.get('attacker_present') else 'No',
+                             'MONITORED', 'Malicious node detection'])
+            writer.writerow(['Simulation Ready', 'Yes' if network_info.get('simulation_ready') else 'No',
+                             'READY', 'Simulation capabilities'])
+            writer.writerow([])
+
+            # ===== PERFORMANCE METRICS - ENHANCED =====
+            writer.writerow(['REAL-TIME PERFORMANCE METRICS'])
+            writer.writerow(['Metric', 'Current Score', 'Target Range', 'Status', 'Trend', 'Impact'])
+
+            metrics_data = [
+                ('Network Latency', SIMBLOCK_METRICS_DATA['network_latency'], '0-40%', 'Lower is better',
+                 'UP' if SIMBLOCK_METRICS_DATA['network_latency'] > 50 else 'STABLE', 'High impact'),
+                ('Node Health', SIMBLOCK_METRICS_DATA['node_health'], '80-100%', 'Higher is better',
+                 'UP' if SIMBLOCK_METRICS_DATA['node_health'] > 70 else 'DOWN', 'Critical'),
+                ('Message Delivery', SIMBLOCK_METRICS_DATA['message_delivery'], '90-100%', 'Higher is better',
+                 'STABLE', 'High impact'),
+                ('Attack Resistance', SIMBLOCK_METRICS_DATA['attack_resistance'], '80-100%', 'Higher is better',
+                 'DOWN' if SIMBLOCK_METRICS_DATA['attack_resistance'] < 60 else 'STABLE', 'Critical')
+            ]
+
+            for metric, score, target, status, trend, impact in metrics_data:
+                current_status = 'GOOD' if (
+                        (metric == 'Network Latency' and score < 40) or
+                        (metric != 'Network Latency' and score > 80)
+                ) else 'POOR' if (
+                        (metric == 'Network Latency' and score > 70) or
+                        (metric != 'Network Latency' and score < 50)
+                ) else 'FAIR'
+
+                writer.writerow([metric, f"{score}%", target, current_status, trend, impact])
+            writer.writerow([])
+
+            # ===== NETWORK ACTIVITY TIMELINE - ENHANCED =====
+            writer.writerow(['NETWORK ACTIVITY TIMELINE - LAST 10 EVENTS'])
+            writer.writerow(['Sequence', 'Event Type', 'Activity Level', 'Timestamp', 'Duration', 'Impact'])
+
+            for i, (label, activity) in enumerate(
+                    zip(NETWORK_ACTIVITY_DATA['labels'][-10:], NETWORK_ACTIVITY_DATA['data'][-10:])):
+                event_type = 'ATTACK' if 'Attack' in label else 'NORMAL'
+                timestamp = datetime.now().strftime('%H:%M:%S')
+                duration = '2-5min' if event_type == 'ATTACK' else 'Continuous'
+                impact = 'HIGH' if event_type == 'ATTACK' and activity > 70 else 'LOW'
+
+                writer.writerow([i + 1, event_type, f"{activity}%", timestamp, duration, impact])
+            writer.writerow([])
+
+            # ===== PEER NETWORK ANALYSIS =====
+            writer.writerow(['PEER NETWORK ANALYSIS'])
+            writer.writerow(['Peer Type', 'Count', 'Status', 'Distribution'])
+            writer.writerow(['SimBlock Nodes', '120+', 'SIMULATED', 'Global distribution'])
+            writer.writerow(['Traditional Peers', len(PEERS), 'ACTIVE' if PEERS else 'INACTIVE', 'Direct connections'])
+            writer.writerow(['Total Network Size', f"{120 + len(PEERS)}+", 'HEALTHY', 'Hybrid network'])
+            writer.writerow([])
+
+            if PEERS:
+                writer.writerow(['ACTIVE PEER CONNECTIONS'])
+                writer.writerow(['Peer Address', 'Connection Time', 'Status'])
+                for peer in PEERS:
+                    writer.writerow([peer, datetime.now().strftime('%H:%M:%S'), 'ACTIVE'])
+                writer.writerow([])
+
+            # ===== NETWORK HEALTH ASSESSMENT =====
+            writer.writerow(['COMPREHENSIVE NETWORK HEALTH ASSESSMENT'])
+            writer.writerow(['Assessment Area', 'Score', 'Status', 'Recommendation'])
+
+            avg_health = (SIMBLOCK_METRICS_DATA['node_health'] + SIMBLOCK_METRICS_DATA['message_delivery']) / 2
+            health_status = 'EXCELLENT' if avg_health > 80 else 'GOOD' if avg_health > 60 else 'FAIR' if avg_health > 40 else 'POOR'
+
+            assessment_areas = [
+                ('Overall Health', f"{avg_health:.1f}%", health_status,
+                 'Continue monitoring' if avg_health > 60 else 'Investigate network issues'),
+                ('Performance', f"{(100 - SIMBLOCK_METRICS_DATA['network_latency']):.1f}%",
+                 'GOOD' if SIMBLOCK_METRICS_DATA['network_latency'] < 40 else 'POOR',
+                 'Optimize network routes' if SIMBLOCK_METRICS_DATA[
+                                                  'network_latency'] > 60 else 'Maintain current setup'),
+                ('Security', f"{SIMBLOCK_METRICS_DATA['attack_resistance']:.1f}%",
+                 'STRONG' if SIMBLOCK_METRICS_DATA['attack_resistance'] > 70 else 'WEAK',
+                 'Enhance security protocols' if SIMBLOCK_METRICS_DATA[
+                                                     'attack_resistance'] < 50 else 'Security adequate'),
+                ('Reliability', f"{SIMBLOCK_METRICS_DATA['message_delivery']:.1f}%",
+                 'HIGH' if SIMBLOCK_METRICS_DATA['message_delivery'] > 85 else 'LOW',
+                 'Improve node connectivity' if SIMBLOCK_METRICS_DATA['message_delivery'] < 70 else 'Reliability good')
+            ]
+
+            for area, score, status, recommendation in assessment_areas:
+                writer.writerow([area, score, status, recommendation])
+            writer.writerow([])
+
+            # ===== TECHNICAL SPECIFICATIONS =====
+            writer.writerow(['NETWORK TECHNICAL SPECIFICATIONS'])
+            writer.writerow(['Parameter', 'Value', 'Configuration', 'Notes'])
+            writer.writerow(['Network Type', 'P2P Blockchain', 'Decentralized', 'No central authority'])
+            writer.writerow(['Consensus', 'Proof of Work', 'SHA-256', 'Mining required'])
+            writer.writerow(['Block Time', 'Variable', 'Dynamic adjustment', 'Based on difficulty'])
+            writer.writerow(['Node Distribution', 'Global', '120+ nodes', 'Simulated regions'])
+            writer.writerow(['Latency Simulation', 'Enabled', 'Realistic conditions', 'Network realism'])
+            writer.writerow([])
+
+            # ===== REPORT FOOTER =====
+            writer.writerow(['NETWORK METRICS REPORT GENERATED BY: Blockchain Monitoring System'])
+            writer.writerow(['EDUCATIONAL PURPOSE: Virtual University Research Project'])
+            writer.writerow(['REPORT TIMESTAMP:', datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+            writer.writerow(['REPORT ID:', f"NETWORK_METRICS_{timestamp}"])
+
+        print(f"✅ Enhanced Network metrics CSV generated: {csv_path}")
+        return csv_path
+
+    except Exception as e:
+        print(f"❌ Enhanced Network metrics CSV generation error: {e}")
+        raise
+
+
+def generate_double_spend_analysis_csv() -> str:
+    """
+    Generate double spending transaction analysis CSV report.
+
+    Returns:
+        str: File path to the generated CSV report
+    """
+    try:
+        from blockchain.transaction import generate_double_spend_report
+
+        script_dir = os.path.dirname(__file__)
+        reports_dir = os.path.join(script_dir, "reports")
+        os.makedirs(reports_dir, exist_ok=True)
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        csv_path = os.path.join(reports_dir, f"double_spend_analysis_{timestamp}.csv")
+
+        # Get attack data for demonstration
+        attacker = 'RedHawk'
+        victim = 'Victim_Wallet'
+        amount = 10.0
+
+        if 'last_attack' in RECENT_ATTACK_RESULTS:
+            attack_data = RECENT_ATTACK_RESULTS['last_attack']
+            attacker = attack_data.get('attacker', 'RedHawk')
+            amount = attack_data.get('amount', 10.0)
+
+        report = generate_double_spend_report(attacker, victim, amount)
+
+        with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
+
+            # Double Spending Analysis Header
+            writer.writerow(['DOUBLE SPENDING TRANSACTION ANALYSIS'])
+            writer.writerow(['Generated', datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+            writer.writerow([])
+
+            # Demonstration Overview
+            demo = report.get('demonstration', {})
+            writer.writerow(['DEMONSTRATION OVERVIEW'])
+            writer.writerow(['Type', demo.get('demonstration_type', '')])
+            writer.writerow(['Scenario', demo.get('attack_scenario', '')])
+            writer.writerow(['Timestamp', demo.get('timestamp', '')])
+            writer.writerow([])
+
+            # Participants
+            participants = demo.get('participants', {})
+            writer.writerow(['PARTICIPANTS'])
+            writer.writerow(['Role', 'Address'])
+            writer.writerow(['Attacker', participants.get('attacker', '')])
+            writer.writerow(['Victim', participants.get('victim', '')])
+            writer.writerow(['Shadow Wallet', participants.get('shadow_wallet', '')])
+            writer.writerow([])
+
+            # Transaction Details
+            transactions = demo.get('transactions', {})
+            writer.writerow(['TRANSACTION DETAILS'])
+            writer.writerow(['Transaction', 'Type', 'Purpose', 'Sender', 'Receiver', 'Amount', 'Timestamp', 'TX ID'])
+
+            honest_tx = transactions.get('transaction_1', {}).get('transaction', {})
+            malicious_tx = transactions.get('transaction_2', {}).get('transaction', {})
+
+            writer.writerow([
+                'Honest Transaction',
+                transactions.get('transaction_1', {}).get('type', ''),
+                transactions.get('transaction_1', {}).get('purpose', ''),
+                honest_tx.get('sender', ''),
+                honest_tx.get('receiver', ''),
+                honest_tx.get('amount', 0),
+                honest_tx.get('timestamp', ''),
+                honest_tx.get('id', '')[:16] + '...'
+            ])
+
+            writer.writerow([
+                'Malicious Transaction',
+                transactions.get('transaction_2', {}).get('type', ''),
+                transactions.get('transaction_2', {}).get('purpose', ''),
+                malicious_tx.get('sender', ''),
+                malicious_tx.get('receiver', ''),
+                malicious_tx.get('amount', 0),
+                malicious_tx.get('timestamp', ''),
+                malicious_tx.get('id', '')[:16] + '...'
+            ])
+            writer.writerow([])
+
+            # Double Spend Indicators
+            indicators = demo.get('double_spend_indicators', {})
+            writer.writerow(['DOUBLE SPEND INDICATORS'])
+            writer.writerow(['Indicator', 'Present'])
+            for indicator, present in indicators.items():
+                writer.writerow([indicator.replace('_', ' ').title(), 'Yes' if present else 'No'])
+            writer.writerow([])
+
+            # Validation Results
+            validation = report.get('validation_results', {})
+            writer.writerow(['VALIDATION RESULTS'])
+            writer.writerow(['Is Double Spend', 'Yes' if validation.get('is_double_spend') else 'No'])
+            writer.writerow(['Reasons'])
+            for reason in validation.get('reasons', []):
+                writer.writerow(['', reason])
+            writer.writerow([])
+
+            # Risk Assessment
+            risk = report.get('risk_assessment', {})
+            writer.writerow(['RISK ASSESSMENT'])
+            writer.writerow(['Risk Level', risk.get('risk_level', '')])
+            writer.writerow(['Vulnerability', risk.get('vulnerability', '')])
+            writer.writerow(['Recommendations'])
+            for recommendation in risk.get('recommendations', []):
+                writer.writerow(['', recommendation])
+            writer.writerow([])
+
+            # Transaction Analysis Summary
+            analysis = report.get('transaction_analysis', {})
+            writer.writerow(['ANALYSIS SUMMARY'])
+            writer.writerow(['Metric', 'Value'])
+            writer.writerow(['Total Transactions', analysis.get('total_transactions', 0)])
+            writer.writerow(['Conflicting Pairs', analysis.get('conflicting_pairs', 0)])
+            writer.writerow(['Double Spend Detected', 'Yes' if analysis.get('double_spend_detected') else 'No'])
+            writer.writerow(['Detection Confidence', analysis.get('detection_confidence', '')])
+
+        print(f"✅ Double spend analysis CSV generated: {csv_path}")
+        return csv_path
+
+    except Exception as e:
+        print(f"❌ Double spend analysis CSV generation error: {e}")
+        raise
+
+
+def generate_all_csv_reports() -> Dict[str, str]:
+    """
+    Generate all CSV reports for comprehensive analysis.
+
+    Returns:
+        Dict[str, str]: Dictionary mapping report types to file paths
+    """
+    try:
+        print("🚀 Generating comprehensive CSV reports...")
+
+        reports = {}
+
+        # Generate all report types
+        reports['blockchain'] = generate_blockchain_csv_report()
+        reports['attack_analysis'] = generate_attack_analysis_csv()
+        reports['network_metrics'] = generate_network_metrics_csv()
+        reports['double_spend_analysis'] = generate_double_spend_analysis_csv()
+
+        print(f"✅ Generated {len(reports)} CSV reports for deep analysis")
+        return reports
+
+    except Exception as e:
+        print(f"❌ CSV report generation error: {e}")
         raise
 
 
@@ -1305,11 +1147,22 @@ def get_detailed_balances():
     try:
         balances, attack_victims = get_balances_with_attackers()
 
+        # Include transaction details in the response
+        attack_details = {}
+        if 'last_attack' in RECENT_ATTACK_RESULTS:
+            attack_data = RECENT_ATTACK_RESULTS['last_attack']
+            attack_details = {
+                'transactions': attack_data.get('transactions', {}),
+                'timestamp': attack_data.get('timestamp'),
+                'config': attack_data.get('config', {})
+            }
+
         return jsonify({
             "balances": balances,
             "attack_info": attack_victims,
             "total_wallets": len(balances),
-            "active_attacks": len(attack_victims)
+            "active_attacks": len(attack_victims),
+            "attack_details": attack_details  # ADD THIS LINE
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1380,109 +1233,87 @@ def api_run_attack():
     """Execute double-spending attack simulation"""
     try:
         data = request.get_json() or {}
-        print(f"🎯 RAW REQUEST DATA: {data}")
+        print(f"🎯 Attack Request: {data}")
 
         attacker = data.get("attacker", "RedHawk")
         blocks = int(data.get("blocks", 1))
         amount = float(data.get("amount", 10.0))
         frontend_config = data.get("frontend_config", {})
 
-        print(f"🎯 Attack Request: {attacker}, {blocks} blocks, {amount} coins")
-        print(f"🔧 Frontend Config: {frontend_config}")
+        hash_power = frontend_config.get('hash_power', 30)
+        success_probability = frontend_config.get('success_probability', 50)
+        force_success = frontend_config.get('force_success', False)
+        force_failure = frontend_config.get('force_failure', False)
 
-        all_possible_keys = []
-        for key in frontend_config.keys():
-            all_possible_keys.append(key)
-            if 'hash' in key.lower():
-                print(f"   🔍 Found hash-related key: {key} = {frontend_config[key]}")
-            if 'success' in key.lower():
-                print(f"   🔍 Found success-related key: {key} = {frontend_config[key]}")
-            if 'force' in key.lower():
-                print(f"   🔍 Found force-related key: {key} = {frontend_config[key]}")
+        # FIXED: Respect force success/failure settings
+        if force_success:
+            attack_successful = True
+        elif force_failure:
+            attack_successful = False
+        else:
+            # Use probability-based success
+            attack_successful = success_probability > 50  # Simple success condition
 
-        hash_power = (
-                frontend_config.get('attackerHashPower') or
-                frontend_config.get('hash_power') or
-                frontend_config.get('hashPower') or
-                frontend_config.get('attacker_hash_power') or
-                30
-        )
-
-        success_probability = (
-                frontend_config.get('successProbability') or
-                frontend_config.get('success_probability') or
-                frontend_config.get('probability') or
-                50
-        )
-
-        force_success = (
-                frontend_config.get('forceSuccess') or
-                frontend_config.get('force_success') or
-                frontend_config.get('forceSuccess') or
-                False
-        )
-
-        force_failure = (
-                frontend_config.get('forceFailure') or
-                frontend_config.get('force_failure') or
-                frontend_config.get('forceFail') or
-                False
-        )
-
-        hash_power = (
-                frontend_config.get('attackerHashPower') or
-                frontend_config.get('hash_power') or
-                frontend_config.get('hashPower') or
-                frontend_config.get('attacker_hash_power') or
-                30
-        )
-
-        corrected_config = {
-            'hash_power': hash_power,
-            'success_probability': success_probability,
-            'force_success': force_success,
-            'force_failure': force_failure,
-            'latency': frontend_config.get('latency', 100)
+        # Create transaction details for visualization
+        current_timestamp = int(time.time())
+        transaction_details = {
+            "legitimate": {
+                "sender": attacker,
+                "receiver": "Victim_Wallet",
+                "amount": amount,
+                "timestamp": current_timestamp,
+                "purpose": "Initial legitimate transaction to victim"
+            },
+            "malicious": {
+                "sender": attacker,
+                "receiver": attacker,
+                "amount": amount,
+                "timestamp": current_timestamp,
+                "purpose": "Secret double spending transaction to own wallet"
+            }
         }
 
-        print(f"✅ FINAL Corrected Config: {corrected_config}")
+        # Simulate attack result
+        result = {
+            "successful": attack_successful,
+            "success_probability": success_probability,
+            "blocks_mined": blocks if attack_successful else 0,
+            "hash_power": hash_power,
+            "message": "Attack successful!" if attack_successful else "Attack failed!",
+            "steps": [
+                {"action": "probability_calculation", "result": True},
+                {"action": "private_mining", "mining_success": attack_successful},
+                {"action": "network_broadcast", "result": attack_successful}
+            ]
+        }
 
         RECENT_ATTACK_RESULTS['last_attack'] = {
-            'config': corrected_config,
+            'config': frontend_config,
             'timestamp': time.time(),
             'attacker': attacker,
             'blocks': blocks,
-            'amount': amount
+            'amount': amount,
+            'transactions': transaction_details,
+            'result': result
         }
 
-        from blockchain.attacker import run_attack
+        update_network_chart_data(attack_successful, hash_power, success_probability)
 
-        result = run_attack(
-            node_url=NODE_ADDRESS,
-            peers=list(PEERS) or [NODE_ADDRESS],
-            attacker_addr=attacker,
-            blocks=blocks,
-            amount=amount,
-            frontend_config=corrected_config
-        )
+        # Enhanced response with transaction details
+        enhanced_result = {
+            **result,
+            "transactions": transaction_details,
+            "private_blocks_mined": blocks,
+            "attack_timestamp": current_timestamp,
+            "victim_wallet": "Victim_Wallet"
+        }
 
-        attack_successful = result.get('successful', False)
-        success_probability_value = result.get('success_probability', 0)
+        print(f"✅ Attack simulation completed: {'SUCCESS' if attack_successful else 'FAILED'}")
 
-        update_network_chart_data(attack_successful, hash_power, success_probability_value)
-
-        RECENT_ATTACK_RESULTS['last_attack']['result'] = result
-
-        print(f"✅ Attack completed: {'SUCCESS' if result.get('successful') else 'FAILED'}")
-        print(
-            f"📊 Final Stats - Hash Power: {corrected_config['hash_power']}%, Probability: {result.get('success_probability', 0):.1f}%")
-
-        return jsonify(result), 200
+        return jsonify(enhanced_result), 200
 
     except Exception as e:
         print(f"💥 Attack API error: {e}")
-        import traceback
-        traceback.print_exc()
         return jsonify({
             "error": f"Attack simulation failed: {str(e)}",
             "successful": False,
@@ -1490,21 +1321,61 @@ def api_run_attack():
         }), 500
 
 
-@app.route('/api/report/pdf', methods=['GET'])
-def generate_pdf_report_route():
-    """Generate comprehensive PDF report."""
+@app.route('/api/report/csv', methods=['GET'])
+def generate_csv_reports_route():
+    """Generate comprehensive CSV reports for deep analysis."""
     try:
-        report_path = generate_comprehensive_pdf_report()
+        reports = generate_all_csv_reports()
+
+        # Create a zip file containing all reports
+        import zipfile
+        import tempfile
+
+        script_dir = os.path.dirname(__file__)
+        reports_dir = os.path.join(script_dir, "reports")
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        zip_path = os.path.join(reports_dir, f"blockchain_analysis_reports_{timestamp}.zip")
+
+        with zipfile.ZipFile(zip_path, 'w') as zipf:
+            for report_type, report_path in reports.items():
+                zipf.write(report_path, os.path.basename(report_path))
 
         return send_file(
-            report_path,
-            mimetype="application/pdf",
+            zip_path,
+            mimetype="application/zip",
             as_attachment=True,
-            download_name=f"Blockchain-Analysis-Report-{datetime.now().strftime('%Y%m%d')}.pdf"
+            download_name=f"Blockchain-Analysis-Reports-{timestamp}.zip"
         )
 
     except Exception as e:
-        return jsonify({"error": f"PDF generation failed: {str(e)}"}), 500
+        return jsonify({"error": f"CSV report generation failed: {str(e)}"}), 500
+
+
+@app.route('/api/report/csv/<report_type>', methods=['GET'])
+def generate_specific_csv_report(report_type):
+    """Generate specific CSV report type."""
+    try:
+        report_paths = {
+            'blockchain': generate_blockchain_csv_report,
+            'attack': generate_attack_analysis_csv,
+            'network': generate_network_metrics_csv,
+            'double-spend': generate_double_spend_analysis_csv
+        }
+
+        if report_type not in report_paths:
+            return jsonify({"error": f"Invalid report type: {report_type}"}), 400
+
+        csv_path = report_paths[report_type]()
+
+        return send_file(
+            csv_path,
+            mimetype="text/csv",
+            as_attachment=True,
+            download_name=os.path.basename(csv_path)
+        )
+
+    except Exception as e:
+        return jsonify({"error": f"CSV report generation failed: {str(e)}"}), 500
 
 
 # ================================
@@ -1668,5 +1539,6 @@ if __name__ == '__main__':
     print("🌐 Server running on: http://127.0.0.1:5000")
     print("🔧 Debug mode: ON")
     print("🛠️ SimBlock Integration: ACTIVE")
+    print("📈 CSV Reports: ENABLED")
 
     app.run(host='0.0.0.0', port=port, debug=True)
