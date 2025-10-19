@@ -165,9 +165,9 @@ def simulate_private_mining(node_url, attacker_addr, blocks_to_mine, amount, fro
 
 def create_private_network(attacker_addr, blocks_to_mine, amount, frontend_config=None):
     """
-    Create a private network with 6+ nodes for double spending attack.
+    Create a private network with attacker nodes for double spending attack.
 
-    Simulates a private network where the attacker controls 6+ nodes
+    Simulates a private network where the attacker controls multiple nodes
     to mine private blocks and prepare for double spending attack.
 
     Args:
@@ -180,38 +180,50 @@ def create_private_network(attacker_addr, blocks_to_mine, amount, frontend_confi
         dict: Private network simulation results
     """
     print("=" * 60)
-    print("CREATING PRIVATE NETWORK WITH 6+ NODES")
+    print("CREATING PRIVATE NETWORK WITH ATTACKER NODES")
     print("=" * 60)
 
     private_nodes = []
     mined_blocks = []
 
-    # Create 6 private nodes controlled by attacker
-    for i in range(6):
-        node_id = f"private_node_{i + 1}"
+    # Calculate number of attacker nodes based on hash power and blocks
+    hash_power = frontend_config.get('attackerHashPower', 25) if frontend_config else 25
+    base_nodes = max(3, hash_power // 10)
+    additional_nodes = blocks_to_mine * 2
+    total_nodes = base_nodes + additional_nodes
+
+    # Create attacker-controlled nodes
+    for i in range(total_nodes):
+        node_id = f"Node_{attacker_addr}_{i + 1:02d}"
+        node_hash_power = (hash_power / total_nodes) + (random.random() * 5)
+
         private_nodes.append({
             "id": node_id,
             "type": "attacker_controlled",
             "region": "PrivateNetwork",
-            "mining_power": 0.15,
-            "status": "active"
+            "mining_power": node_hash_power / 100,
+            "hash_power": round(node_hash_power, 1),
+            "status": "active" if i < 2 else "standby",  # First 2 nodes active initially
+            "role": "miner" if i < blocks_to_mine else "support"
         })
 
-    print(f"Created private network with {len(private_nodes)} nodes:")
+    print(f"Created private network with {len(private_nodes)} attacker nodes:")
     for node in private_nodes:
-        print(f"   {node['id']} - {node['type']} - Mining Power: {node['mining_power'] * 100}%")
+        print(f"   {node['id']} - {node['type']} - Hash Power: {node['hash_power']}% - Status: {node['status']}")
 
     # Calculate total hash power in private network
-    hash_power = frontend_config.get('attackerHashPower', 25) if frontend_config else 25
-    total_hash_power = hash_power + (len(private_nodes) * 15)  # Additional power from private nodes
+    total_hash_power = sum(node['hash_power'] for node in private_nodes)
 
-    print(f"Total effective hash power in private network: {total_hash_power}%")
+    print(f"Total effective hash power in private network: {total_hash_power:.1f}%")
 
     # Mine blocks in private network
     for block_num in range(1, blocks_to_mine + 1):
         mining_success = should_attack_succeed(frontend_config, "mining")
 
         if mining_success:
+            # Assign mining to specific attacker node
+            mining_node = private_nodes[block_num - 1]  # Different node for each block
+
             # Create double spending transaction in private block
             shadow_wallet = f"{attacker_addr}_shadow"
             tx = Transaction(sender=attacker_addr, receiver=shadow_wallet, amount=amount)
@@ -219,15 +231,19 @@ def create_private_network(attacker_addr, blocks_to_mine, amount, frontend_confi
             private_block = {
                 "index": block_num,
                 "transactions": [tx.to_dict()],
-                "miner": f"private_node_{random.randint(1, 6)}",
+                "miner": mining_node['id'],
+                "miner_hash_power": mining_node['hash_power'],
                 "timestamp": int(time.time()),
                 "is_private": True,
-                "network_size": len(private_nodes)
+                "network_size": len(private_nodes),
+                "attacker_nodes_used": [node['id'] for node in private_nodes if node['status'] == 'active']
             }
 
             mined_blocks.append(private_block)
-            print(f"✅ Private block #{block_num} mined by {private_block['miner']}")
+            print(
+                f"✅ Private block #{block_num} mined by {private_block['miner']} (Hash Power: {mining_node['hash_power']}%)")
             print(f"   Contains double-spending transaction: {attacker_addr} -> {shadow_wallet} ({amount} coins)")
+            print(f"   Active attacker nodes: {len([n for n in private_nodes if n['status'] == 'active'])}")
         else:
             print(f"❌ Failed to mine private block #{block_num}")
 
@@ -237,7 +253,14 @@ def create_private_network(attacker_addr, blocks_to_mine, amount, frontend_confi
         "total_blocks_mined": len(mined_blocks),
         "network_size": len(private_nodes),
         "total_hash_power": total_hash_power,
-        "success": len(mined_blocks) >= blocks_to_mine
+        "active_attacker_nodes": len([n for n in private_nodes if n['status'] == 'active']),
+        "success": len(mined_blocks) >= blocks_to_mine,
+        "attacker_node_details": {
+            "total_nodes": len(private_nodes),
+            "active_nodes": len([n for n in private_nodes if n['status'] == 'active']),
+            "hash_power_distribution": {node['id']: node['hash_power'] for node in private_nodes},
+            "mining_nodes": [node['id'] for node in private_nodes if node['role'] == 'miner']
+        }
     }
 
 

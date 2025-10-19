@@ -9,12 +9,12 @@
     {
       "height": 1,
       "miner": "Node_1",
-      "timestamp": 1760098455
+      "timestamp": 1760630187
     },
     {
       "height": 2,
       "miner": "Node_2",
-      "timestamp": 1760098605
+      "timestamp": 1760630337
     }
   ],
   "attack_simulation": {

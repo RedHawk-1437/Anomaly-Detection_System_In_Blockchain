@@ -3,6 +3,7 @@
  * Comprehensive styling for blockchain simulation interface
  * Enhanced with responsive design and modern UI components
  * UPDATED FOR SYNCHRONIZED CHARTS AND VISUALIZATION
+ * NEW: Added Attacker Nodes styling for enhanced visualization
  */
 
 /* ===========================================
@@ -704,6 +705,137 @@ body {
     border-radius: 4px;
 }
 
+/* ===========================================
+   ATTACKER NODES STYLING - NEW SECTION
+   =========================================== */
+
+/* Attacker nodes deployment visualization */
+.attacker-nodes-box {
+    margin: 15px 0;
+    padding: 15px;
+    border: 1px solid #ff4444;
+    border-radius: 8px;
+    background-color: #fff5f5;
+    transition: all 0.3s ease;
+}
+
+.attacker-nodes-box:hover {
+    box-shadow: 0 4px 12px rgba(255, 68, 68, 0.1);
+    transform: translateY(-2px);
+}
+
+.nodes-status {
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: #ffeaea;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.attacker-nodes-list {
+    margin: 10px 0;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ffcccc;
+    border-radius: 6px;
+    background: white;
+}
+
+.attacker-node-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin: 5px;
+    background-color: #ffeaea;
+    border-radius: 6px;
+    border-left: 4px solid #ff4444;
+    transition: all 0.3s ease;
+}
+
+.attacker-node-item:hover {
+    background-color: #ffdddd;
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(255, 68, 68, 0.2);
+}
+
+.node-id {
+    font-weight: bold;
+    color: #cc0000;
+    flex: 2;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.node-status {
+    flex: 1;
+    text-align: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.node-status.active {
+    background-color: #27ae60;
+    color: white;
+    box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);
+}
+
+.node-status.standby {
+    background-color: #f39c12;
+    color: white;
+    box-shadow: 0 2px 4px rgba(243, 156, 18, 0.3);
+}
+
+.node-power {
+    flex: 1;
+    text-align: right;
+    color: #ff6600;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.attacker-stats {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #fff0f0;
+    border-radius: 6px;
+    border: 1px solid #ffcccc;
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.attacker-stats strong {
+    color: #cc0000;
+}
+
+/* Animation for node deployment */
+@keyframes nodeDeploy {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.attacker-node-item {
+    animation: nodeDeploy 0.5s ease-out;
+}
+
+/* ===========================================
+   MINING VISUALIZATION STYLES
+   =========================================== */
+
 /* Mining visualization components */
 .mining-box {
     background: white;
@@ -760,6 +892,10 @@ body {
     font-size: 0.8rem;
     font-weight: bold;
 }
+
+/* ===========================================
+   NETWORK RACE VISUALIZATION STYLES
+   =========================================== */
 
 /* Network race visualization for chain comparison */
 .race-box {
@@ -1037,6 +1173,29 @@ body {
     .tx-details {
         grid-template-columns: 1fr;
     }
+
+    /* Attacker nodes responsive adjustments */
+    .attacker-node-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+
+    .node-id, .node-status, .node-power {
+        flex: none;
+        width: 100%;
+        text-align: center;
+    }
+
+    .attacker-stats {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .attacker-nodes-list {
+        max-height: 300px;
+    }
 }
 
 /* Responsive design for mobile phones */
@@ -1076,6 +1235,23 @@ body {
     .chart-container-medium canvas {
         height: 200px !important;
     }
+
+    /* Attacker nodes mobile adjustments */
+    .attacker-nodes-box {
+        padding: 10px;
+    }
+
+    .attacker-node-item {
+        padding: 6px 8px;
+    }
+
+    .node-id {
+        font-size: 0.8rem;
+    }
+
+    .node-status, .node-power {
+        font-size: 0.75rem;
+    }
 }
 
 /* ===========================================
@@ -1098,6 +1274,24 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #2980b9;
+}
+
+/* Custom scrollbar for attacker nodes list */
+.attacker-nodes-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.attacker-nodes-list::-webkit-scrollbar-track {
+    background: #ffeaea;
+}
+
+.attacker-nodes-list::-webkit-scrollbar-thumb {
+    background: #ff4444;
+    border-radius: 3px;
+}
+
+.attacker-nodes-list::-webkit-scrollbar-thumb:hover {
+    background: #cc0000;
 }
 
 /* ===========================================

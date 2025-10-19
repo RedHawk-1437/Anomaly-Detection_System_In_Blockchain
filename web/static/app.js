@@ -85,11 +85,14 @@ function updateAttackVisualization(attackData) {
     // Step 2: Malicious Transaction - Show the secret double spending transaction
     updateMaliciousTransaction(attackData);
 
-    // Step 3: Private Mining - Visualize the attacker mining blocks privately
+    // Step 3: NEW - Attacker Nodes Deployment
+    updateAttackerNodes(attackData);
+
+    // Step 4: Private Mining - Visualize the attacker mining blocks privately
     updatePrivateMining(attackData);
 
-    // Step 4: Network Race - Show the race between honest and attacker chains
-    simulateNetworkRace(attackData); // FIXED: Changed from updateNetworkRace to simulateNetworkRace
+    // Step 5: Network Race - Show the race between honest and attacker chains
+    simulateNetworkRace(attackData);
 }
 
 /**
@@ -141,6 +144,83 @@ function updateMaliciousTransaction(attackData) {
 }
 
 /**
+ * NEW: Update attacker nodes visualization
+ *
+ * Shows the attacker-controlled nodes that participate in the double spending attack.
+ * This demonstrates how attackers use multiple nodes to increase their hash power.
+ *
+ * @param {Object} attackData - Attack configuration and details
+ */
+function updateAttackerNodes(attackData) {
+    const attacker = attackData.attacker || 'RedHawk';
+    const hashPower = attackData.config?.hash_power || 30;
+    const blocksToMine = attackData.blocks || 1;
+
+    const nodesStatus = document.getElementById('nodes-status');
+    const nodesList = document.getElementById('attacker-nodes-list');
+    const nodeCountElement = document.getElementById('attacker-node-count');
+    const hashPowerElement = document.getElementById('attacker-hash-power');
+
+    // Clear previous nodes
+    nodesList.innerHTML = '';
+
+    // Calculate number of attacker nodes based on hash power and blocks
+    const baseNodes = Math.max(3, Math.floor(hashPower / 10));
+    const additionalNodes = Math.floor(blocksToMine * 1.5);
+    const totalNodes = baseNodes + additionalNodes;
+
+    // Calculate hash power distribution
+    const baseHashPower = hashPower / totalNodes;
+
+    nodesStatus.textContent = `🔄 Deploying ${totalNodes} attacker nodes...`;
+    nodesStatus.style.color = '#f39c12';
+
+    let nodesDeployed = 0;
+    const nodeInterval = setInterval(() => {
+        if (nodesDeployed < totalNodes) {
+            const nodeElement = document.createElement('div');
+            nodeElement.className = 'attacker-node-item';
+
+            const nodeId = `Node_${attacker}_${String(nodesDeployed + 1).padStart(2, '0')}`;
+            const nodeHashPower = (baseHashPower + Math.random() * 5).toFixed(1);
+            const status = nodesDeployed < 2 ? 'Active' : 'Standby';
+
+            nodeElement.innerHTML = `
+                <span class="node-id">${nodeId}</span>
+                <span class="node-status ${status.toLowerCase()}">${status}</span>
+                <span class="node-power">${nodeHashPower}% Hash Power</span>
+            `;
+
+            nodesList.appendChild(nodeElement);
+            nodesDeployed++;
+
+            // Update stats
+            nodeCountElement.textContent = nodesDeployed;
+            hashPowerElement.textContent = (nodesDeployed * baseHashPower).toFixed(1) + '%';
+
+            if (nodesDeployed === totalNodes) {
+                nodesStatus.textContent = `✅ ${totalNodes} attacker nodes deployed successfully!`;
+                nodesStatus.style.color = '#27ae60';
+
+                // Activate all nodes after deployment
+                setTimeout(() => {
+                    const nodeItems = nodesList.querySelectorAll('.attacker-node-item');
+                    nodeItems.forEach(item => {
+                        const statusSpan = item.querySelector('.node-status');
+                        statusSpan.textContent = 'Active';
+                        statusSpan.className = 'node-status active';
+                    });
+                }, 500);
+
+                // Mark step as completed
+                document.getElementById('step3-attacker-nodes').classList.add('completed');
+                clearInterval(nodeInterval);
+            }
+        }
+    }, 300);
+}
+
+/**
  * Update private mining visualization
  *
  * Simulates the attacker mining blocks privately to create an alternative chain.
@@ -181,7 +261,7 @@ function updatePrivateMining(attackData) {
             miningStatus.style.color = '#27ae60';
 
             // Mark step as completed in the visualization
-            document.getElementById('step3').classList.add('completed');
+            document.getElementById('step4').classList.add('completed');
         }
     }, 200);
 }
@@ -240,7 +320,7 @@ function simulateNetworkRace(attackData) {
             }
 
             // Mark step as completed in the visualization
-            document.getElementById('step4').classList.add('completed');
+            document.getElementById('step5').classList.add('completed');
         }
     }, 500);
 
@@ -273,6 +353,13 @@ function resetAttackVisualization() {
     document.getElementById('mining-text').textContent = '0%';
     document.getElementById('mining-status').textContent = '⏳ Waiting for attack...';
     document.getElementById('mining-status').style.color = '';
+
+    // NEW: Reset attacker nodes
+    document.getElementById('nodes-status').textContent = '🔄 Initializing attacker nodes...';
+    document.getElementById('nodes-status').style.color = '';
+    document.getElementById('attacker-nodes-list').innerHTML = '';
+    document.getElementById('attacker-node-count').textContent = '0';
+    document.getElementById('attacker-hash-power').textContent = '0%';
 
     // Clear all block visualizations
     document.getElementById('private-blocks-list').innerHTML = '';
@@ -400,8 +487,8 @@ async function runAttackWithVisualization() {
         }
 
         // Mark steps as failed in visualization
-        document.getElementById('step3').classList.add('failed');
         document.getElementById('step4').classList.add('failed');
+        document.getElementById('step5').classList.add('failed');
     }
 }
 

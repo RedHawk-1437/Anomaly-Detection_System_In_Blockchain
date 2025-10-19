@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -287,8 +286,26 @@
                 </div>
             </div>
 
-            <div class="process-step" id="step3">
+            <!-- NEW: Attacker Nodes Section -->
+            <div class="process-step" id="step3-attacker-nodes">
                 <div class="step-number">3</div>
+                <div class="step-content">
+                    <h5>Attacker Nodes Deployment</h5>
+                    <div id="attacker-nodes" class="attacker-nodes-box">
+                        <div class="nodes-status" id="nodes-status">🔄 Initializing attacker nodes...</div>
+                        <div class="attacker-nodes-list" id="attacker-nodes-list">
+                            <!-- Attacker nodes will be dynamically added here -->
+                        </div>
+                        <div class="attacker-stats">
+                            <strong>Total Attacker Nodes:</strong> <span id="attacker-node-count">0</span>
+                            <strong>Total Hash Power:</strong> <span id="attacker-hash-power">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-step" id="step4">
+                <div class="step-number">4</div>
                 <div class="step-content">
                     <h5>Private Block Mining</h5>
                     <div id="private-mining" class="mining-box">
@@ -306,8 +323,8 @@
                 </div>
             </div>
 
-            <div class="process-step" id="step4">
-                <div class="step-number">4</div>
+            <div class="process-step" id="step5">
+                <div class="step-number">5</div>
                 <div class="step-content">
                     <h5>Network Broadcast & Race</h5>
                     <div id="network-race" class="race-box">
