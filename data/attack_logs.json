@@ -1,0 +1,9 @@
+{
+  "attack_history": [],
+  "statistics": {
+    "total_attacks": 0,
+    "successful_attacks": 0,
+    "failed_attacks": 0
+  },
+  "created_at": "2025-10-31T19:15:39.210216"
+}

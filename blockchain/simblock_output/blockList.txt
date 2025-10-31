@@ -1,3 +1,0 @@
-OnChain : 1 : simblock.block.ProofOfWorkBlock@1886991b
-OnChain : 2 : simblock.block.ProofOfWorkBlock@25f14e93
-OnChain : 3 : simblock.block.ProofOfWorkBlock@c4bb119

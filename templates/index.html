@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockSentry AI - Advanced Blockchain Threat Intelligence Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Notification System -->
+    <div id="notification" class="notification" style="display: none;"></div>
+
+    <!-- Header Section -->
+    <header class="header">
+        <div class="container">
+            <!-- Left Side: University Logo and Supervisor -->
+            <div class="supervisor-section">
+                <div class="vu-logo">
+                    <img src="{{ url_for('static', filename='vu_logo.png') }}" alt="Virtual University Logo" onerror="this.style.display='none'">
+                </div>
+                <div class="supervisor-info">
+                    <h4>Project Supervisor</h4>
+                    <p><strong>Name:</strong> Fouzia Jumani</p>
+                    <p><strong>Email:</strong> fouziajumani@vu.edu.pk</p>
+                </div>
+            </div>
+
+            <!-- Center: Project Title and Logo -->
+            <div class="logo-section">
+                <div class="logo">
+                    <span style="font-size: 1.2rem;">🛡️</span>
+                </div>
+                <h1>Blockchain AI-Anomaly Detection System</h1>
+                <span class="project-tag">Intelligent Blockchain Security Platform with Real-Time Threat Detection & ML-Powered Anomaly Analysis</span>
+            </div>
+
+            <!-- Right Side: Author Details -->
+            <div class="author-section">
+                <div class="author-details">
+                    <h4>Project Author</h4>
+                    <p><strong>Name:</strong> Eng. Muhammad Imtiaz Shaffi</p>
+                    <p><strong>VU I.D:</strong> BC220200917</p>
+                    <p><strong>Email:</strong> bc220200917mis@vu.edu.pk</p>
+                </div>
+                <div class="author-pic">
+                    <img src="{{ url_for('static', filename='author_pic.png') }}" alt="Author" onerror="this.style.display='none'">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard">
+        <div class="container">
+            <!-- Step 1: System Overview -->
+            <div class="workflow-step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <h3>📊 System Intelligence Dashboard</h3>
+                </div>
+
+                <!-- Status Cards -->
+                <div class="status-grid" id="statusCards">
+                    <div class="status-card stopped">
+                        <h3>Network Status</h3>
+                        <div class="value">OFFLINE</div>
+                        <div class="label">Awaiting Initialization</div>
+                    </div>
+                    <div class="status-card stopped">
+                        <h3>Blockchain Integrity</h3>
+                        <div class="value">0</div>
+                        <div class="label">Verified Blocks</div>
+                    </div>
+                    <div class="status-card stopped">
+                        <h3>Transaction Flow</h3>
+                        <div class="value">0</div>
+                        <div class="label">Processed Transactions</div>
+                    </div>
+                    <div class="status-card stopped">
+                        <h3>AI Engine Status</h3>
+                        <div class="value">STANDBY</div>
+                        <div class="label">Threat Intelligence</div>
+                    </div>
+                </div>
+
+                <!-- Blockchain Chart -->
+                <div class="chart-container">
+                    <h4>Blockchain Network Intelligence</h4>
+                    <canvas id="blockchainChart" width="400" height="200"></canvas>
+                </div>
+
+                <!-- Simulation Controls -->
+                <div class="control-panel">
+                    <h3>🚀 Network Operations Center</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        Initialize the blockchain environment to activate real-time threat monitoring and AI-powered security analysis
+                    </p>
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="startSimulation">
+                            ▶️ Deploy Network
+                        </button>
+                        <button class="btn btn-secondary" id="stopSimulation">
+                            ⏹️ Secure Shutdown
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Attack Simulation -->
+            <div class="workflow-step">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <h3>🛡️ Advanced Threat Simulation</h3>
+                </div>
+
+                <div class="visualization-grid">
+                    <div class="chart-container">
+                        <h4>Threat Distribution Analysis</h4>
+                        <canvas id="attackChart" width="300" height="200"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>Attack Mitigation Success Rate</h4>
+                        <canvas id="successChart" width="300" height="200"></canvas>
+                    </div>
+                </div>
+
+                <div class="attack-grid">
+                    <div class="attack-card">
+                        <h4>💸 Double-Spend Attack</h4>
+                        <p>Simulate cryptocurrency double-spending vulnerability exploitation</p>
+                        <button class="btn btn-warning" onclick="startDoubleSpending()">
+                            Execute Simulation
+                        </button>
+                    </div>
+                    <div class="attack-card">
+                        <h4>⚡ 51% Consensus Attack</h4>
+                        <p>Test network resilience against majority hash power takeover</p>
+                        <button class="btn btn-danger" onclick="start51Percent()">
+                            Execute Simulation
+                        </button>
+                    </div>
+                    <div class="attack-card">
+                        <h4>🤫 Selfish Mining Strategy</h4>
+                        <p>Evaluate blockchain fairness against strategic block withholding</p>
+                        <button class="btn btn-info" onclick="startSelfishMining()">
+                            Execute Simulation
+                        </button>
+                    </div>
+                    <div class="attack-card">
+                        <h4>🌑 Network Eclipse Attack</h4>
+                        <p>Assess node isolation and network partitioning vulnerabilities</p>
+                        <button class="btn btn-dark" onclick="startEclipseAttack()">
+                            Execute Simulation
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Attacks Display -->
+                <div class="active-attacks">
+                    <h4>🎯 Live Threat Intelligence Feed</h4>
+                    <div id="attacksList">
+                        <p>Security monitoring active - No threats detected. Launch simulations to test defense mechanisms</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: ML Detection -->
+            <div class="workflow-step">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <h3>🤖 AI-Powered Threat Intelligence</h3>
+                </div>
+
+                <div class="visualization-grid">
+                    <div class="chart-container">
+                        <h4>Anomaly Detection Intelligence</h4>
+                        <canvas id="anomalyChart" width="300" height="200"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>AI Confidence Metrics</h4>
+                        <canvas id="confidenceChart" width="300" height="200"></canvas>
+                    </div>
+                </div>
+
+                <div class="ml-controls-grid">
+                    <div class="ml-status-card">
+                        <h4>AI Model Training</h4>
+                        <div id="mlStatus">
+                            <p>Status: Ready for Training</p>
+                            <p>Accuracy: 0%</p>
+                            <p>Training Data: 0 samples</p>
+                        </div>
+                        <button class="btn btn-success" id="trainModel">
+                            🚀 Train AI Model
+                        </button>
+                    </div>
+
+                    <div class="ml-predictions-card">
+                        <h4>Threat Detection Engine</h4>
+                        <div id="detectionStatus">
+                            <p>Monitoring: Inactive</p>
+                            <p>Analysis Count: 0</p>
+                            <p>Threats Identified: 0</p>
+                        </div>
+                        <button class="btn btn-info" id="startDetection">
+                            🔍 Activate Monitoring
+                        </button>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h4>Real-Time Security Intelligence</h4>
+                    <div id="mlPredictions">
+                        <p>Activate AI monitoring to receive real-time threat intelligence and security insights</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Data & Reports -->
+            <div class="workflow-step">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <h3>📈 Advanced Analytics & Intelligence Reports</h3>
+                </div>
+
+                <div class="download-section">
+                    <h4>📊 Comprehensive Security Analytics</h4>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Generate detailed intelligence reports and export comprehensive security analytics for forensic analysis
+                    </p>
+
+                    <div class="download-actions">
+                        <button class="btn btn-success" id="generateCSVReports">
+                            📈 Generate Intelligence Reports
+                        </button>
+                        <button class="btn btn-info" id="downloadCSVReports">
+                            📥 Export Security Data
+                        </button>
+                    </div>
+
+                    <div class="file-grid" id="fileList">
+                        <!-- Files will be populated dynamically -->
+                        <div class="file-card">
+                            <h5>Security Data Repository</h5>
+                            <p>Execute simulations and generate reports to populate intelligence database</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="visualization-grid">
+                    <div class="chart-container">
+                        <h4>Security Data Distribution</h4>
+                        <canvas id="dataChart" width="300" height="200"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>AI Performance Analytics</h4>
+                        <canvas id="performanceChart" width="300" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <p>&copy; 2025 BlockSentry AI. All Rights Reserved.</p>
+                    <p style="font-size: 0.8rem; margin-top: 0.5rem;">Virtual University of Pakistan</p>
+                </div>
+                <div class="footer-center">
+                    <p><strong>Research Impact:</strong> Revolutionizing blockchain security through AI-driven threat intelligence and real-time anomaly detection, establishing new standards in decentralized network protection.</p>
+                </div>
+                <div class="footer-right">
+                    <p>Advanced Final Year Project</p>
+                    <p style="font-size: 0.8rem; margin-top: 0.5rem;">Department of Computer Science</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Files -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
