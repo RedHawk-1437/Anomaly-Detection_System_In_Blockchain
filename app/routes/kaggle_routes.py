@@ -1,4 +1,4 @@
-# app/routes/kaggle_routes.py - COMPLETE UPDATED VERSION
+# [file name]: kaggle_routes.py - COMPLETE UPDATED VERSION WITH TRANSACTION DATA
 from flask import Blueprint, jsonify, request, send_file
 import json
 import os
@@ -22,6 +22,23 @@ ETHEREUM_CLASSIC_COLUMNS = [
     # ML-specific columns
     'is_anomaly', 'anomaly_confidence', 'predicted_attack_type',
     'actual_attack_type', 'correct_prediction', 'model_version'
+]
+
+# Transaction Details Format
+TRANSACTION_DETAILS_COLUMNS = [
+    'transaction_hash', 'block_number', 'block_timestamp', 'from_address',
+    'to_address', 'value_eth', 'value_usd', 'gas_price_gwei', 'gas_used',
+    'gas_limit', 'transaction_fee_eth', 'transaction_fee_usd', 'status',
+    'nonce', 'input_data', 'is_contract_creation', 'transaction_index',
+    'contract_address', 'transaction_type', 'confidence_score'
+]
+
+# Transaction Process Format
+TRANSACTION_PROCESS_COLUMNS = [
+    'transaction_hash', 'block_number', 'process_step', 'step_timestamp',
+    'step_status', 'gas_used_so_far', 'confirmations', 'network_congestion',
+    'priority_fee', 'base_fee', 'total_fee', 'mempool_position',
+    'validator_node', 'propagation_time_ms', 'step_duration_ms'
 ]
 
 
@@ -207,6 +224,8 @@ def download_dataset_file(dataset_type):
             'ml_predictions': ('ml_predictions_report.csv', 'ethereum_classic_anomaly_predictions.csv'),
             'simulation_data': ('simulation_data_report.csv', 'ethereum_classic_simulation_data.csv'),
             'system_summary': ('system_summary_report.csv', 'ethereum_classic_system_summary.csv'),
+            'transaction_details': ('transaction_details_report.csv', 'ethereum_classic_transaction_details.csv'),
+            'transaction_process': ('transaction_process_report.csv', 'ethereum_classic_transaction_process.csv'),
             'etc_51_attack': ('etc_51_attack.csv', 'ethereum_classic_51_attack_dataset.csv'),
             'blockchain_anomalies': ('blockchain_anomalies.csv', 'ethereum_classic_anomaly_dataset.csv'),
             'merged_data': ('merged_blockchain_data.csv', 'ethereum_classic_merged_dataset.csv')
@@ -283,10 +302,130 @@ def generate_csv_report(report_type):
             return generate_simulation_data_csv(reports_dir)
         elif report_type == 'system_summary':
             return generate_system_summary_csv(reports_dir)
+        elif report_type == 'transaction_details':
+            return generate_transaction_details_csv(reports_dir)
+        elif report_type == 'transaction_process':
+            return generate_transaction_process_csv(reports_dir)
 
         return None
     except Exception as e:
         print(f"Error generating {report_type}: {e}")
+        return None
+
+
+def generate_transaction_details_csv(reports_dir):
+    """Generate detailed transaction analysis CSV"""
+    try:
+        from flask import current_app
+        simblock_service = current_app.config.get('simblock_service')
+
+        if not simblock_service:
+            return None
+
+        transaction_data = []
+
+        # Get transaction history from simulation service
+        transaction_history = getattr(simblock_service, 'transaction_history', [])
+
+        for tx in transaction_history:
+            transaction_data.append({
+                'transaction_hash': tx.get('tx_hash', ''),
+                'block_number': tx.get('block_number', 0),
+                'block_timestamp': tx.get('timestamp', ''),
+                'from_address': tx.get('from_address', ''),
+                'to_address': tx.get('to_address', ''),
+                'value_eth': tx.get('value_eth', 0),
+                'value_usd': tx.get('value_usd', 0),
+                'gas_price_gwei': tx.get('gas_price_gwei', 0),
+                'gas_used': tx.get('gas_used', 0),
+                'gas_limit': tx.get('gas_limit', 0),
+                'transaction_fee_eth': tx.get('transaction_fee_eth', 0),
+                'transaction_fee_usd': tx.get('transaction_fee_usd', 0),
+                'status': tx.get('status', ''),
+                'nonce': tx.get('nonce', 0),
+                'input_data': tx.get('input_data', ''),
+                'is_contract_creation': tx.get('is_contract_creation', False),
+                'transaction_index': tx.get('transaction_index', 0),
+                'contract_address': tx.get('contract_address', ''),
+                'transaction_type': tx.get('transaction_type', ''),
+                'confidence_score': tx.get('confidence_score', 0)
+            })
+
+        if transaction_data:
+            df = pd.DataFrame(transaction_data)
+            file_path = os.path.join(reports_dir, "transaction_details_report.csv")
+            df.to_csv(file_path, index=False)
+            print(f"✅ Generated detailed transaction report with {len(transaction_data)} transactions")
+            return file_path
+
+        return None
+    except Exception as e:
+        print(f"Error generating transaction details CSV: {e}")
+        return None
+
+
+def generate_transaction_process_csv(reports_dir):
+    """Generate transaction process flow CSV"""
+    try:
+        from flask import current_app
+        simblock_service = current_app.config.get('simblock_service')
+
+        if not simblock_service:
+            return None
+
+        process_data = []
+
+        # Get transaction process data from simulation service
+        if hasattr(simblock_service, 'get_transaction_process_data'):
+            process_data = simblock_service.get_transaction_process_data()
+        else:
+            # Fallback: generate process data from transaction history
+            transaction_history = getattr(simblock_service, 'transaction_history', [])
+            for tx in transaction_history:
+                process_steps = []
+                base_time = datetime.now()
+
+                steps = [
+                    {'step': 'pending', 'status': 'received', 'duration': random.randint(100, 500)},
+                    {'step': 'processing', 'status': 'validating', 'duration': random.randint(50, 200)},
+                    {'step': 'confirmed', 'status': 'mined', 'duration': random.randint(1000, 5000)},
+                    {'step': 'finalized', 'status': 'completed', 'duration': random.randint(5000, 15000)}
+                ]
+
+                current_time = base_time
+                for step_info in steps:
+                    current_time = current_time.replace(
+                        microsecond=current_time.microsecond + step_info['duration'] * 1000)
+                    process_data.append({
+                        'transaction_hash': tx.get('tx_hash', ''),
+                        'block_number': tx.get('block_number', 0),
+                        'process_step': step_info['step'],
+                        'step_timestamp': current_time.isoformat(),
+                        'step_status': step_info['status'],
+                        'gas_used_so_far': tx.get('gas_used', 0) if step_info['step'] in ['confirmed',
+                                                                                          'finalized'] else 0,
+                        'confirmations': 1 if step_info['step'] == 'confirmed' else (
+                            6 if step_info['step'] == 'finalized' else 0),
+                        'network_congestion': round(random.uniform(0.1, 0.9), 3),
+                        'priority_fee': round(random.uniform(1, 10), 2),
+                        'base_fee': random.randint(10, 50),
+                        'total_fee': round(random.uniform(0.001, 0.1), 6),
+                        'mempool_position': random.randint(1, 100) if step_info['step'] == 'pending' else 0,
+                        'validator_node': f"node_{random.randint(1, 100)}",
+                        'propagation_time_ms': random.randint(100, 500),
+                        'step_duration_ms': step_info['duration']
+                    })
+
+        if process_data:
+            df = pd.DataFrame(process_data)
+            file_path = os.path.join(reports_dir, "transaction_process_report.csv")
+            df.to_csv(file_path, index=False)
+            print(f"✅ Generated transaction process report with {len(process_data)} process steps")
+            return file_path
+
+        return None
+    except Exception as e:
+        print(f"Error generating transaction process CSV: {e}")
         return None
 
 
@@ -325,6 +464,7 @@ def generate_attack_analysis_csv(reports_dir):
 
                 for i, attack in enumerate(attack_history):
                     # Use REAL attack data with Ethereum Classic format
+                    affected_txs = random.randint(3, 15)
                     attack_data.append({
                         'block_number': attack.get('target_block', i + 1),
                         'block_timestamp': attack.get('start_time', datetime.now().isoformat()),
@@ -337,7 +477,7 @@ def generate_attack_analysis_csv(reports_dir):
                         'gas_used': attack.get('gas_used', 21000 + i * 1000),
                         'gas_limit': attack.get('gas_limit', 30000000),
                         'base_fee_per_gas': attack.get('base_fee', 10 + i),
-                        'transaction_count': attack.get('transactions_affected', random.randint(5, 20)),
+                        'transaction_count': affected_txs,
                         'nonce': f"0x{random.randint(100000, 999999):x}",
                         'state_root': f"0x{random.randint(1000000, 9999999):x}",
                         'receipts_root': f"0x{random.randint(1000000, 9999999):x}",
@@ -347,7 +487,21 @@ def generate_attack_analysis_csv(reports_dir):
                         'predicted_attack_type': attack.get('type', 'unknown').replace('_', ' ').title(),
                         'actual_attack_type': attack.get('type', 'unknown').replace('_', ' ').title(),
                         'correct_prediction': attack.get('success', False),
-                        'model_version': 'v1'
+                        'model_version': 'v1',
+                        # NAYA: Enhanced attack transaction data
+                        'affected_transactions': affected_txs,
+                        'total_value_at_risk_eth': round(random.uniform(10, 1000), 6),
+                        'double_spend_amount_eth': round(random.uniform(1, 100), 6) if attack.get(
+                            'type') == 'double_spending' else 0,
+                        'reorg_depth': random.randint(1, 6) if attack.get('type') in ['51_percent',
+                                                                                      'selfish_mining'] else 0,
+                        'orphaned_blocks': random.randint(1, 3),
+                        'network_partition_size': random.randint(5, 20) if attack.get(
+                            'type') == 'eclipse_attack' else 0,
+                        'attack_duration_blocks': random.randint(1, 10),
+                        'hash_power_percentage': attack.get('parameters', {}).get('hash_power',
+                                                                                  random.randint(40, 70)) if attack.get(
+                            'type') == '51_percent' else 0
                     })
 
             except Exception as e:
@@ -364,6 +518,7 @@ def generate_attack_analysis_csv(reports_dir):
             total_attacks = len(attack_data)
             successful_attacks = sum(1 for attack in attack_data if attack.get('correct_prediction', False))
             success_rate = (successful_attacks / max(1, total_attacks)) * 100
+            total_value_at_risk = sum(attack.get('total_value_at_risk_eth', 0) for attack in attack_data)
 
             attack_data.append({
                 'block_number': 'SUMMARY',
@@ -387,7 +542,22 @@ def generate_attack_analysis_csv(reports_dir):
                 'predicted_attack_type': f"Success Rate: {success_rate:.2f}%",
                 'actual_attack_type': 'summary',
                 'correct_prediction': True,
-                'model_version': 'v1'
+                'model_version': 'v1',
+                'affected_transactions': sum(attack.get('affected_transactions', 0) for attack in attack_data if
+                                             attack.get('block_number') != 'SUMMARY'),
+                'total_value_at_risk_eth': total_value_at_risk,
+                'double_spend_amount_eth': sum(attack.get('double_spend_amount_eth', 0) for attack in attack_data),
+                'reorg_depth': sum(attack.get('reorg_depth', 0) for attack in attack_data),
+                'orphaned_blocks': sum(attack.get('orphaned_blocks', 0) for attack in attack_data),
+                'network_partition_size': sum(attack.get('network_partition_size', 0) for attack in attack_data),
+                'attack_duration_blocks': sum(attack.get('attack_duration_blocks', 0) for attack in attack_data),
+                'hash_power_percentage': round(
+                    sum(attack.get('hash_power_percentage', 0) for attack in attack_data) / max(1, len([a for a in
+                                                                                                        attack_data if
+                                                                                                        a.get(
+                                                                                                            'hash_power_percentage',
+                                                                                                            0) > 0])),
+                    2)
             })
 
         # Create DataFrame and save
@@ -425,6 +595,7 @@ def create_fallback_attack_data():
 
     attack_data = []
     for i, attack in enumerate(fallback_attacks):
+        affected_txs = random.randint(3, 15)
         attack_data.append({
             'block_number': attack['block'],
             'block_timestamp': datetime.now().isoformat(),
@@ -437,7 +608,7 @@ def create_fallback_attack_data():
             'gas_used': 21000 + i * 1000,
             'gas_limit': 30000000,
             'base_fee_per_gas': 10 + i,
-            'transaction_count': 10 + i * 5,
+            'transaction_count': affected_txs,
             'nonce': f"0x{random.randint(100000, 999999):x}",
             'state_root': f"0x{random.randint(1000000, 9999999):x}",
             'receipts_root': f"0x{random.randint(1000000, 9999999):x}",
@@ -447,7 +618,16 @@ def create_fallback_attack_data():
             'predicted_attack_type': attack['type'].replace('_', ' ').title(),
             'actual_attack_type': attack['type'].replace('_', ' ').title(),
             'correct_prediction': attack['success'],
-            'model_version': 'v1'
+            'model_version': 'v1',
+            # NAYA: Enhanced attack transaction data
+            'affected_transactions': affected_txs,
+            'total_value_at_risk_eth': round(random.uniform(10, 1000), 6),
+            'double_spend_amount_eth': round(random.uniform(1, 100), 6) if attack['type'] == 'double_spending' else 0,
+            'reorg_depth': random.randint(1, 6) if attack['type'] in ['51_percent', 'selfish_mining'] else 0,
+            'orphaned_blocks': random.randint(1, 3),
+            'network_partition_size': random.randint(5, 20) if attack['type'] == 'eclipse_attack' else 0,
+            'attack_duration_blocks': random.randint(1, 10),
+            'hash_power_percentage': random.randint(40, 70) if attack['type'] == '51_percent' else 0
         })
 
     print(f"✅ Created {len(attack_data)} fallback attack records")
@@ -670,6 +850,8 @@ def generate_system_summary_csv(reports_dir):
         if simblock_service:
             status = simblock_service.get_status()
             blockchain_data = status.get('blockchain_data', {})
+            transaction_history = getattr(simblock_service, 'transaction_history', [])
+
             system_data.extend([
                 {
                     'block_number': 'SIMULATION',
@@ -683,7 +865,7 @@ def generate_system_summary_csv(reports_dir):
                     'gas_used': blockchain_data.get('nodes', 0),
                     'gas_limit': int(blockchain_data.get('mining_power', 0) * 1000),
                     'base_fee_per_gas': int(blockchain_data.get('block_time', 0) * 1000),
-                    'transaction_count': blockchain_data.get('transactions', 0),
+                    'transaction_count': len(transaction_history),
                     'nonce': '0x0',
                     'state_root': 'N/A',
                     'receipts_root': 'N/A',
@@ -823,7 +1005,9 @@ def generate_all_csv_reports():
             'attack_report': generate_attack_analysis_csv,
             'ml_predictions': generate_ml_predictions_csv,
             'simulation_data': generate_simulation_data_csv,
-            'system_summary': generate_system_summary_csv
+            'system_summary': generate_system_summary_csv,
+            'transaction_details': generate_transaction_details_csv,
+            'transaction_process': generate_transaction_process_csv
         }
 
         for report_type, generate_function in report_functions.items():
@@ -1008,6 +1192,40 @@ def get_file_list():
             "download_all_url": "/api/kaggle/download-all",
             "generate_reports_url": "/api/kaggle/generate-csv-reports",
             "download_csv_reports_url": "/api/kaggle/download-all-csv-reports"
+        })
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+
+@kaggle_bp.route('/api/kaggle/generate-enhanced-reports', methods=['POST'])
+def generate_enhanced_reports():
+    """Generate enhanced CSV reports with transaction details"""
+    try:
+        reports_dir = os.path.join(BASE_DIR, "data", "reports")
+        os.makedirs(reports_dir, exist_ok=True)
+
+        generated_reports = []
+
+        # Generate enhanced reports
+        enhanced_functions = {
+            'transaction_details': generate_transaction_details_csv,
+            'transaction_process': generate_transaction_process_csv
+        }
+
+        for report_type, generate_function in enhanced_functions.items():
+            file_path = generate_function(reports_dir)
+            if file_path:
+                generated_reports.append({
+                    'type': report_type,
+                    'file_path': file_path,
+                    'file_name': os.path.basename(file_path)
+                })
+
+        return jsonify({
+            "status": "success",
+            "message": f"Generated {len(generated_reports)} enhanced CSV reports",
+            "reports": generated_reports
         })
 
     except Exception as e:

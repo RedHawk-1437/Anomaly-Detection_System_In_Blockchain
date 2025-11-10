@@ -35,8 +35,83 @@ class SimBlockService:
         self.block_status = {}  # Format: {block_number: "normal", "attack_success", "attack_failed"}
         self.attack_blocks = []  # List of blocks under attack
         self.block_history = []  # Complete block history with status
+        self.transaction_pool = []  # NAYA: Store transaction data
+        self.transaction_history = []  # NAYA: Store all transactions
 
         os.makedirs("data", exist_ok=True)
+
+    def _generate_transaction_data(self, block_number, transaction_count):
+        """Generate detailed transaction data for a block"""
+        transactions = []
+        for i in range(transaction_count):
+            value_eth = round(random.uniform(0.001, 10.0), 6)
+            gas_price = random.randint(10, 100)
+            gas_used = random.randint(21000, 100000)
+            transaction_fee = round(gas_used * gas_price / 1e9, 8)
+
+            transaction = {
+                'tx_hash': f"0x{random.randint(1000000, 9999999):x}{block_number:04d}{i:03d}",
+                'block_number': block_number,
+                'from_address': f"0x{random.randint(1000, 9999):x}...{random.randint(1000, 9999):x}",
+                'to_address': f"0x{random.randint(1000, 9999):x}...{random.randint(1000, 9999):x}",
+                'value_eth': value_eth,
+                'value_usd': round(value_eth * 3500, 2),  # Approx conversion
+                'gas_price_gwei': gas_price,
+                'gas_used': gas_used,
+                'gas_limit': 30000000,
+                'transaction_fee_eth': transaction_fee,
+                'transaction_fee_usd': round(transaction_fee * 3500, 2),
+                'status': 'success' if random.random() > 0.05 else 'failed',
+                'timestamp': datetime.now().isoformat(),
+                'nonce': random.randint(0, 1000),
+                'input_data': '0x' if random.random() > 0.3 else f"0x{random.randint(1000, 9999):x}",
+                'is_contract_creation': random.random() > 0.8,
+                'transaction_index': i,
+                'contract_address': f"0x{random.randint(1000000, 9999999):x}" if random.random() > 0.8 else '',
+                'transaction_type': 'contract_creation' if random.random() > 0.8 else 'transfer',
+                'confidence_score': round(
+                    random.uniform(0.7, 1.0) if random.random() > 0.05 else random.uniform(0.1, 0.3), 4)
+            }
+            transactions.append(transaction)
+            self.transaction_history.append(transaction)
+        return transactions
+
+    def _generate_transaction_process_data(self, transaction):
+        """Generate transaction process flow data"""
+        process_steps = []
+        base_time = datetime.now()
+
+        steps = [
+            {'step': 'pending', 'status': 'received', 'duration': random.randint(100, 500)},
+            {'step': 'processing', 'status': 'validating', 'duration': random.randint(50, 200)},
+            {'step': 'confirmed', 'status': 'mined', 'duration': random.randint(1000, 5000)},
+            {'step': 'finalized', 'status': 'completed', 'duration': random.randint(5000, 15000)}
+        ]
+
+        current_time = base_time
+        for step_info in steps:
+            current_time = current_time.replace(microsecond=current_time.microsecond + step_info['duration'] * 1000)
+            process_data = {
+                'transaction_hash': transaction['tx_hash'],
+                'block_number': transaction['block_number'],
+                'process_step': step_info['step'],
+                'step_timestamp': current_time.isoformat(),
+                'step_status': step_info['status'],
+                'gas_used_so_far': transaction['gas_used'] if step_info['step'] in ['confirmed', 'finalized'] else 0,
+                'confirmations': 1 if step_info['step'] == 'confirmed' else (
+                    6 if step_info['step'] == 'finalized' else 0),
+                'network_congestion': round(random.uniform(0.1, 0.9), 3),
+                'priority_fee': round(random.uniform(1, 10), 2),
+                'base_fee': random.randint(10, 50),
+                'total_fee': round(random.uniform(0.001, 0.1), 6),
+                'mempool_position': random.randint(1, 100) if step_info['step'] == 'pending' else 0,
+                'validator_node': f"node_{random.randint(1, 100)}",
+                'propagation_time_ms': random.randint(100, 500),
+                'step_duration_ms': step_info['duration']
+            }
+            process_steps.append(process_data)
+
+        return process_steps
 
     def start_simulation(self, node_count=100):
         """Advanced Mock Simulation - SimBlock Compatible"""
@@ -66,6 +141,8 @@ class SimBlockService:
         self.block_status = {}
         self.attack_blocks = []
         self.block_history = []
+        self.transaction_pool = []
+        self.transaction_history = []
 
         self.is_running = True
         self.current_status = "running"
@@ -134,6 +211,9 @@ class SimBlockService:
                 self.blockchain_data["total_gas_used"] += 21000 + (transactions_in_block * 100)
                 self.blockchain_data["average_base_fee"] = 10 + (block_height // 10)
 
+                # NAYA: Generate detailed transaction data for this block
+                block_transactions = self._generate_transaction_data(block_height, transactions_in_block)
+
                 # NAYA: Save block to history with REAL data
                 block_info = {
                     "block_number": block_height,
@@ -147,7 +227,8 @@ class SimBlockService:
                     "gas_used": 21000 + (transactions_in_block * 100),
                     "gas_limit": 30000000,
                     "base_fee": 10 + (block_height // 10),
-                    "is_anomalous": block_status != "normal"
+                    "is_anomalous": block_status != "normal",
+                    "transactions_data": block_transactions  # NAYA: Store transaction details
                 }
                 self.block_history.append(block_info)
 
@@ -218,13 +299,26 @@ class SimBlockService:
         """NAYA: Get status of specific block"""
         return self.block_status.get(block_number, "normal")
 
+    def get_transaction_history(self):
+        """NAYA: Get all transaction history"""
+        return self.transaction_history
+
+    def get_transaction_process_data(self):
+        """NAYA: Get transaction process data"""
+        process_data = []
+        for transaction in self.transaction_history:
+            process_data.extend(self._generate_transaction_process_data(transaction))
+        return process_data
+
     def get_blockchain_with_status(self):
         """NAYA: Get blockchain data with block status information"""
         return {
             "blockchain_data": self.blockchain_data,
             "block_status": self.block_status,
             "block_history": self.block_history[-20:],  # Last 20 blocks
-            "current_attack_blocks": self.attack_blocks
+            "current_attack_blocks": self.attack_blocks,
+            "transaction_history": self.transaction_history[-100:],  # Last 100 transactions
+            "total_transactions": len(self.transaction_history)
         }
 
     def stop_simulation(self):
@@ -263,7 +357,8 @@ class SimBlockService:
             "has_data": self.blockchain_data["blocks"] > 0,
             # NAYA: Add block status information
             "block_status": self.block_status,
-            "current_attack_blocks": self.attack_blocks
+            "current_attack_blocks": self.attack_blocks,
+            "total_transactions": len(self.transaction_history)
         }
 
     def get_latest_logs(self, lines=10):
@@ -278,3 +373,4 @@ class SimBlockService:
 
 # Global instance
 simblock_service = SimBlockService()
+
