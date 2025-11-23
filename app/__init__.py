@@ -4,7 +4,6 @@ import os
 
 def create_app():
     """Flask application factory"""
-    # Templates folder ka absolute path set karen
     template_dir = os.path.abspath('templates')
     static_dir = os.path.abspath('static')
 
@@ -16,13 +15,12 @@ def create_app():
     app.config['SECRET_KEY'] = 'your-secret-key-here'
     app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-    # Services initialize karen
-    from app.services.simblock_service import SimBlockService
+    # Services initialization
+    from app.services.simblock_service import simblock_service
     from app.services.attack_service import AttackService
     from app.services.ml_service import MLService
 
     # Create service instances
-    simblock_service = SimBlockService()
     attack_service = AttackService(simblock_service)
     ml_service = MLService(simblock_service, attack_service)
 
@@ -31,18 +29,18 @@ def create_app():
     app.config['attack_service'] = attack_service
     app.config['ml_service'] = ml_service
 
-    # Blueprints register keren
+    # Blueprints registering...
     from app.routes.dashboard_routes import dashboard_bp
     from app.routes.simblock_routes import simblock_bp
     from app.routes.attack_routes import attack_bp
     from app.routes.ml_routes import ml_bp
-    from app.routes.kaggle_routes import kaggle_bp  # ✅ NEW
+    from app.routes.kaggle_routes import kaggle_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(simblock_bp)
     app.register_blueprint(attack_bp)
     app.register_blueprint(ml_bp)
-    app.register_blueprint(kaggle_bp)  # ✅ NEW
+    app.register_blueprint(kaggle_bp)
 
     # Create necessary directories
     create_directories()

@@ -43,7 +43,7 @@ class AttackService:
             pass
 
     def start_attack(self, attack_type, parameters=None):
-        """Start a blockchain attack - IMPROVED VERSION"""
+        """Start a blockchain attack"""
         print(f"🔴 ATTACK START REQUEST: {attack_type.value}")
 
         # FIX: Check if simulation is running properly
@@ -54,7 +54,7 @@ class AttackService:
 
         attack_id = f"{attack_type.value}_{int(time.time())}"
 
-        # NAYA: Get current block number for attack targeting
+        # Get current block number for attack targeting
         current_block = self.simblock_service.blockchain_data["blocks"]
         target_block = current_block + 1  # FIXED: Target NEXT block
 
@@ -96,7 +96,7 @@ class AttackService:
         }
 
     def _double_spending_attack(self, attack_id, parameters, target_block):
-        """Double Spending Attack Implementation - IMPROVED"""
+        """Double Spending Attack Implementation"""
         print(f"💸 Double Spending Attack: Targeting Block #{target_block}...")
 
         attack_data = self.active_attacks[attack_id]
@@ -131,7 +131,7 @@ class AttackService:
             # Step 3: Try to get both transactions confirmed
             success = random.random() > 0.3  # 70% success rate
 
-            # NAYA: Mark the target block with attack result
+            # Mark the target block with attack result
             self.simblock_service.mark_block_attack(target_block, "double_spending", success)
 
             if success:
@@ -161,7 +161,7 @@ class AttackService:
             self._log_attack(attack_data)
 
     def _fifty_one_percent_attack(self, attack_id, parameters, target_block):
-        """51% Attack Implementation - IMPROVED"""
+        """51% Attack Implementation """
         print(f"⚡ 51% Attack: Targeting Block #{target_block}...")
 
         attack_data = self.active_attacks[attack_id]
@@ -178,7 +178,7 @@ class AttackService:
             # Determine success based on hash power
             success = hash_power > 50 and random.random() > 0.2
 
-            # NAYA: Mark the target block with attack result
+            # Mark the target block with attack result
             self.simblock_service.mark_block_attack(target_block, "51_percent", success)
 
             attack_data["results"]["success"] = success
@@ -206,7 +206,7 @@ class AttackService:
             self._log_attack(attack_data)
 
     def _selfish_mining_attack(self, attack_id, parameters, target_block):
-        """Selfish Mining Attack Implementation - IMPROVED"""
+        """Selfish Mining Attack Implementation """
         print(f"🤫 Selfish Mining: Targeting Block #{target_block}...")
 
         attack_data = self.active_attacks[attack_id]
@@ -237,7 +237,7 @@ class AttackService:
 
             success = secret_blocks > 0 or random.random() > 0.5
 
-            # NAYA: Mark the target block with attack result
+            # Mark the target block with attack result
             self.simblock_service.mark_block_attack(target_block, "selfish_mining", success)
 
             attack_data["results"]["success"] = success
@@ -265,7 +265,7 @@ class AttackService:
             self._log_attack(attack_data)
 
     def _eclipse_attack(self, attack_id, parameters, target_block):
-        """Eclipse Attack Implementation - IMPROVED"""
+        """Eclipse Attack Implementation """
         print(f"🌑 Eclipse Attack: Targeting Block #{target_block}...")
 
         attack_data = self.active_attacks[attack_id]
@@ -283,7 +283,7 @@ class AttackService:
             # Check if attack was successful
             success = random.random() > 0.2  # 80% success rate
 
-            # NAYA: Mark the target block with attack result
+            # Mark the target block with attack result
             self.simblock_service.mark_block_attack(target_block, "eclipse_attack", success)
 
             attack_data["results"]["success"] = success

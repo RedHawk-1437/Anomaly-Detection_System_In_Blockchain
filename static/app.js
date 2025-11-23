@@ -346,7 +346,7 @@ function startBasicUpdates() {
 
 function startSimulationUpdates() {
     stopAllUpdates();
-    intervals.push(setInterval(updateStatusCards, 2000));
+    intervals.push(setInterval(updateStatusCards, 5000));
     intervals.push(setInterval(updateMLStatus, 5000));
     intervals.push(setInterval(updateActiveAttacks, 3000));
     intervals.push(setInterval(updateMLPredictions, 4000));

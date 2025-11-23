@@ -39,7 +39,7 @@ class MLService:
         self.prediction_thread = None
         self.is_detecting = False
 
-        # NAYA: Improved features with better attack detection
+        # Improved features with better attack detection
         self.features = [
             # Basic blockchain metrics
             'blocks_mined', 'transactions_count', 'network_nodes', 'mining_power',
@@ -107,8 +107,8 @@ class MLService:
             return False
 
     def generate_training_data(self, num_samples=5000):
-        """Generate training data combining real and synthetic data - IMPROVED"""
-        print("🔄 Generating IMPROVED training data...")
+        """Generate training data combining real and synthetic data """
+        print("🔄 Generating training data...")
 
         combined_data = []
 
@@ -144,7 +144,7 @@ class MLService:
         labels = []
 
         for i in range(num_samples):
-            # NAYA: Better distribution - 85% normal, 15% attacks
+            # Better distribution - 85% normal, 15% attacks
             if i < num_samples * 0.85:  # 85% normal
                 features = self._generate_normal_pattern()
                 label = 0
@@ -417,7 +417,7 @@ class MLService:
             print(f"Error logging training: {e}")
 
     def start_detection(self):
-        """Start continuous anomaly detection - IMPROVED"""
+        """Start continuous anomaly detection """
         if not self.is_trained:
             return {"status": "error", "message": "Model not trained. Please train the model first."}
 
@@ -642,7 +642,7 @@ class MLService:
             float(blockchain_data.get('transactions', 0) * 0.001),  # REAL transaction volume
         ])
 
-        # IMPROVED: Generate features based on actual block status
+        # Generate features based on actual block status
         if block_status == "attack_success":
             # Features for successful attacks
             features.extend([

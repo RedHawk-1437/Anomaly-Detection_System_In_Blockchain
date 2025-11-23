@@ -1,0 +1,24 @@
+{
+  "simulation": {
+    "endBlockHeight": 20,
+    "blockInterval": 60000,
+    "nodeCount": 100,
+    "regionAssigned": false,
+    "routingType": "NONE",
+    "latencyType": "CONSTANT",
+    "networkDelay": 100
+  },
+  "consensus": {
+    "type": "PROOF_OF_WORK",
+    "miningPower": 100,
+    "miningPowerDistribution": "NORMAL"
+  },
+  "incentive": {
+    "type": "BITCOIN",
+    "genesisBlock": {
+      "height": 0,
+      "minerID": -1,
+      "parent": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  }
+}

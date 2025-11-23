@@ -10,7 +10,7 @@ def get_simblock_service():
 
 @simblock_bp.route('/api/simblock/start', methods=['POST'])
 def start_simulation():
-    """SimBlock simulation start keren"""
+    """SimBlock simulation start"""
     simblock_service = get_simblock_service()
     data = request.get_json() or {}
     node_count = data.get('node_count', 100)
@@ -21,7 +21,7 @@ def start_simulation():
 
 @simblock_bp.route('/api/simblock/stop', methods=['POST'])
 def stop_simulation():
-    """SimBlock simulation stop keren"""
+    """Stop SimBlock simulation"""
     simblock_service = get_simblock_service()
     result = simblock_service.stop_simulation()
     return jsonify(result)
@@ -29,7 +29,7 @@ def stop_simulation():
 
 @simblock_bp.route('/api/simblock/status')
 def get_simulation_status():
-    """Current simulation status get keren"""
+    """Get Current simulation status"""
     simblock_service = get_simblock_service()
     status = simblock_service.get_status()
     return jsonify(status)
