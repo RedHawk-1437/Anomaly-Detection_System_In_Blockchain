@@ -382,3 +382,16 @@ class AttackService:
             del self.active_attacks[attack_id]
             return {"status": "success", "message": "Attack stopped"}
         return {"status": "error", "message": "Attack not found"}
+
+    def get_attack_history(self):
+        """Get completed attack history from log file"""
+        try:
+            if os.path.exists(self.attack_log):
+                with open(self.attack_log, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                return data.get("attack_history", [])
+            else:
+                return []
+        except Exception as e:
+            print(f"Error reading attack history: {e}")
+            return []

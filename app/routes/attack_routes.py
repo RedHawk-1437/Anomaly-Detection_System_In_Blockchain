@@ -95,3 +95,10 @@ def stop_attack(attack_id):
     attack_service = get_attack_service()
     result = attack_service.stop_attack(attack_id)
     return jsonify(result)
+
+@attack_bp.route('/api/attack/history', methods=['GET'])
+def get_attack_history():
+    """Get completed attack history"""
+    attack_service = get_attack_service()
+    history = attack_service.get_attack_history()
+    return jsonify({"history_attacks": history})

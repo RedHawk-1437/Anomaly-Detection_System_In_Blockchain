@@ -354,6 +354,7 @@ function startSimulationUpdates() {
     intervals.push(setInterval(updateDatasetStats, 10000));
     intervals.push(setInterval(updateKaggleStatus, 15000));
     intervals.push(setInterval(updateFileList, 20000));
+    intervals.push(setInterval(updateAttackHistory, 2000));
 }
 
 function stopAllUpdates() {
@@ -553,6 +554,7 @@ async function updateAllStatus() {
     await updateKaggleStatus();
     await updateDatasetStats();
     await updateFileList();
+    await updateAttackHistory();
 }
 
 async function updateStatusCards() {
@@ -687,6 +689,40 @@ async function updateActiveAttacks() {
         console.error('Error updating attacks:', error);
     }
 }
+
+async function updateAttackHistory() {
+    /**
+     * Completed attacks ka persistent record fetch karta hai
+     * aur threatFeed section me show karta hai.
+     */
+    try {
+        const data = await apiCall('/api/attack/history');
+        const feed = document.getElementById('threatFeed');
+
+        if (!feed) return;
+
+        if (data.history_attacks?.length > 0) {
+            feed.innerHTML = data.history_attacks.slice().reverse().map(attack => {
+                const statusColor =
+                    attack.status === 'success' ? '#10b981' :
+                    attack.status === 'failed' ? '#ef4444' : '#f59e0b';
+                return `
+                    <div class="attack-item">
+                        <strong>${(attack.type || '').replace(/_/g, ' ').toUpperCase()}</strong>
+                        <div>Started: ${attack.start_time ? new Date(attack.start_time).toLocaleTimeString() : 'N/A'}</div>
+                        <div>Ended: ${attack.end_time ? new Date(attack.end_time).toLocaleTimeString() : 'N/A'}</div>
+                        <div>Status: <span style="color:${statusColor}; font-weight:bold;">${(attack.status || 'unknown').toUpperCase()}</span></div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            feed.innerHTML = `<p>No attack history yet</p>`;
+        }
+    } catch (error) {
+        console.error('Error updating attack history:', error);
+    }
+}
+
 
 async function updateMLPredictions() {
     try {

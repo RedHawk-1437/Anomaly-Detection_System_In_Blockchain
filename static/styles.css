@@ -697,6 +697,23 @@ body {
     color: #d97706;
 }
 
+/* ===== ML Predictions Scroll Container ===== */
+#mlPredictions {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+#mlPredictions::-webkit-scrollbar {
+    width: 6px;
+}
+
+#mlPredictions::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+
 /* ===== ACTIVE ATTACKS STYLES ===== */
 .active-attacks {
     background: var(--card-bg);
@@ -1158,3 +1175,66 @@ html {
         opacity: 1;
     }
 }
+
+/* ===== ATTACK HISTORY STYLES ===== */
+.attack-history {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 1px solid var(--card-border);
+    margin: 2rem 0;
+}
+
+.attack-history h4 {
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.feed-list .attack-item {
+    padding: 1.5rem;
+    margin: 1rem 0;
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px solid var(--card-border);
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.feed-list .attack-item:hover {
+    transform: translateX(8px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(99, 102, 241, 0.4);
+}
+
+.feed-list .attack-item strong {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.feed-list p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* ===== Feed Scroll Fix ===== */
+.feed-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.feed-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.feed-list::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+}
+
